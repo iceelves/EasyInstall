@@ -1,0 +1,7 @@
+bin/
+obj/
+packages/
+ReleaseLib/
+.vs/
+demo/
+*.exe
