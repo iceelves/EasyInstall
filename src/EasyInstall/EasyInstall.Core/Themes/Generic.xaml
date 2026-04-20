@@ -8,5 +8,9 @@
         <!--定制原生控件-->
         <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceButtonStyle.xaml"/>
         <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceSvgButtonStyle.xaml"/>
+        <!--通用默认样式-->
+        <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceCheckBoxStyle.xaml"/>
     </ResourceDictionary.MergedDictionaries>
+    <!--通用默认样式-->
+    <Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource IceCheckBoxStyle}"/>
 </ResourceDictionary>

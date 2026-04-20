@@ -5,4 +5,8 @@
     <System:String x:Key="InstallationWizard">安装向导</System:String>
     <System:String x:Key="ApplicationName">应用名称</System:String>
     <System:String x:Key="VersionNumber">版本号</System:String>
+    <System:String x:Key="StartInstall">开始安装</System:String>
+    <System:String x:Key="ReadAndAgree">阅读并同意</System:String>
+    <System:String x:Key="UserLicenseAgreement">《用户许可协议》</System:String>
+    <System:String x:Key="CustomSettings">自定义设置</System:String>
 </ResourceDictionary>

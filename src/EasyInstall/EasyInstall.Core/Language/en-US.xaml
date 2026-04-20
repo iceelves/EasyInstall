@@ -5,4 +5,8 @@
     <System:String x:Key="InstallationWizard">Installation Wizard</System:String>
     <System:String x:Key="ApplicationName">Application Name</System:String>
     <System:String x:Key="VersionNumber">Version Number</System:String>
+    <System:String x:Key="StartInstall">Start Install</System:String>
+    <System:String x:Key="ReadAndAgree">Read and agree to the</System:String>
+    <System:String x:Key="UserLicenseAgreement">User License Agreement.</System:String>
+    <System:String x:Key="CustomSettings">Custom Settings</System:String>
 </ResourceDictionary>

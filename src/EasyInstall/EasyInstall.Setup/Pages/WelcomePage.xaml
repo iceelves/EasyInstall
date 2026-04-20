@@ -5,20 +5,37 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:EasyInstall.Setup.Pages"
       mc:Ignorable="d" 
+      xmlns:control="clr-namespace:EasyInstall.Core.Controls;assembly=EasyInstall.Core"
       d:DesignHeight="450" d:DesignWidth="800"
       Title="WelcomePage">
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="2*"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="120"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
             <Image Source="pack://application:,,,/EasyInstall.Core;component/images/Install.png" Width="100" Height="100" Margin="10"/>
             <Label Content="{DynamicResource InstallationWizard}" FontSize="24" HorizontalAlignment="Center"/>
         </StackPanel>
         <Grid Grid.Row="1">
-
+            <Grid.RowDefinitions>
+                <RowDefinition Height="4*"/>
+                <RowDefinition Height="3*"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <control:IceButton Height="40" Width="160" Background="#1A92ED" IsMouseOverFill="#1783D4" ButtonCornerRadius="4" VerticalAlignment="Top"
+                                   FontSize="14" Foreground="White" BorderThickness="0" IsDefault="True" Content="{DynamicResource StartInstall}"/>
+            </Grid>
+            <Grid Grid.Row="1">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <CheckBox Content="{DynamicResource ReadAndAgree}" Cursor="Hand" Margin="20,0,0,0"/>
+                    <control:IceButton Background="Transparent" IsMouseOverFill="Transparent" ButtonCornerRadius="0" VerticalAlignment="Center" BorderThickness="0"
+                                       Foreground="#4083FD" Content="{DynamicResource UserLicenseAgreement}" Cursor="Hand" Margin="4,0"/>
+                </StackPanel>
+                <control:IceButton Background="Transparent" IsMouseOverFill="#808080" ButtonCornerRadius="0" VerticalAlignment="Center" HorizontalAlignment="Right" BorderThickness="0"
+                                   Foreground="Black" Content="{DynamicResource CustomSettings}" Cursor="Hand" Margin="20,0"/>
+            </Grid>
         </Grid>
     </Grid>
 </Page>

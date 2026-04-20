@@ -96,7 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EasyInstall.Core\EasyInstall.Core.csproj">
-      <Project>{06cf4b79-4412-4d71-a116-72c11458ae04}</Project>
+      <Project>{d4e136d0-b6a8-4bc3-806c-3c5b0dc2c62b}</Project>
       <Name>EasyInstall.Core</Name>
     </ProjectReference>
   </ItemGroup>
