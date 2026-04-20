@@ -5,8 +5,60 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EasyInstall.Setup"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
-    </Grid>
+        xmlns:control="clr-namespace:EasyInstall.Core.Controls;assembly=EasyInstall.Core"
+        AllowsTransparency="True" Background="Transparent"
+        WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResize"
+        Icon="pack://application:,,,/EasyInstall.Core;component/images/Install.png"
+        Title="{DynamicResource InstallationWizard}" Height="400" Width="600">
+
+    <Window.Resources>
+        <!--关闭窗口淡出-->
+        <Storyboard x:Key="CloseStoryboard">
+            <DoubleAnimation From="1" To="0" Duration="0:0:0.5" Storyboard.TargetProperty="(Window.Opacity)"/>
+        </Storyboard>
+    </Window.Resources>
+
+    <Border x:Name="BaseBorder" SnapsToDevicePixels="True">
+        <Border.Style>
+            <Style TargetType="Border">
+                <Setter Property="Margin" Value="10"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect Color="Black" BlurRadius="16" ShadowDepth="0" Opacity="0.5"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </Border.Style>
+        <Border x:Name="ContentBorder" CornerRadius="8">
+            <Border.Clip>
+                <RectangleGeometry RadiusX="8" RadiusY="8" Rect="0,0,580,380"/>
+            </Border.Clip>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Image Source="pack://application:,,,/EasyInstall.Core;component/images/Background.jpg" Stretch="Fill" Grid.Row="0" Grid.RowSpan="2"/>
+                <Grid x:Name="TitleBar" Grid.Row="0">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Image Source="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Icon}" Width="25" Margin="10,0,5,0"/>
+                        <Label Content="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Title}"/>
+                    </StackPanel>
+                    <StackPanel WindowChrome.IsHitTestVisibleInChrome="True" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="2,1">
+                        <control:IceSvgButton x:Name="mainMinimize" Width="30" Height="25" ImageMargin="7"
+                                              ButtonImage="M96 417.984h832v188.032h-832z"
+                                              NormalFill="Gray" IsMouseOverFill="Gray" IsMouseOverBackground="Transparent"
+                                              Click="Minimize_Click"/>
+                        <control:IceSvgButton x:Name="mainClose" Width="30" Height="25" ImageMargin="5"
+                                              ButtonImage="M954.304 190.336a15.552 15.552 0 0 1 0 21.952l-300.032 300.032 298.56 298.56a15.616 15.616 0 0 1 0 22.016l-120.96 120.896a15.552 15.552 0 0 1-21.952 0L511.36 655.232 214.272 952.32a15.552 15.552 0 0 1-21.952 0l-120.896-120.896a15.488 15.488 0 0 1 0-21.952l297.152-297.152L69.888 213.76a15.552 15.552 0 0 1 0-21.952l120.896-120.896a15.552 15.552 0 0 1 21.952 0L511.36 369.472l300.096-300.032a15.36 15.36 0 0 1 21.952 0l120.896 120.896z"
+                                              NormalFill="Gray" IsMouseOverFill="#D8605A" IsMouseOverBackground="Transparent"
+                                              Click="mainClose_Click"/>
+                    </StackPanel>
+                </Grid>
+                <Border Grid.Row="1">
+                    <Frame x:Name="StepFrame" NavigationUIVisibility="Hidden"/>
+                </Border>
+            </Grid>
+        </Border>
+    </Border>
 </Window>

@@ -1,0 +1,12 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.MergedDictionaries>
+        <!--设置语言-->
+        <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Language/en-US.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Language/zh-CN.xaml"/>
+        <!--定制原生控件-->
+        <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceButtonStyle.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceSvgButtonStyle.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+</ResourceDictionary>
