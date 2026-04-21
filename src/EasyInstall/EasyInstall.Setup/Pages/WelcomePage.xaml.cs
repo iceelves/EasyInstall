@@ -23,6 +23,18 @@ namespace EasyInstall.Setup.Pages
         public WelcomePage(MainWindow host)
         {
             InitializeComponent();
+
+            this.Loaded += WelcomePage_Loaded;
+        }
+
+        /// <summary>
+        /// Loaded
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void WelcomePage_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.AppName.Content = $"{App.Config.AppName}";
         }
     }
 }

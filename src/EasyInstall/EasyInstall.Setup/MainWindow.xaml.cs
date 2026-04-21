@@ -42,6 +42,8 @@ namespace EasyInstall.Setup
         /// <param name="e"></param>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            this.Title = $"{App.Config.AppName} {App.Config.AppVersion} {Application.Current.FindResource("InstallationWizard")}";
+
             if (App.IsUninstallMode)
             {
                 _pages = new Page[]
