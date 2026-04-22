@@ -2,6 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:System ="clr-namespace:System;assembly=mscorlib">
 
+    <!--公共-->
+    <System:String x:Key="OK">确定</System:String>
+
+    <!--主界面-->
     <System:String x:Key="InstallationWizard">安装向导</System:String>
     <System:String x:Key="ApplicationName">应用名称</System:String>
     <System:String x:Key="VersionNumber">版本号</System:String>

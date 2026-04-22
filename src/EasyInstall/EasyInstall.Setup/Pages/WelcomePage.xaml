@@ -31,11 +31,11 @@
             <Grid Grid.Row="1">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                     <CheckBox x:Name="ReadAndAgree" Content="{DynamicResource ReadAndAgree}" Cursor="Hand" Margin="20,0,0,0"/>
-                    <control:IceButton Background="Transparent" IsMouseOverFill="Transparent" ButtonCornerRadius="0" VerticalAlignment="Center" BorderThickness="0"
-                                       Foreground="#4083FD" Content="{DynamicResource UserLicenseAgreement}" Cursor="Hand" Margin="4,0"/>
+                    <control:IceButton x:Name="UserLicenseAgreement" Background="Transparent" IsMouseOverFill="Transparent" ButtonCornerRadius="0" VerticalAlignment="Center" BorderThickness="0"
+                                       Foreground="#4083FD" Content="{DynamicResource UserLicenseAgreement}" Cursor="Hand" Margin="4,0" Click="UserLicenseAgreement_Click"/>
                 </StackPanel>
-                <control:IceButton Height="25" Width="100" Background="Transparent" IsMouseOverFill="#50DCDCDC" ButtonCornerRadius="5" VerticalAlignment="Center"
-                                   HorizontalAlignment="Right" BorderThickness="0" Cursor="Hand" Margin="20,0" Foreground="Black"
+                <control:IceButton Height="25" Background="Transparent" IsMouseOverFill="#50DCDCDC" ButtonCornerRadius="5" VerticalAlignment="Center"
+                                   HorizontalAlignment="Right" BorderThickness="0" Cursor="Hand" Margin="20,0" Padding="5,0" Foreground="Black"
                                    Content="{DynamicResource CustomSettings}"/>
             </Grid>
         </Grid>

@@ -36,5 +36,21 @@ namespace EasyInstall.Setup.Pages
         {
             this.AppName.Content = $"{App.Config.AppName}";
         }
+
+        /// <summary>
+        /// 用户许可协议
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void UserLicenseAgreement_Click(object sender, RoutedEventArgs e)
+        {
+            LicenseWindow licenseWindow = new LicenseWindow();
+            licenseWindow.ShowDialog();
+
+            if (licenseWindow.IsReadAndAgree)
+            {
+                this.ReadAndAgree.IsChecked = true;
+            }
+        }
     }
 }
