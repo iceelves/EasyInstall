@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,17 @@ namespace EasyInstall.Setup.Pages
         public FinishPage(MainWindow host)
         {
             InitializeComponent();
+        }
+
+        /// <summary>
+        /// 安装完成
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void InstallCompleted_Click(object sender, RoutedEventArgs e)
+        {
+            // 强制终止当前进程
+            Process.GetCurrentProcess().Kill();
         }
     }
 }

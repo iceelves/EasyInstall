@@ -17,4 +17,6 @@
     <System:String x:Key="AddTaskbar">Add to taskbar</System:String>
     <System:String x:Key="BootStartup">Boot startup</System:String>
     <System:String x:Key="DiskFreeSpace">Disk free space:</System:String>
+    <System:String x:Key="Installing">Installing...</System:String>
+    <System:String x:Key="InstallCompleted">Install Completed</System:String>
 </ResourceDictionary>

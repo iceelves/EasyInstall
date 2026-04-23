@@ -1,0 +1,110 @@
+﻿using EasyInstall.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace EasyInstall.Core.Helpers
+{
+    /// <summary>
+    /// 基于 GZip 的文件打包/解包工具（兼容 .NET 4.5.2，不使用 ValueTuple）
+    /// 格式：[4字节条目数] ( [4字节路径长度][路径UTF8] [8字节文件大小][文件数据] ) * N
+    /// 整体用 GZip 压缩
+    /// </summary>
+    public static class ZipHelper
+    {
+        public static event Action<int> ProgressChanged;
+
+        private class FileEntry
+        {
+            public string RelPath { get; set; }
+            public string AbsPath { get; set; }
+        }
+
+        /// <summary>
+        /// 将多个源路径（文件或目录）压缩为字节数组
+        /// </summary>
+        /// <param name="files"></param>
+        /// <param name="baseDir"></param>
+        /// <returns></returns>
+        public static byte[] CompressPaths(List<PackageFile> files, string baseDir)
+        {
+            var entries = new List<FileEntry>();
+
+            foreach (var pf in files)
+            {
+                string src = Path.IsPathRooted(pf.Source)
+                    ? pf.Source
+                    : Path.Combine(baseDir, pf.Source);
+
+                if (Directory.Exists(src))
+                {
+                    foreach (var f in Directory.GetFiles(src, "*", SearchOption.AllDirectories))
+                    {
+                        string rel = Path.Combine(
+                            pf.TargetDir ?? "",
+                            f.Substring(src.TrimEnd('\\', '/').Length + 1));
+                        entries.Add(new FileEntry { RelPath = rel, AbsPath = f });
+                    }
+                }
+                else if (File.Exists(src))
+                {
+                    string rel = Path.Combine(pf.TargetDir ?? "", Path.GetFileName(src));
+                    entries.Add(new FileEntry { RelPath = rel, AbsPath = src });
+                }
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                using (var gz = new GZipStream(ms, CompressionMode.Compress, true))
+                using (var bw = new BinaryWriter(gz))
+                {
+                    bw.Write(entries.Count);
+                    for (int i = 0; i < entries.Count; i++)
+                    {
+                        byte[] data = File.ReadAllBytes(entries[i].AbsPath);
+                        byte[] pathBytes = System.Text.Encoding.UTF8.GetBytes(entries[i].RelPath);
+                        bw.Write(pathBytes.Length);
+                        bw.Write(pathBytes);
+                        bw.Write((long)data.Length);
+                        bw.Write(data);
+                        ProgressChanged?.Invoke((i + 1) * 100 / entries.Count);
+                    }
+                }
+                return ms.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// 解压字节数组到目标目录
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="targetDir"></param>
+        /// <param name="progress"></param>
+        public static void Decompress(byte[] data, string targetDir, Action<int> progress = null)
+        {
+            using (var ms = new MemoryStream(data))
+            using (var gz = new GZipStream(ms, CompressionMode.Decompress))
+            using (var br = new BinaryReader(gz))
+            {
+                int count = br.ReadInt32();
+                for (int i = 0; i < count; i++)
+                {
+                    int pathLen = br.ReadInt32();
+                    string relPath = System.Text.Encoding.UTF8.GetString(br.ReadBytes(pathLen));
+                    long fileSize = br.ReadInt64();
+                    byte[] fileData = br.ReadBytes((int)fileSize);
+
+                    string dest = Path.Combine(targetDir, relPath);
+                    Directory.CreateDirectory(Path.GetDirectoryName(dest));
+                    File.WriteAllBytes(dest, fileData);
+
+                    progress?.Invoke((i + 1) * 100 / count);
+                }
+            }
+        }
+    }
+}

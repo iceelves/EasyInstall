@@ -1,4 +1,5 @@
-﻿using EasyInstall.Setup.Pages;
+﻿using EasyInstall.Core.Helpers;
+using EasyInstall.Setup.Pages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,11 @@ namespace EasyInstall.Setup
         private Page[] _pages;
 
         /// <summary>
+        /// 安装路径
+        /// </summary>
+        public string InstallPath { get; set; }
+
+        /// <summary>
         /// Loaded
         /// </summary>
         /// <param name="sender"></param>
@@ -53,6 +59,8 @@ namespace EasyInstall.Setup
             }
             else
             {
+                InstallPath = PathHelper.Resolve(App.Config.DefaultInstallDir, App.Config.CompanySimplify, App.Config.AppName);
+
                 _pages = new Page[]
                 {
                     new WelcomePage(this),

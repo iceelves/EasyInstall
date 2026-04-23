@@ -17,4 +17,6 @@
     <System:String x:Key="AddTaskbar">添加到任务栏</System:String>
     <System:String x:Key="BootStartup">开机自动启动</System:String>
     <System:String x:Key="DiskFreeSpace">磁盘可用空间：</System:String>
+    <System:String x:Key="Installing">正在安装...</System:String>
+    <System:String x:Key="InstallCompleted">安装完成</System:String>
 </ResourceDictionary>

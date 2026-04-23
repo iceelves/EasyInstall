@@ -5,10 +5,22 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:EasyInstall.Setup.Pages"
       mc:Ignorable="d" 
+      xmlns:control="clr-namespace:EasyInstall.Core.Controls;assembly=EasyInstall.Core"
       d:DesignHeight="450" d:DesignWidth="800"
       Title="FinishPage">
 
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="80"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+
+        </Grid>
+        <Grid Grid.Row="1">
+            <control:IceButton x:Name="InstallCompleted" Height="40" Width="160" Background="#4083FD" IsMouseOverFill="#256EEB" ButtonCornerRadius="4" VerticalAlignment="Top"
+                               FontSize="14" Foreground="White" BorderThickness="0" IsDefault="True" Cursor="Hand"
+                               Content="{DynamicResource InstallCompleted}" Click="InstallCompleted_Click"/>
+        </Grid>
     </Grid>
 </Page>

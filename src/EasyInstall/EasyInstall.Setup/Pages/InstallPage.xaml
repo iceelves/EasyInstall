@@ -5,10 +5,26 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:EasyInstall.Setup.Pages"
       mc:Ignorable="d" 
+      xmlns:control="clr-namespace:EasyInstall.Core.Controls;assembly=EasyInstall.Core"
       d:DesignHeight="450" d:DesignWidth="800"
       Title="InstallPage">
 
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="80"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+
+        </Grid>
+        <Grid Grid.Row="1">
+            <StackPanel Orientation="Vertical" Width="480" VerticalAlignment="Center">
+                <ProgressBar x:Name="InstallProgress" Height="18" Minimum="0" Maximum="100" Foreground="#3498DB" Background="#ECF0F1"/>
+                <Grid Margin="0,8">
+                    <TextBlock x:Name="Installing" FontSize="12" Foreground="#7F8C8D" Text="{DynamicResource Installing}"/>
+                    <TextBlock x:Name="Percentage" FontSize="12" Foreground="#7F8C8D" HorizontalAlignment="Right" Text="0%"/>
+                </Grid>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>

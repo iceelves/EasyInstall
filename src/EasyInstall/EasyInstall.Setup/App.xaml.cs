@@ -59,7 +59,7 @@ namespace EasyInstall.Setup
                 Config = new InstallConfig
                 {
                     // 基本信息
-                    AppName = "Easy Install",
+                    AppName = "EasyInstall",
                     AppVersion = "v1.0.0.0",
                     Company = "Beijing BingYun Information Technology Co., Ltd.",
                     CompanySimplify = "IceElves",

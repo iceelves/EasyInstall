@@ -60,6 +60,7 @@
     <Compile Include="Helpers\JsonHelper.cs" />
     <Compile Include="Helpers\OverlayHelper.cs" />
     <Compile Include="Helpers\PathHelper.cs" />
+    <Compile Include="Helpers\ZipHelper.cs" />
     <Compile Include="Models\InstallConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

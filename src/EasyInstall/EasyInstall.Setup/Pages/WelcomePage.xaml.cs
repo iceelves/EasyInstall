@@ -27,8 +27,12 @@ namespace EasyInstall.Setup.Pages
         {
             InitializeComponent();
 
+            _host = host;
+
             this.Loaded += WelcomePage_Loaded;
         }
+
+        private readonly MainWindow _host;
 
         /// <summary>
         /// Loaded
@@ -38,7 +42,7 @@ namespace EasyInstall.Setup.Pages
         private void WelcomePage_Loaded(object sender, RoutedEventArgs e)
         {
             this.AppName.Content = $"{App.Config.AppName}";
-            this.InstallDir.Text = PathHelper.Resolve(App.Config.DefaultInstallDir, App.Config.CompanySimplify, App.Config.AppName);
+            this.InstallDir.Text = _host.InstallPath;
 
             // 更新磁盘空间信息
             UpdateSpaceInfo();
@@ -92,7 +96,7 @@ namespace EasyInstall.Setup.Pages
                 DialogResult result = folderDialog.ShowDialog();
                 if (result == DialogResult.OK)
                 {
-                    this.InstallDir.Text = $@"{folderDialog.SelectedPath}\{App.Config.AppName}";
+                    this.InstallDir.Text = _host.InstallPath = $@"{folderDialog.SelectedPath}\{App.Config.AppName}";
 
                     // 更新磁盘空间信息
                     UpdateSpaceInfo();
@@ -119,6 +123,16 @@ namespace EasyInstall.Setup.Pages
             {
                 this.SpaceInfo.Text = $"{System.Windows.Application.Current.FindResource("DiskFreeSpace")} -- GB";
             }
+        }
+
+        /// <summary>
+        /// 开始安装
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void StartInstall_Click(object sender, RoutedEventArgs e)
+        {
+            _host.NavigateTo(1);
         }
     }
 }
