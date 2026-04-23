@@ -21,14 +21,16 @@ namespace EasyInstall.Core.Models
         [DataMember]
         public string Company { get; set; }
         [DataMember]
+        public string CompanySimplify { get; set; }
+        [DataMember]
         public string Website { get; set; }
 
         // ── 安装行为 ──────────────────────────────────────────────
         /// <summary>
-        /// 默认安装路径，支持 {ProgramFiles}、{LocalAppData}、{AppName} 占位符
+        /// 默认安装路径，支持 {ProgramFiles}、{LocalAppData}、{Company}、{AppName} 占位符
         /// </summary>
         [DataMember]
-        public string DefaultInstallDir { get; set; } = @"{ProgramFiles}\{AppName}";
+        public string DefaultInstallDir { get; set; } = @"{ProgramFiles}\{Company}\{AppName}";
 
         /// <summary>
         /// 注册表卸载键名

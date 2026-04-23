@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using EasyInstall.Core.Helpers;
 
 namespace EasyInstall.Setup.Pages
 {
@@ -37,6 +38,7 @@ namespace EasyInstall.Setup.Pages
         private void WelcomePage_Loaded(object sender, RoutedEventArgs e)
         {
             this.AppName.Content = $"{App.Config.AppName}";
+            this.InstallDir.Text = PathHelper.Resolve(App.Config.DefaultInstallDir, App.Config.CompanySimplify, App.Config.AppName);
 
             // 更新磁盘空间信息
             UpdateSpaceInfo();
@@ -90,7 +92,8 @@ namespace EasyInstall.Setup.Pages
                 DialogResult result = folderDialog.ShowDialog();
                 if (result == DialogResult.OK)
                 {
-                    this.InstallDir.Text = folderDialog.SelectedPath;
+                    this.InstallDir.Text = $@"{folderDialog.SelectedPath}\{App.Config.AppName}";
+
                     // 更新磁盘空间信息
                     UpdateSpaceInfo();
                 }
