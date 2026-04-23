@@ -13,4 +13,8 @@
     <System:String x:Key="ReadAndAgree">阅读并同意</System:String>
     <System:String x:Key="UserLicenseAgreement">《用户许可协议》</System:String>
     <System:String x:Key="CustomSettings">自定义设置</System:String>
+    <System:String x:Key="CreateDesktopShortcut">创建桌面快捷方式</System:String>
+    <System:String x:Key="AddTaskbar">添加到任务栏</System:String>
+    <System:String x:Key="BootStartup">开机自动启动</System:String>
+    <System:String x:Key="DiskFreeSpace">磁盘可用空间：</System:String>
 </ResourceDictionary>

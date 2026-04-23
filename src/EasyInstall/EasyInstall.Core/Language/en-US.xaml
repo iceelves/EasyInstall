@@ -13,4 +13,8 @@
     <System:String x:Key="ReadAndAgree">Read and agree to the</System:String>
     <System:String x:Key="UserLicenseAgreement">User License Agreement</System:String>
     <System:String x:Key="CustomSettings">Custom Settings</System:String>
+    <System:String x:Key="CreateDesktopShortcut">Create desktop shortcut</System:String>
+    <System:String x:Key="AddTaskbar">Add to taskbar</System:String>
+    <System:String x:Key="BootStartup">Boot startup</System:String>
+    <System:String x:Key="DiskFreeSpace">Disk free space:</System:String>
 </ResourceDictionary>

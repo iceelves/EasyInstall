@@ -15,13 +15,13 @@
             <RowDefinition Height="120"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
-            <Image Source="pack://application:,,,/EasyInstall.Core;component/images/Install.png" Width="100" Height="100" Margin="10"/>
+            <Image Source="pack://application:,,,/EasyInstall.Core;component/images/Install.png" Width="100" Height="100" Margin="8"/>
             <Label x:Name="AppName" FontSize="24" HorizontalAlignment="Center"/>
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="4*"/>
-                <RowDefinition Height="3*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="50"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
                 <control:IceButton x:Name="StartInstall" Height="40" Width="160" Background="#4083FD" IsMouseOverFill="#256EEB" ButtonCornerRadius="4" VerticalAlignment="Top"
@@ -34,10 +34,80 @@
                     <control:IceButton x:Name="UserLicenseAgreement" Background="Transparent" IsMouseOverFill="Transparent" ButtonCornerRadius="0" VerticalAlignment="Center" BorderThickness="0"
                                        Foreground="#4083FD" Content="{DynamicResource UserLicenseAgreement}" Cursor="Hand" Margin="4,0" Click="UserLicenseAgreement_Click"/>
                 </StackPanel>
-                <control:IceButton Height="25" Background="Transparent" IsMouseOverFill="#50DCDCDC" ButtonCornerRadius="5" VerticalAlignment="Center"
+                <control:IceButton x:Name="CustomSettings" Height="25" Background="Transparent" IsMouseOverFill="#50DCDCDC" ButtonCornerRadius="5" VerticalAlignment="Center"
                                    HorizontalAlignment="Right" BorderThickness="0" Cursor="Hand" Margin="20,0" Padding="5,0" Foreground="Black"
-                                   Content="{DynamicResource CustomSettings}"/>
+                                   Content="{DynamicResource CustomSettings}" Click="CustomSettings_Click"/>
             </Grid>
         </Grid>
+        <!--CustomSettings-->
+        <Border x:Name="CustomSettingsBorder" Grid.Row="0" Grid.RowSpan="2" Background="White" CornerRadius="8" Height="200" VerticalAlignment="Bottom" Visibility="Collapsed">
+            <Border.Effect>
+                <DropShadowEffect Color="Black" Direction="315" BlurRadius="15" ShadowDepth="8"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="35"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="50"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0">
+                    <control:IceSvgButton x:Name="takeBack" Width="30" Height="25" ImageMargin="5" HorizontalAlignment="Right" Margin="10,0"
+                                          ButtonImage="M261.339429 299.227429a64 64 0 0 0-101.961143 76.8l5.705143 7.533714L463.798857 724.845714a64 64 0 0 0 89.6 6.656l6.582857-6.582857 298.715429-341.357714A64 64 0 0 0 769.097143 292.571429l-6.656 6.656-250.514286 286.281142-250.587428-286.281142z"
+                                          NormalFill="Gray" IsMouseOverFill="DimGray" IsMouseOverBackground="Transparent" Cursor="Hand"
+                                          Click="takeBack_Click"/>
+                </Grid>
+                <Grid Grid.Row="1">
+                    <StackPanel Orientation="Vertical" Width="480">
+                        <StackPanel Orientation="Horizontal" Height="50">
+                            <CheckBox x:Name="CreateDesktopShortcut" Content="{DynamicResource CreateDesktopShortcut}" Cursor="Hand" Margin="10,2"/>
+                            <CheckBox x:Name="AddTaskbar" Content="{DynamicResource AddTaskbar}" Cursor="Hand" Margin="10,2"/>
+                            <CheckBox x:Name="BootStartup" Content="{DynamicResource BootStartup}" Cursor="Hand" Margin="10,2"/>
+                        </StackPanel>
+                        <Grid Height="34" HorizontalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="380"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="InstallDir" Grid.Column="0" Margin="8,2" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" Background="White" Padding="5,0,40,0">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Setter Property="BorderBrush" Value="Gray"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                        <Setter Property="Background" Value="White"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="TextBox">
+                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                                                        <Grid>
+                                                            <ScrollViewer x:Name="PART_ContentHost"/>
+                                                            <control:IceSvgButton x:Name="SelectFolder" Width="20" Height="20" ImageMargin="0" HorizontalAlignment="Right" Margin="10,0"
+                                                                                  ButtonImage="M807.3216 889.5488H221.184c-78.7456 0-142.848-64.1024-142.848-142.848V286.976c0-78.7456 64.1024-142.848 142.848-142.848h178.8416c20.7872 0 40.7552 8.8064 54.784 24.1664l77.568 85.0944c2.4064 2.6112 5.8368 4.1472 9.3696 4.1472h265.5232c78.7456 0 142.848 64.1024 142.848 142.848v346.2656c0.0512 78.7968-64.0512 142.8992-142.7968 142.8992zM221.184 205.568c-44.9024 0-81.408 36.5056-81.408 81.408v459.6736c0 44.9024 36.5056 81.408 81.408 81.408h586.1376c44.9024 0 81.408-36.5056 81.408-81.408V400.4352c0-44.9024-36.5056-81.408-81.408-81.408h-265.5232c-20.7872 0-40.7552-8.8064-54.784-24.1664L409.3952 209.7152c-2.4064-2.6112-5.8368-4.1472-9.3696-4.1472H221.184z M466.0224 453.8368H249.0368c-16.9472 0-30.72-13.7728-30.72-30.72s13.7728-30.72 30.72-30.72h216.9856c16.9472 0 30.72 13.7728 30.72 30.72s-13.7728 30.72-30.72 30.72z"
+                                                                                  NormalFill="Gray" IsMouseOverFill="DimGray" IsMouseOverBackground="Transparent" Cursor="Hand"
+                                                                                  Click="SelectFolder_Click"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                            <control:IceButton x:Name="StartInstall2" Grid.Column="1" Height="30" Width="85" Background="#4083FD" IsMouseOverFill="#256EEB" ButtonCornerRadius="4"
+                                               FontSize="12" Foreground="White" BorderThickness="0" IsDefault="True" Cursor="Hand" VerticalAlignment="Center"
+                                               Content="{DynamicResource StartInstall}" IsEnabled="{Binding IsChecked, ElementName=ReadAndAgree}"/>
+                        </Grid>
+                        <TextBlock x:Name="SpaceInfo" Margin="0,8" Padding="8,0" FontSize="12" Foreground="#7F8C8D" Text="{DynamicResource DiskFreeSpace}"/>
+                    </StackPanel>
+                </Grid>
+                <Grid Grid.Row="2">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <CheckBox x:Name="ReadAndAgree2" Content="{DynamicResource ReadAndAgree}" Cursor="Hand" Margin="20,0,0,0" IsChecked="{Binding IsChecked, ElementName=ReadAndAgree}"/>
+                        <control:IceButton x:Name="UserLicenseAgreement2" Background="Transparent" IsMouseOverFill="Transparent" ButtonCornerRadius="0" VerticalAlignment="Center" BorderThickness="0"
+                                           Foreground="#4083FD" Content="{DynamicResource UserLicenseAgreement}" Cursor="Hand" Margin="4,0" Click="UserLicenseAgreement_Click"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
     </Grid>
 </Page>

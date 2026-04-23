@@ -15,7 +15,13 @@ namespace EasyInstall.Core.Helpers
     {
         private static readonly byte[] Magic = Encoding.ASCII.GetBytes("EASYINST");
 
-        /// <summary>将 Setup.exe + 压缩数据 + JSON配置 合并为单个 EXE</summary>
+        /// <summary>
+        /// 将 Setup.exe + 压缩数据 + JSON配置 合并为单个 EXE
+        /// </summary>
+        /// <param name="setupExePath"></param>
+        /// <param name="compressedData"></param>
+        /// <param name="configJson"></param>
+        /// <param name="outputPath"></param>
         public static void Pack(string setupExePath, byte[] compressedData,
             string configJson, string outputPath)
         {
@@ -34,7 +40,11 @@ namespace EasyInstall.Core.Helpers
             }
         }
 
-        /// <summary>检测当前运行的 EXE 是否包含 Overlay 数据</summary>
+        /// <summary>
+        /// 检测当前运行的 EXE 是否包含 Overlay 数据
+        /// </summary>
+        /// <param name="exePath"></param>
+        /// <returns></returns>
         public static bool HasOverlay(string exePath)
         {
             try
@@ -51,7 +61,11 @@ namespace EasyInstall.Core.Helpers
             catch { return false; }
         }
 
-        /// <summary>从 EXE 中读取 JSON 配置</summary>
+        /// <summary>
+        /// 从 EXE 中读取 JSON 配置
+        /// </summary>
+        /// <param name="exePath"></param>
+        /// <returns></returns>
         public static string ReadConfig(string exePath)
         {
             using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read))
@@ -68,7 +82,11 @@ namespace EasyInstall.Core.Helpers
             }
         }
 
-        /// <summary>从 EXE 中读取压缩数据</summary>
+        /// <summary>
+        /// 从 EXE 中读取压缩数据
+        /// </summary>
+        /// <param name="exePath"></param>
+        /// <returns></returns>
         public static byte[] ReadData(string exePath)
         {
             using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read))

@@ -3,8 +3,8 @@
 
     <ResourceDictionary.MergedDictionaries>
         <!--设置语言-->
-        <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Language/zh-CN.xaml"/>
         <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Language/en-US.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Language/zh-CN.xaml"/>
         <!--定制原生控件-->
         <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceButtonStyle.xaml"/>
         <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceSvgButtonStyle.xaml"/>
