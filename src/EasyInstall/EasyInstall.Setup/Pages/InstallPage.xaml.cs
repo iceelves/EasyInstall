@@ -77,6 +77,44 @@ namespace EasyInstall.Setup.Pages
                 }
             }
 
+            // 写入注册表、复制自身到安装目录作为卸载程序
+            string exePath = System.IO.Path.Combine(installDir, App.Config.MainExecutable ?? "");
+            string uninstallExe = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string uninstallDest = System.IO.Path.Combine(installDir, "uninstall.exe");
+            await Task.Run(() =>
+            {
+                try
+                {
+                    File.Copy(uninstallExe, uninstallDest, true);
+                    RegistryHelper.RegisterUninstall(
+                        App.Config.AppName,
+                        App.Config.RegistryKey ?? App.Config.AppName,
+                        installDir,
+                        App.Config.MainExecutable,
+                        App.Config.AppVersion ?? "v1.0.0.0",
+                        App.Config.Company ?? "",
+                        uninstallDest,
+                        App.Config.Website ?? "");
+                }
+                catch { }
+            });
+
+            // 创建快捷方式
+            //await Task.Run(() =>
+            //{
+            //    try
+            //    {
+            //        if (_host.CreateDesktop && File.Exists(exePath))
+            //            ShortcutHelper.CreateDesktopShortcut(App.Config.AppName, exePath, installDir);
+            //        if (_host.CreateStartMenu && File.Exists(exePath))
+            //            ShortcutHelper.CreateStartMenuShortcut(App.Config.AppName, exePath, installDir);
+            //        if (_host.AutoRun && File.Exists(exePath))
+            //            RegistryHelper.SetAutoRun(App.Config.AppName, exePath, true);
+            //    }
+            //    catch { }
+            //});
+
+            // 安装完成
             InstallProgress.Value = 100;
             this.Percentage.Text = $"{InstallProgress.Value}%";
             _host.NavigateTo(2);

@@ -42,6 +42,21 @@ namespace EasyInstall.Setup
         public string InstallPath { get; set; }
 
         /// <summary>
+        /// 创建桌面快捷方式
+        /// </summary>
+        public bool CreateDesktop { get; set; } = true;
+
+        /// <summary>
+        /// 创建开始菜单快捷方式
+        /// </summary>
+        public bool CreateStartMenu { get; set; } = true;
+
+        /// <summary>
+        /// 开机自启
+        /// </summary>
+        public bool AutoRun { get; set; } = false;
+
+        /// <summary>
         /// Loaded
         /// </summary>
         /// <param name="sender"></param>
@@ -59,7 +74,14 @@ namespace EasyInstall.Setup
             }
             else
             {
-                InstallPath = PathHelper.Resolve(App.Config.DefaultInstallDir, App.Config.CompanySimplify, App.Config.AppName);
+                if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
+                {
+                    InstallPath = RegistryHelper.GetInstallLocation(App.Config.RegistryKey ?? App.Config.AppName);
+                }
+                else
+                {
+                    InstallPath = PathHelper.Resolve(App.Config.DefaultInstallDir, App.Config.CompanySimplify, App.Config.AppName);
+                }
 
                 _pages = new Page[]
                 {
