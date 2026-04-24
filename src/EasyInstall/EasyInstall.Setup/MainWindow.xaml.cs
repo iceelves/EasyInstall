@@ -42,19 +42,24 @@ namespace EasyInstall.Setup
         public string InstallPath { get; set; }
 
         /// <summary>
-        /// 创建桌面快捷方式
+        /// 桌面快捷方式
         /// </summary>
-        public bool CreateDesktop { get; set; } = true;
+        public bool DesktopShortcut { get; set; } = true;
 
         /// <summary>
-        /// 创建开始菜单快捷方式
+        /// 开始菜单快捷方式
         /// </summary>
-        public bool CreateStartMenu { get; set; } = true;
+        public bool StartMenuShortcut { get; set; } = true;
 
         /// <summary>
-        /// 开机自启
+        /// 任务栏快捷方式
         /// </summary>
-        public bool AutoRun { get; set; } = false;
+        public bool TaskbarShortcut { get; set; } = false;
+
+        /// <summary>
+        /// 创建开机自启
+        /// </summary>
+        public bool StartWithWindows { get; set; } = false;
 
         /// <summary>
         /// Loaded

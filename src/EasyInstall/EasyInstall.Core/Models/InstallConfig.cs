@@ -53,12 +53,29 @@ namespace EasyInstall.Core.Models
         public List<PackageFile> Files { get; set; } = new List<PackageFile>();
 
         // ── 快捷方式 ──────────────────────────────────────────────
+        /// <summary>
+        /// 桌面快捷方式
+        /// </summary>
         [DataMember]
-        public bool CreateDesktopShortcut { get; set; } = true;
+        public bool DesktopShortcut { get; set; } = true;
+
+        /// <summary>
+        /// 开始菜单快捷方式
+        /// </summary>
         [DataMember]
-        public bool CreateStartMenuShortcut { get; set; } = true;
+        public bool StartMenuShortcut { get; set; } = true;
+
+        /// <summary>
+        /// 任务栏快捷方式
+        /// </summary>
         [DataMember]
-        public bool CreateAutoRun { get; set; } = false;
+        public bool TaskbarShortcut { get; set; } = false;
+
+        /// <summary>
+        /// 开机自启
+        /// </summary>
+        [DataMember]
+        public bool StartWithWindows { get; set; } = false;
 
         // ── 界面定制 ──────────────────────────────────────────────
         [DataMember]

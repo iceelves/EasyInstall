@@ -59,11 +59,12 @@
                 </Grid>
                 <Grid Grid.Row="1">
                     <StackPanel Orientation="Vertical" Width="480">
-                        <StackPanel Orientation="Horizontal" Height="50">
-                            <CheckBox x:Name="CreateDesktopShortcut" Content="{DynamicResource CreateDesktopShortcut}" Cursor="Hand" Margin="10,2"/>
-                            <CheckBox x:Name="AddTaskbar" Content="{DynamicResource AddTaskbar}" Cursor="Hand" Margin="10,2"/>
-                            <CheckBox x:Name="BootStartup" Content="{DynamicResource BootStartup}" Cursor="Hand" Margin="10,2"/>
-                        </StackPanel>
+                        <WrapPanel Orientation="Horizontal" Height="50" HorizontalAlignment="Left">
+                            <CheckBox x:Name="DesktopShortcut" Content="{DynamicResource DesktopShortcut}" Cursor="Hand" Margin="10,4"/>
+                            <CheckBox x:Name="StartMenuShortcut" Content="{DynamicResource StartMenuShortcut}" Cursor="Hand" Margin="10,4"/>
+                            <CheckBox x:Name="TaskbarShortcut" Content="{DynamicResource TaskbarShortcut}" Cursor="Hand" Margin="10,4"/>
+                            <CheckBox x:Name="StartWithWindows" Content="{DynamicResource StartWithWindows}" Cursor="Hand" Margin="10,4"/>
+                        </WrapPanel>
                         <Grid Height="34" HorizontalAlignment="Center">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="380"/>

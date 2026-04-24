@@ -42,6 +42,10 @@ namespace EasyInstall.Setup.Pages
         private void WelcomePage_Loaded(object sender, RoutedEventArgs e)
         {
             this.AppName.Content = $"{App.Config.AppName}";
+            this.DesktopShortcut.IsChecked = _host.DesktopShortcut = App.Config.DesktopShortcut;
+            this.StartMenuShortcut.IsChecked = _host.StartMenuShortcut = App.Config.StartMenuShortcut;
+            this.TaskbarShortcut.IsChecked = _host.TaskbarShortcut = App.Config.TaskbarShortcut;
+            this.StartWithWindows.IsChecked = _host.StartWithWindows = App.Config.StartWithWindows;
             this.InstallDir.Text = _host.InstallPath;
 
             // 更新磁盘空间信息
@@ -132,6 +136,11 @@ namespace EasyInstall.Setup.Pages
         /// <param name="e"></param>
         private void StartInstall_Click(object sender, RoutedEventArgs e)
         {
+            _host.DesktopShortcut = App.Config.DesktopShortcut = this.DesktopShortcut.IsChecked.GetValueOrDefault();
+            _host.StartMenuShortcut = App.Config.StartMenuShortcut = this.StartMenuShortcut.IsChecked.GetValueOrDefault();
+            _host.TaskbarShortcut = App.Config.TaskbarShortcut = this.TaskbarShortcut.IsChecked.GetValueOrDefault();
+            _host.StartWithWindows = App.Config.StartWithWindows = this.StartWithWindows.IsChecked.GetValueOrDefault();
+
             _host.NavigateTo(1);
         }
     }
