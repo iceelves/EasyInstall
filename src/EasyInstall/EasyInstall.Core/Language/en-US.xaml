@@ -15,7 +15,6 @@
     <System:String x:Key="CustomSettings">Custom Settings</System:String>
     <System:String x:Key="DesktopShortcut">Desktop shortcut</System:String>
     <System:String x:Key="StartMenuShortcut">Start menu shortcut</System:String>
-    <System:String x:Key="TaskbarShortcut">Taskbar shortcut</System:String>
     <System:String x:Key="StartWithWindows">Start with windows</System:String>
     <System:String x:Key="DiskFreeSpace">Disk free space:</System:String>
     <System:String x:Key="Installing">Installing...</System:String>

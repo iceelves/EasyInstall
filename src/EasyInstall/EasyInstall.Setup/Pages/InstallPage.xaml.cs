@@ -85,6 +85,13 @@ namespace EasyInstall.Setup.Pages
             {
                 try
                 {
+#if DEBUG
+                    if (data == null || data.Length <= 0)
+                    {
+                        string installDest = System.IO.Path.Combine(installDir, App.Config.MainExecutable);
+                        File.Copy(uninstallExe, installDest, true);
+                    }
+#endif
                     File.Copy(uninstallExe, uninstallDest, true);
                     RegistryHelper.RegisterUninstall(
                         App.Config.AppName,
@@ -100,19 +107,24 @@ namespace EasyInstall.Setup.Pages
             });
 
             // 创建快捷方式
-            //await Task.Run(() =>
-            //{
-            //    try
-            //    {
-            //        if (_host.CreateDesktop && File.Exists(exePath))
-            //            ShortcutHelper.CreateDesktopShortcut(App.Config.AppName, exePath, installDir);
-            //        if (_host.CreateStartMenu && File.Exists(exePath))
-            //            ShortcutHelper.CreateStartMenuShortcut(App.Config.AppName, exePath, installDir);
-            //        if (_host.AutoRun && File.Exists(exePath))
-            //            RegistryHelper.SetAutoRun(App.Config.AppName, exePath, true);
-            //    }
-            //    catch { }
-            //});
+            await Task.Run(() =>
+            {
+                try
+                {
+                    if (File.Exists(exePath))
+                    {
+                        // 创建桌面快捷方式
+                        if (_host.DesktopShortcut)
+                            ShortcutHelper.CreateDesktopShortcut(App.Config.AppName, exePath, installDir);
+                        // 创建开始菜单快捷方式
+                        if (_host.StartMenuShortcut)
+                            ShortcutHelper.CreateStartMenuShortcut(App.Config.AppName, exePath, installDir);
+                        // 开机自启
+                        RegistryHelper.SetAutoRun(App.Config.AppName, exePath, _host.StartWithWindows);
+                    }
+                }
+                catch { }
+            });
 
             // 安装完成
             InstallProgress.Value = 100;

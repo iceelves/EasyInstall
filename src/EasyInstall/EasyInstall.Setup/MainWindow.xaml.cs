@@ -52,11 +52,6 @@ namespace EasyInstall.Setup
         public bool StartMenuShortcut { get; set; } = true;
 
         /// <summary>
-        /// 任务栏快捷方式
-        /// </summary>
-        public bool TaskbarShortcut { get; set; } = false;
-
-        /// <summary>
         /// 创建开机自启
         /// </summary>
         public bool StartWithWindows { get; set; } = false;

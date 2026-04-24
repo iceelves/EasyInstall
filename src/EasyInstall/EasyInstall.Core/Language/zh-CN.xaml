@@ -15,7 +15,6 @@
     <System:String x:Key="CustomSettings">自定义设置</System:String>
     <System:String x:Key="DesktopShortcut">创建桌面快捷方式</System:String>
     <System:String x:Key="StartMenuShortcut">创建开始菜单快捷方式</System:String>
-    <System:String x:Key="TaskbarShortcut">创建任务栏快捷方式</System:String>
     <System:String x:Key="StartWithWindows">创建开机自启</System:String>
     <System:String x:Key="DiskFreeSpace">磁盘可用空间：</System:String>
     <System:String x:Key="Installing">正在安装...</System:String>

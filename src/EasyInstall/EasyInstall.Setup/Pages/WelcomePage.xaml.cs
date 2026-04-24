@@ -44,7 +44,6 @@ namespace EasyInstall.Setup.Pages
             this.AppName.Content = $"{App.Config.AppName}";
             this.DesktopShortcut.IsChecked = _host.DesktopShortcut = App.Config.DesktopShortcut;
             this.StartMenuShortcut.IsChecked = _host.StartMenuShortcut = App.Config.StartMenuShortcut;
-            this.TaskbarShortcut.IsChecked = _host.TaskbarShortcut = App.Config.TaskbarShortcut;
             this.StartWithWindows.IsChecked = _host.StartWithWindows = App.Config.StartWithWindows;
             this.InstallDir.Text = _host.InstallPath;
 
@@ -138,7 +137,6 @@ namespace EasyInstall.Setup.Pages
         {
             _host.DesktopShortcut = App.Config.DesktopShortcut = this.DesktopShortcut.IsChecked.GetValueOrDefault();
             _host.StartMenuShortcut = App.Config.StartMenuShortcut = this.StartMenuShortcut.IsChecked.GetValueOrDefault();
-            _host.TaskbarShortcut = App.Config.TaskbarShortcut = this.TaskbarShortcut.IsChecked.GetValueOrDefault();
             _host.StartWithWindows = App.Config.StartWithWindows = this.StartWithWindows.IsChecked.GetValueOrDefault();
 
             _host.NavigateTo(1);

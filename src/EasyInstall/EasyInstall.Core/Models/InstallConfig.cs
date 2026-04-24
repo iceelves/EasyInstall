@@ -66,12 +66,6 @@ namespace EasyInstall.Core.Models
         public bool StartMenuShortcut { get; set; } = true;
 
         /// <summary>
-        /// 任务栏快捷方式
-        /// </summary>
-        [DataMember]
-        public bool TaskbarShortcut { get; set; } = false;
-
-        /// <summary>
         /// 开机自启
         /// </summary>
         [DataMember]

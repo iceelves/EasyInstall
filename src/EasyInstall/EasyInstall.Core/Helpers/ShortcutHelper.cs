@@ -34,8 +34,7 @@ namespace EasyInstall.Core.Helpers
         /// <param name="workDir"></param>
         public static void CreateStartMenuShortcut(string appName, string targetExe, string workDir)
         {
-            string startMenu = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), appName);
+            string startMenu = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), appName);
             Directory.CreateDirectory(startMenu);
             CreateShortcut(Path.Combine(startMenu, appName + ".lnk"), targetExe, workDir);
         }
@@ -46,9 +45,7 @@ namespace EasyInstall.Core.Helpers
         /// <param name="appName"></param>
         public static void RemoveDesktopShortcut(string appName)
         {
-            string path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
-                appName + ".lnk");
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),appName + ".lnk");
             if (File.Exists(path)) File.Delete(path);
         }
 
@@ -58,8 +55,7 @@ namespace EasyInstall.Core.Helpers
         /// <param name="appName"></param>
         public static void RemoveStartMenuShortcut(string appName)
         {
-            string dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), appName);
+            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms), appName);
             if (Directory.Exists(dir))
                 Directory.Delete(dir, true);
         }
