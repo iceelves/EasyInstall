@@ -69,9 +69,9 @@ namespace EasyInstall.Setup.Pages
             else
             {
                 // 调试模式无数据，模拟进度
-                for (int i = 0; i <= 100; i += 10)
+                for (int i = 0; i <= 100; i += 1)
                 {
-                    await Task.Delay(80);
+                    await Task.Delay(200);
                     InstallProgress.Value = i;
                     this.Percentage.Text = $"{InstallProgress.Value}%";
                 }
