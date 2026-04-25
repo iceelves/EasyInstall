@@ -9,7 +9,7 @@
         AllowsTransparency="True" Background="Transparent"
         WindowStartupLocation="CenterScreen" WindowStyle="None" ResizeMode="CanResize"
         Icon="pack://application:,,,/EasyInstall.Core;component/images/Install.png"
-        Title="{DynamicResource InstallationWizard}" Height="400" Width="600">
+        Title="{DynamicResource InstallWizard}" Height="400" Width="600">
 
     <Window.Resources>
         <!--关闭窗口淡出-->
@@ -41,7 +41,7 @@
                 <Image Source="pack://application:,,,/EasyInstall.Core;component/images/Background.jpg" Stretch="Fill" Grid.Row="0" Grid.RowSpan="2"/>
                 <Grid x:Name="TitleBar" Grid.Row="0">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                        <Image Source="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Icon}" Width="25" Margin="10,0,5,0"/>
+                        <Image Source="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Icon}" Width="20" Height="20" Margin="10,0,5,0"/>
                         <Label Content="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Title}"/>
                     </StackPanel>
                     <StackPanel WindowChrome.IsHitTestVisibleInChrome="True" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="2,1">

@@ -14,14 +14,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace EasyInstall.Setup.Pages
+namespace EasyInstall.Setup.Pages.Install
 {
     /// <summary>
-    /// FinishPage.xaml 的交互逻辑
+    /// InstallFinishPage.xaml 的交互逻辑
     /// </summary>
-    public partial class FinishPage : Page
+    public partial class InstallFinishPage : Page
     {
-        public FinishPage(MainWindow host)
+        public InstallFinishPage(MainWindow host)
         {
             InitializeComponent();
 

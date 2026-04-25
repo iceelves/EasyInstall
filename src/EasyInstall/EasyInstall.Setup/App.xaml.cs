@@ -35,6 +35,10 @@ namespace EasyInstall.Setup
                     IsUninstallMode = true;
             }
 
+//#if DEBUG
+//            IsUninstallMode = true;
+//#endif
+
             // 尝试读取 Overlay 数据
             if (OverlayHelper.HasOverlay(exePath))
             {

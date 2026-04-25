@@ -73,10 +73,6 @@ namespace EasyInstall.Core.Models
 
         // ── 界面定制 ──────────────────────────────────────────────
         [DataMember]
-        public string BannerColor { get; set; } = "#2C3E50";
-        [DataMember]
-        public string AccentColor { get; set; } = "#3498DB";
-        [DataMember]
         public string LogoBase64 { get; set; }
     }
 

@@ -5,9 +5,8 @@
     <!--Public-->
     <System:String x:Key="OK">OK</System:String>
 
-    <!--Main Interface-->
-    <System:String x:Key="InstallationWizard">Installation Wizard</System:String>
-    <System:String x:Key="ApplicationName">Application Name</System:String>
+    <!--Main Interface Install-->
+    <System:String x:Key="InstallWizard">Install Wizard</System:String>
     <System:String x:Key="VersionNumber">Version Number</System:String>
     <System:String x:Key="StartInstall">Start Install</System:String>
     <System:String x:Key="ReadAndAgree">Read and agree to the</System:String>
@@ -19,4 +18,10 @@
     <System:String x:Key="DiskFreeSpace">Disk free space:</System:String>
     <System:String x:Key="Installing">Installing...</System:String>
     <System:String x:Key="InstallCompleted">Install Completed</System:String>
+
+    <!--Main Interface Uninstall-->
+    <System:String x:Key="UninstallWizard">Uninstall Wizard</System:String>
+    <System:String x:Key="StartUninstall">Start Uninstall</System:String>
+    <System:String x:Key="Uninstalling">Uninstalling...</System:String>
+    <System:String x:Key="UninstallCompleted">Uninstall Completed</System:String>
 </ResourceDictionary>

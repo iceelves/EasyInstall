@@ -1,5 +1,6 @@
 ﻿using EasyInstall.Core.Helpers;
-using EasyInstall.Setup.Pages;
+using EasyInstall.Setup.Pages.Install;
+using EasyInstall.Setup.Pages.Uninstall;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,39 @@ namespace EasyInstall.Setup
 
             this.Loaded += MainWindow_Loaded;
             this.ContentBorder.MouseLeftButtonDown += ContentBorder_MouseLeftButtonDown;
+
+            if (App.IsUninstallMode)
+            {
+                this.Title = $"{App.Config.AppName} {App.Config.AppVersion} {Application.Current.FindResource("UninstallWizard")}";
+                this.Icon = new BitmapImage(new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png"));
+
+                _pages = new Page[]
+                {
+                    new UninstallPage(this)
+                };
+            }
+            else
+            {
+                this.Title = $"{App.Config.AppName} {App.Config.AppVersion} {Application.Current.FindResource("InstallWizard")}";
+
+                if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
+                {
+                    InstallPath = RegistryHelper.GetInstallLocation(App.Config.RegistryKey ?? App.Config.AppName);
+                }
+                else
+                {
+                    InstallPath = PathHelper.Resolve(App.Config.DefaultInstallDir, App.Config.CompanySimplify, App.Config.AppName);
+                }
+
+                _pages = new Page[]
+                {
+                    new WelcomePage(this),
+                    new InstallPage(this),
+                    new InstallFinishPage(this)
+                };
+            }
+
+            NavigateTo(0);
         }
 
         /// <summary>
@@ -63,35 +97,7 @@ namespace EasyInstall.Setup
         /// <param name="e"></param>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            this.Title = $"{App.Config.AppName} {App.Config.AppVersion} {Application.Current.FindResource("InstallationWizard")}";
 
-            if (App.IsUninstallMode)
-            {
-                _pages = new Page[]
-                {
-                    new UninstallPage(this)
-                };
-            }
-            else
-            {
-                if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
-                {
-                    InstallPath = RegistryHelper.GetInstallLocation(App.Config.RegistryKey ?? App.Config.AppName);
-                }
-                else
-                {
-                    InstallPath = PathHelper.Resolve(App.Config.DefaultInstallDir, App.Config.CompanySimplify, App.Config.AppName);
-                }
-
-                _pages = new Page[]
-                {
-                    new WelcomePage(this),
-                    new InstallPage(this),
-                    new FinishPage(this)
-                };
-            }
-
-            NavigateTo(0);
         }
 
         public void NavigateTo(int index)

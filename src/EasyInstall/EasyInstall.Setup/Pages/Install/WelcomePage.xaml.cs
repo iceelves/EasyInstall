@@ -16,7 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using EasyInstall.Core.Helpers;
 
-namespace EasyInstall.Setup.Pages
+namespace EasyInstall.Setup.Pages.Install
 {
     /// <summary>
     /// WelcomePage.xaml 的交互逻辑

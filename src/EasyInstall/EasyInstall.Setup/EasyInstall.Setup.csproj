@@ -87,34 +87,34 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="Pages\FinishPage.xaml">
+    <Page Include="Pages\Install\InstallFinishPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\InstallPage.xaml">
+    <Page Include="Pages\Install\InstallPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\UninstallPage.xaml">
+    <Page Include="Pages\Uninstall\UninstallPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\WelcomePage.xaml">
+    <Page Include="Pages\Install\WelcomePage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Pages\FinishPage.xaml.cs">
-      <DependentUpon>FinishPage.xaml</DependentUpon>
+    <Compile Include="Pages\Install\InstallFinishPage.xaml.cs">
+      <DependentUpon>InstallFinishPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\InstallPage.xaml.cs">
+    <Compile Include="Pages\Install\InstallPage.xaml.cs">
       <DependentUpon>InstallPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\UninstallPage.xaml.cs">
+    <Compile Include="Pages\Uninstall\UninstallPage.xaml.cs">
       <DependentUpon>UninstallPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\WelcomePage.xaml.cs">
+    <Compile Include="Pages\Install\WelcomePage.xaml.cs">
       <DependentUpon>WelcomePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
