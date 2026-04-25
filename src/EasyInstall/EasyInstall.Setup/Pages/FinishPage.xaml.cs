@@ -24,6 +24,18 @@ namespace EasyInstall.Setup.Pages
         public FinishPage(MainWindow host)
         {
             InitializeComponent();
+
+            this.Loaded += FinishPage_Loaded;
+        }
+
+        /// <summary>
+        /// Loaded
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FinishPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.AppName.Content = $"{App.Config.AppName}";
         }
 
         /// <summary>
