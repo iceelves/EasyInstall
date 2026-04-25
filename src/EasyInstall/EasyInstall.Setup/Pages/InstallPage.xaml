@@ -15,156 +15,123 @@
             <RowDefinition Height="80"/>
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" ClipToBounds="True">
-            <!-- 中心动画区域 -->
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="220" Height="220">
-                <!-- 外环轨道（静态淡圆） -->
-                <Ellipse Width="200" Height="200" StrokeThickness="1.5"
-                         Stroke="#18FFFFFF" Fill="Transparent"
-                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <!-- 外环旋转弧：用 StrokeDashArray 截取约 3/4 圆弧，旋转中心即圆心 -->
-                <!-- 周长 ≈ 628，3/4 弧 ≈ 471，间隔 157 -->
-                <Ellipse Width="200" Height="200" StrokeThickness="3"
-                         StrokeDashArray="47.1 15.7"
-                         StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                         Fill="Transparent"
-                         HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Ellipse.Stroke>
-                        <SolidColorBrush Color="#FF1E90FF"/>
-                    </Ellipse.Stroke>
-                    <Ellipse.RenderTransformOrigin>0.5,0.5</Ellipse.RenderTransformOrigin>
-                    <Ellipse.RenderTransform>
-                        <RotateTransform x:Name="OuterArcRotate" Angle="0"/>
-                    </Ellipse.RenderTransform>
-                    <Ellipse.Triggers>
-                        <EventTrigger RoutedEvent="Ellipse.Loaded">
-                            <BeginStoryboard>
-                                <Storyboard RepeatBehavior="Forever">
-                                    <DoubleAnimation Storyboard.TargetName="OuterArcRotate"
-                                                     Storyboard.TargetProperty="Angle"
-                                                     From="0" To="360" Duration="0:0:2.4"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Ellipse.Triggers>
-                </Ellipse>
-                <!-- 中环轨道（静态淡圆） -->
-                <Ellipse Width="144" Height="144" StrokeThickness="1"
-                         Stroke="#18FFFFFF" Fill="Transparent"
-                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <!-- 中环旋转弧：逆时针，约 2/3 弧 -->
-                <!-- 周长 ≈ 452，2/3 弧 ≈ 301，间隔 151 -->
-                <Ellipse Width="144" Height="144" StrokeThickness="2.5"
-                         StrokeDashArray="21.0 10.5"
-                         StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                         Fill="Transparent"
-                         HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <Ellipse.Stroke>
-                        <SolidColorBrush Color="#FF00CFFF"/>
-                    </Ellipse.Stroke>
-                    <Ellipse.RenderTransformOrigin>0.5,0.5</Ellipse.RenderTransformOrigin>
-                    <Ellipse.RenderTransform>
-                        <RotateTransform x:Name="MidArcRotate" Angle="0"/>
-                    </Ellipse.RenderTransform>
-                    <Ellipse.Triggers>
-                        <EventTrigger RoutedEvent="Ellipse.Loaded">
-                            <BeginStoryboard>
-                                <Storyboard RepeatBehavior="Forever">
-                                    <DoubleAnimation Storyboard.TargetName="MidArcRotate"
-                                                     Storyboard.TargetProperty="Angle"
-                                                     From="0" To="-360" Duration="0:0:1.8"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Ellipse.Triggers>
-                </Ellipse>
-                <!-- 内环脉冲圆 -->
-                <Ellipse x:Name="InnerPulse" Width="76" Height="76"
-                         HorizontalAlignment="Center" VerticalAlignment="Center"
-                         StrokeThickness="1.5" Stroke="#661E90FF" Fill="Transparent">
-                    <Ellipse.RenderTransformOrigin>0.5,0.5</Ellipse.RenderTransformOrigin>
-                    <Ellipse.RenderTransform>
-                        <ScaleTransform x:Name="PulseScale" ScaleX="1" ScaleY="1"/>
-                    </Ellipse.RenderTransform>
-                    <Ellipse.Triggers>
-                        <EventTrigger RoutedEvent="Ellipse.Loaded">
+            <!-- 波形均衡器动画：5根竖条，错相位上下伸缩 -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                <!-- 柱 1 -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center" Background="#FF1E90FF">
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S1" ScaleY="1"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
                             <BeginStoryboard>
                                 <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                    <DoubleAnimation Storyboard.TargetName="PulseScale"
-                                                     Storyboard.TargetProperty="ScaleX"
-                                                     From="0.85" To="1.15" Duration="0:0:1.4"/>
-                                    <DoubleAnimation Storyboard.TargetName="PulseScale"
-                                                     Storyboard.TargetProperty="ScaleY"
-                                                     From="0.85" To="1.15" Duration="0:0:1.4"/>
-                                    <DoubleAnimation Storyboard.TargetName="InnerPulse"
-                                                     Storyboard.TargetProperty="Opacity"
-                                                     From="0.15" To="0.85" Duration="0:0:1.4"/>
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S1" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.15" KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.4"  Value="1.0"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.8"  Value="0.3"  KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
                                 </Storyboard>
                             </BeginStoryboard>
                         </EventTrigger>
-                    </Ellipse.Triggers>
-                </Ellipse>
-                <!-- 中心：三个短横线（loading 风格），依次闪烁 -->
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                            Orientation="Vertical" Width="32">
-                    <Rectangle x:Name="Bar1" Height="3" Width="32" RadiusX="1.5" RadiusY="1.5"
-                               Fill="#FF1E90FF" Margin="0,0,0,5" Opacity="1">
-                        <Rectangle.Triggers>
-                            <EventTrigger RoutedEvent="Rectangle.Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard RepeatBehavior="Forever">
-                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Bar1"
-                                                                        Storyboard.TargetProperty="Opacity">
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0"    Value="1.0"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0.4"  Value="0.2"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:1.2"  Value="0.2"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:1.6"  Value="1.0"/>
-                                        </DoubleAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Rectangle.Triggers>
-                    </Rectangle>
-                    <Rectangle x:Name="Bar2" Height="3" Width="24" RadiusX="1.5" RadiusY="1.5"
-                               Fill="#FF1E90FF" Margin="0,0,0,5" Opacity="0.2"
-                               HorizontalAlignment="Left">
-                        <Rectangle.Triggers>
-                            <EventTrigger RoutedEvent="Rectangle.Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard RepeatBehavior="Forever">
-                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Bar2"
-                                                                        Storyboard.TargetProperty="Opacity">
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0"    Value="0.2"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0.4"  Value="1.0"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0.8"  Value="0.2"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:1.6"  Value="0.2"/>
-                                        </DoubleAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Rectangle.Triggers>
-                    </Rectangle>
-                    <Rectangle x:Name="Bar3" Height="3" Width="16" RadiusX="1.5" RadiusY="1.5"
-                               Fill="#FF00CFFF" Opacity="0.2"
-                               HorizontalAlignment="Left">
-                        <Rectangle.Triggers>
-                            <EventTrigger RoutedEvent="Rectangle.Loaded">
-                                <BeginStoryboard>
-                                    <Storyboard RepeatBehavior="Forever">
-                                        <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Bar3"
-                                                                        Storyboard.TargetProperty="Opacity">
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0"    Value="0.2"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0.4"  Value="0.2"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:0.8"  Value="1.0"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:1.2"  Value="0.2"/>
-                                            <LinearDoubleKeyFrame KeyTime="0:0:1.6"  Value="0.2"/>
-                                        </DoubleAnimationUsingKeyFrames>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
-                        </Rectangle.Triggers>
-                    </Rectangle>
-                </StackPanel>
-            </Grid>
+                    </Border.Triggers>
+                </Border>
+                <!-- 柱 2 -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center" Background="#FF1E90FF">
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S2" ScaleY="0.3"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S2" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.3"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.3"  Value="0.9"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.7"  Value="0.15" KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.0"  Value="0.7"  KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+                <!-- 柱 3（最高，中间主角） -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FF00CFFF" Offset="0"/>
+                            <GradientStop Color="#FF1E90FF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S3" ScaleY="0.6"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S3" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.6"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.25" Value="1.0"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.55" Value="0.4"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.8"  Value="0.85" KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+                <!-- 柱 4 -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center" Background="#FF1E90FF">
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S4" ScaleY="0.7"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S4" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.7"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.35" Value="0.2"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.65" Value="0.95" KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.0"  Value="0.4"  KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+                <!-- 柱 5 -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center" Background="#FF1E90FF">
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S5" ScaleY="0.4"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S5" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.4"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.45" Value="1.0"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.9"  Value="0.2"  KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+            </StackPanel>
         </Grid>
         <Grid Grid.Row="1">
             <StackPanel Orientation="Vertical" Width="480" VerticalAlignment="Center">
