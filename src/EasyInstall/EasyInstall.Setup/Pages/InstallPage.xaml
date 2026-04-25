@@ -19,7 +19,7 @@
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
                 <!-- 柱 1 -->
                 <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
-                        VerticalAlignment="Center" Background="#FF1E90FF">
+                        VerticalAlignment="Center" Background="#FF6DB8FF">
                     <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
                     <Border.RenderTransform>
                         <ScaleTransform x:Name="S1" ScaleY="1"/>
@@ -40,7 +40,7 @@
                 </Border>
                 <!-- 柱 2 -->
                 <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
-                        VerticalAlignment="Center" Background="#FF1E90FF">
+                        VerticalAlignment="Center" Background="#FF8EC8FF">
                     <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
                     <Border.RenderTransform>
                         <ScaleTransform x:Name="S2" ScaleY="0.3"/>
@@ -65,8 +65,8 @@
                         VerticalAlignment="Center">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#FF00CFFF" Offset="0"/>
-                            <GradientStop Color="#FF1E90FF" Offset="1"/>
+                            <GradientStop Color="#FFDFF0FF" Offset="0"/>
+                            <GradientStop Color="#FF8EC8FF" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
                     <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
@@ -90,7 +90,7 @@
                 </Border>
                 <!-- 柱 4 -->
                 <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
-                        VerticalAlignment="Center" Background="#FF1E90FF">
+                        VerticalAlignment="Center" Background="#FF8EC8FF">
                     <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
                     <Border.RenderTransform>
                         <ScaleTransform x:Name="S4" ScaleY="0.7"/>
@@ -112,7 +112,7 @@
                 </Border>
                 <!-- 柱 5 -->
                 <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
-                        VerticalAlignment="Center" Background="#FF1E90FF">
+                        VerticalAlignment="Center" Background="#FF6DB8FF">
                     <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
                     <Border.RenderTransform>
                         <ScaleTransform x:Name="S5" ScaleY="0.4"/>
