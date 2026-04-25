@@ -34,6 +34,11 @@ namespace EasyInstall.Setup.Pages
         private readonly MainWindow _host;
 
         /// <summary>
+        /// 进度条总宽度，与 XAML 中 Width="480" 对应
+        /// </summary>
+        private const double ProgressTotalWidth = 480.0;
+
+        /// <summary>
         /// Loaded
         /// </summary>
         /// <param name="sender"></param>
@@ -62,7 +67,7 @@ namespace EasyInstall.Setup.Pages
                     ZipHelper.Decompress(data, installDir, p =>
                         Dispatcher.Invoke(() =>
                         {
-                            InstallProgress.Value = p;
+                            SyncProgressFill(p);
                             this.Percentage.Text = $"{InstallProgress.Value}%";
                         })));
             }
@@ -72,7 +77,7 @@ namespace EasyInstall.Setup.Pages
                 for (int i = 0; i <= 100; i += 1)
                 {
                     await Task.Delay(200);
-                    InstallProgress.Value = i;
+                    SyncProgressFill(i);
                     this.Percentage.Text = $"{InstallProgress.Value}%";
                 }
             }
@@ -127,9 +132,22 @@ namespace EasyInstall.Setup.Pages
             });
 
             // 安装完成
-            InstallProgress.Value = 100;
+            SyncProgressFill(100);
             this.Percentage.Text = $"{InstallProgress.Value}%";
             _host.NavigateTo(2);
+        }
+
+        /// <summary>
+        /// 同步进度填充
+        /// </summary>
+        /// <param name="value"></param>
+        private void SyncProgressFill(double value)
+        {
+            this.InstallProgress.Value = value;
+
+            double w = ProgressTotalWidth * value / 100.0;
+            ProgressFill.Width = w;
+            ShimmerClip.Width = w;
         }
     }
 }

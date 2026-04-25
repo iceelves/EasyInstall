@@ -135,7 +135,51 @@
         </Grid>
         <Grid Grid.Row="1">
             <StackPanel Orientation="Vertical" Width="480" VerticalAlignment="Center">
-                <ProgressBar x:Name="InstallProgress" Height="12" Minimum="0" Maximum="100" Foreground="#3498DB" Background="#ECF0F1"/>
+                <!-- 自定义进度条容器 -->
+                <Grid Height="10">
+                    <!-- 轨道背景 -->
+                    <Border CornerRadius="5" Background="#1A1E90FF"/>
+                    <!-- 进度填充（用 Grid + Clip 模拟 ProgressBar） -->
+                    <Border x:Name="ProgressFill" CornerRadius="5" HorizontalAlignment="Left" Width="0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#FF1E90FF" Offset="0"/>
+                                <GradientStop Color="#FF00CFFF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <!-- 扫光层，叠在进度条上 -->
+                    <Border x:Name="ShimmerClip" CornerRadius="5" ClipToBounds="True" HorizontalAlignment="Left" Width="0">
+                        <Canvas Width="480" Height="10">
+                            <Rectangle x:Name="Shimmer" Canvas.Left="-60" Canvas.Top="-2" Width="50" Height="14" Opacity="0.45">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="Transparent" Offset="0"/>
+                                        <GradientStop Color="White" Offset="0.5"/>
+                                        <GradientStop Color="Transparent" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                                <Rectangle.RenderTransform>
+                                    <TranslateTransform x:Name="ShimmerMove" X="0"/>
+                                </Rectangle.RenderTransform>
+                                <Rectangle.Triggers>
+                                    <EventTrigger RoutedEvent="Rectangle.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation Storyboard.TargetName="ShimmerMove"
+                                                                 Storyboard.TargetProperty="X"
+                                                                 From="-60" To="540" Duration="0:0:1.8"
+                                                                 BeginTime="0:0:0.4"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Rectangle.Triggers>
+                            </Rectangle>
+                        </Canvas>
+                    </Border>
+                    <!-- 隐藏的原生 ProgressBar 用于数据绑定，不可见 -->
+                    <ProgressBar x:Name="InstallProgress" Opacity="0" Height="10" Minimum="0" Maximum="100"/>
+                </Grid>
                 <Grid Margin="0,8">
                     <TextBlock x:Name="Installing" FontSize="12" Foreground="#7F8C8D" Text="{DynamicResource Installing}"/>
                     <TextBlock x:Name="Percentage" FontSize="12" Foreground="#7F8C8D" HorizontalAlignment="Right" Text="0%"/>
