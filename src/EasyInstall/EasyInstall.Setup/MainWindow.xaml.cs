@@ -2,6 +2,7 @@
 using EasyInstall.Setup.Pages.Install;
 using EasyInstall.Setup.Pages.Uninstall;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -35,6 +36,16 @@ namespace EasyInstall.Setup
             {
                 this.Title = $"{App.Config.AppName} {App.Config.AppVersion} {Application.Current.FindResource("UninstallWizard")}";
                 this.Icon = new BitmapImage(new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png"));
+
+                if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
+                {
+                    InstallPath = RegistryHelper.GetInstallLocation(App.Config.RegistryKey ?? App.Config.AppName);
+                }
+                else
+                {
+                    string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                    InstallPath = System.IO.Path.GetDirectoryName(exePath);
+                }
 
                 _pages = new Page[]
                 {

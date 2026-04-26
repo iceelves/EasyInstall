@@ -49,14 +49,60 @@ namespace EasyInstall.Setup.Pages.Uninstall
         }
 
         /// <summary>
-        /// 运行安装
+        /// 运行卸载
         /// </summary>
         /// <returns></returns>
         private async Task RunUninstall()
         {
-            string installDir = _host.InstallPath;
+            await Task.Run(() =>
+            {
+                // 删除桌面快捷方式
+                ShortcutHelper.RemoveDesktopShortcut(App.Config.AppName);
 
+                // 删除开始菜单快捷方式
+                ShortcutHelper.RemoveStartMenuShortcut(App.Config.AppName);
 
+                // 删除开机自启注册表
+                RegistryHelper.SetAutoRun(App.Config.AppName, string.Empty, false);
+
+                // 删除卸载注册表项
+                RegistryHelper.UnregisterUninstall(App.Config.RegistryKey ?? App.Config.AppName);
+
+                // 删除安装目录中所有文件（跳过自身），再用 cmd 延迟删除自身及目录
+                if (!string.IsNullOrEmpty(_host.InstallPath) && Directory.Exists(_host.InstallPath))
+                {
+                    string selfExe = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+                    var files = Directory.GetFiles(_host.InstallPath, "*", SearchOption.AllDirectories);
+                    int totalFiles = files.Length;
+                    int filesDeleted = 0;
+
+                    foreach (var file in files)
+                    {
+                        // 跳过自身，稍后用 cmd 延迟删除
+                        if (string.Equals(file, selfExe, StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        try
+                        {
+                            File.SetAttributes(file, FileAttributes.Normal);
+                            File.Delete(file);
+
+                            // 更新进度条，确保在 UI 线程上执行
+                            filesDeleted++;
+                            double progress = (double)filesDeleted / totalFiles * 100;
+                            Dispatcher.Invoke(() => SyncProgressFill(progress));
+                        }
+                        catch
+                        {
+                            // 忽略单个文件删除失败
+                        }
+                    }
+                }
+                Dispatcher.Invoke(() => SyncProgressFill(100));
+            });
+
+            // 跳转到完成页
+            _host.NavigateTo(2);
         }
 
         /// <summary>
