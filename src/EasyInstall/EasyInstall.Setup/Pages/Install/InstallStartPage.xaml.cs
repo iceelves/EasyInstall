@@ -19,17 +19,17 @@ using EasyInstall.Core.Helpers;
 namespace EasyInstall.Setup.Pages.Install
 {
     /// <summary>
-    /// WelcomePage.xaml 的交互逻辑
+    /// InstallStartPage.xaml 的交互逻辑
     /// </summary>
-    public partial class WelcomePage : Page
+    public partial class InstallStartPage : Page
     {
-        public WelcomePage(MainWindow host)
+        public InstallStartPage(MainWindow host)
         {
             InitializeComponent();
 
             _host = host;
 
-            this.Loaded += WelcomePage_Loaded;
+            this.Loaded += InstallStartPage_Loaded;
         }
 
         private readonly MainWindow _host;
@@ -39,7 +39,7 @@ namespace EasyInstall.Setup.Pages.Install
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void WelcomePage_Loaded(object sender, RoutedEventArgs e)
+        private void InstallStartPage_Loaded(object sender, RoutedEventArgs e)
         {
             this.AppName.Content = $"{App.Config.AppName}";
             this.DesktopShortcut.IsChecked = _host.DesktopShortcut = App.Config.DesktopShortcut;

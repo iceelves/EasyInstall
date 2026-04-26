@@ -12,17 +12,179 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="120"/>
+            <RowDefinition Height="80"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
-            <Image Source="pack://application:,,,/EasyInstall.Core;component/images/Install.png" Width="100" Height="100" Margin="8"/>
-            <Label x:Name="AppName" FontSize="24" HorizontalAlignment="Center"/>
-        </StackPanel>
+        <Grid Grid.Row="0" ClipToBounds="True">
+            <!-- 波形均衡器动画：5根竖条，错相位上下伸缩 -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                <!-- 柱 1 -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center" Background="#FF6DB8FF">
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S1" ScaleY="1"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S1" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.15" KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.4"  Value="1.0"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.8"  Value="0.3"  KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+                <!-- 柱 2 -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center" Background="#FF8EC8FF">
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S2" ScaleY="0.3"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S2" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.3"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.3"  Value="0.9"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.7"  Value="0.15" KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.0"  Value="0.7"  KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+                <!-- 柱 3（最高，中间主角） -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FFDFF0FF" Offset="0"/>
+                            <GradientStop Color="#FF8EC8FF" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S3" ScaleY="0.6"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S3" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.6"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.25" Value="1.0"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.55" Value="0.4"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.8"  Value="0.85" KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+                <!-- 柱 4 -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center" Background="#FF8EC8FF">
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S4" ScaleY="0.7"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S4" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.7"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.35" Value="0.2"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.65" Value="0.95" KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:1.0"  Value="0.4"  KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+                <!-- 柱 5 -->
+                <Border Width="6" Height="60" CornerRadius="3" Margin="5,0"
+                        VerticalAlignment="Center" Background="#FF6DB8FF">
+                    <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name="S5" ScaleY="0.4"/>
+                    </Border.RenderTransform>
+                    <Border.Triggers>
+                        <EventTrigger RoutedEvent="Border.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimationUsingKeyFrames Storyboard.TargetName="S5" Storyboard.TargetProperty="ScaleY">
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0"    Value="0.4"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.45" Value="1.0"  KeySpline="0.4,0,0.6,1"/>
+                                        <SplineDoubleKeyFrame KeyTime="0:0:0.9"  Value="0.2"  KeySpline="0.4,0,0.6,1"/>
+                                    </DoubleAnimationUsingKeyFrames>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Border.Triggers>
+                </Border>
+            </StackPanel>
+        </Grid>
         <Grid Grid.Row="1">
-            <control:IceButton x:Name="StartUninstall" Height="40" Width="160" Background="#4083FD" IsMouseOverFill="#256EEB" ButtonCornerRadius="4" VerticalAlignment="Top"
-                               FontSize="14" Foreground="White" BorderThickness="0" IsDefault="True" Cursor="Hand"
-                               Content="{DynamicResource StartUninstall}" IsEnabled="{Binding IsChecked, ElementName=ReadAndAgree}"
-                               Click="StartUninstall_Click"/>
+            <StackPanel Orientation="Vertical" Width="480" VerticalAlignment="Center">
+                <!-- 自定义进度条容器 -->
+                <Grid Height="10">
+                    <!-- 轨道背景 -->
+                    <Border CornerRadius="5" Background="#1A1E90FF"/>
+                    <!-- 进度填充（用 Grid + Clip 模拟 ProgressBar） -->
+                    <Border x:Name="ProgressFill" CornerRadius="5" HorizontalAlignment="Left" Width="0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#FF1E90FF" Offset="0"/>
+                                <GradientStop Color="#FF00CFFF" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <!-- 扫光层，叠在进度条上 -->
+                    <Border x:Name="ShimmerClip" CornerRadius="5" ClipToBounds="True" HorizontalAlignment="Left" Width="0">
+                        <Canvas Width="480" Height="10">
+                            <Rectangle x:Name="Shimmer" Canvas.Left="-60" Canvas.Top="-2" Width="50" Height="14" Opacity="0.45">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="Transparent" Offset="0"/>
+                                        <GradientStop Color="White" Offset="0.5"/>
+                                        <GradientStop Color="Transparent" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                                <Rectangle.RenderTransform>
+                                    <TranslateTransform x:Name="ShimmerMove" X="0"/>
+                                </Rectangle.RenderTransform>
+                                <Rectangle.Triggers>
+                                    <EventTrigger RoutedEvent="Rectangle.Loaded">
+                                        <BeginStoryboard>
+                                            <Storyboard RepeatBehavior="Forever">
+                                                <DoubleAnimation Storyboard.TargetName="ShimmerMove"
+                                                                 Storyboard.TargetProperty="X"
+                                                                 From="-60" To="540" Duration="0:0:1.8"
+                                                                 BeginTime="0:0:0.4"/>
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </EventTrigger>
+                                </Rectangle.Triggers>
+                            </Rectangle>
+                        </Canvas>
+                    </Border>
+                    <!-- 隐藏的原生 ProgressBar 用于数据绑定，不可见 -->
+                    <ProgressBar x:Name="InstallProgress" Opacity="0" Height="10" Minimum="0" Maximum="100"/>
+                </Grid>
+                <Grid Margin="0,8">
+                    <TextBlock x:Name="Installing" FontSize="12" Foreground="#7F8C8D" Text="{DynamicResource Uninstalling}"/>
+                    <TextBlock x:Name="Percentage" FontSize="12" Foreground="#7F8C8D" HorizontalAlignment="Right" Text="0%"/>
+                </Grid>
+            </StackPanel>
         </Grid>
     </Grid>
 </Page>

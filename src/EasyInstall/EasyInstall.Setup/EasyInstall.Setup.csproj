@@ -95,11 +95,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\Uninstall\UninstallFinishPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\Uninstall\UninstallPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Pages\Install\WelcomePage.xaml">
+    <Page Include="Pages\Install\InstallStartPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\Uninstall\UninstallStartPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -111,11 +119,17 @@
     <Compile Include="Pages\Install\InstallPage.xaml.cs">
       <DependentUpon>InstallPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Uninstall\UninstallFinishPage.xaml.cs">
+      <DependentUpon>UninstallFinishPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\Uninstall\UninstallPage.xaml.cs">
       <DependentUpon>UninstallPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\Install\WelcomePage.xaml.cs">
-      <DependentUpon>WelcomePage.xaml</DependentUpon>
+    <Compile Include="Pages\Install\InstallStartPage.xaml.cs">
+      <DependentUpon>InstallStartPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Uninstall\UninstallStartPage.xaml.cs">
+      <DependentUpon>UninstallStartPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

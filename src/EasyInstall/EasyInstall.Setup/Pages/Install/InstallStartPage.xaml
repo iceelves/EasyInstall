@@ -1,4 +1,4 @@
-﻿<Page x:Class="EasyInstall.Setup.Pages.Install.WelcomePage"
+﻿<Page x:Class="EasyInstall.Setup.Pages.Install.InstallStartPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -7,7 +7,7 @@
       mc:Ignorable="d" 
       xmlns:control="clr-namespace:EasyInstall.Core.Controls;assembly=EasyInstall.Core"
       d:DesignHeight="450" d:DesignWidth="800"
-      Title="WelcomePage">
+      Title="InstallStartPage">
 
     <Grid>
         <Grid.RowDefinitions>

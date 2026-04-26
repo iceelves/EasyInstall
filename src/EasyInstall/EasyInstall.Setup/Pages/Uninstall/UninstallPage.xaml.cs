@@ -1,5 +1,7 @@
-﻿using System;
+﻿using EasyInstall.Core.Helpers;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,27 +26,50 @@ namespace EasyInstall.Setup.Pages.Uninstall
         {
             InitializeComponent();
 
+            _host = host;
+
             this.Loaded += UninstallPage_Loaded;
         }
+
+        private readonly MainWindow _host;
+
+        /// <summary>
+        /// 进度条总宽度，与 XAML 中 Width="480" 对应
+        /// </summary>
+        private const double ProgressTotalWidth = 480.0;
 
         /// <summary>
         /// Loaded
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void UninstallPage_Loaded(object sender, RoutedEventArgs e)
+        private async void UninstallPage_Loaded(object sender, RoutedEventArgs e)
         {
-            this.AppName.Content = $"{App.Config.AppName}";
+            await RunUninstall();
         }
 
         /// <summary>
-        /// 开始卸载
+        /// 运行安装
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void StartUninstall_Click(object sender, RoutedEventArgs e)
+        /// <returns></returns>
+        private async Task RunUninstall()
         {
+            string installDir = _host.InstallPath;
 
+
+        }
+
+        /// <summary>
+        /// 同步进度填充
+        /// </summary>
+        /// <param name="value"></param>
+        private void SyncProgressFill(double value)
+        {
+            this.InstallProgress.Value = value;
+
+            double w = ProgressTotalWidth * value / 100.0;
+            ProgressFill.Width = w;
+            ShimmerClip.Width = w;
         }
     }
 }

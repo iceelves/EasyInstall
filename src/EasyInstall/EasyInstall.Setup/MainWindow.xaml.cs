@@ -38,7 +38,9 @@ namespace EasyInstall.Setup
 
                 _pages = new Page[]
                 {
-                    new UninstallPage(this)
+                    new UninstallStartPage(this),
+                    new UninstallPage(this),
+                    new UninstallFinishPage(this)
                 };
             }
             else
@@ -56,7 +58,7 @@ namespace EasyInstall.Setup
 
                 _pages = new Page[]
                 {
-                    new WelcomePage(this),
+                    new InstallStartPage(this),
                     new InstallPage(this),
                     new InstallFinishPage(this)
                 };
