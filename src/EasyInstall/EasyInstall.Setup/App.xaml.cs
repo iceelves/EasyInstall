@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -15,12 +17,39 @@ namespace EasyInstall.Setup
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// 安装包配置文件
+        /// </summary>
         public static InstallConfig Config { get; private set; }
+
+        /// <summary>
+        /// EXE 中的压缩数据
+        /// </summary>
         public static byte[] PackageData { get; private set; }
 
+        /// <summary>
+        /// 是否是卸载模式
+        /// </summary>
         public static bool IsUninstallMode { get; private set; }
 
-        private void Application_Startup(object sender, StartupEventArgs e)
+        /// <summary>
+        /// 是否是静默安装模式
+        /// 静默模式：不显示任何 UI，直接执行安装/卸载
+        /// </summary>
+        public static bool IsSilentMode { get; private set; }
+
+        /// <summary>
+        /// 安装指定目录（主要给静默安装使用）
+        /// 安装优先级：1.传入参数的安装路径 2.注册表中记录上次安装的路径 3.配置文件中的默认安装路径
+        /// </summary>
+        public static string InstallDir { get; private set; }
+
+        /// <summary>
+        /// Startup
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void Application_Startup(object sender, StartupEventArgs e)
         {
             string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string exeName = System.IO.Path.GetFileNameWithoutExtension(exePath);
@@ -33,11 +62,20 @@ namespace EasyInstall.Setup
             {
                 if (arg.Equals("/uninstall", StringComparison.OrdinalIgnoreCase))
                     IsUninstallMode = true;
+                else if (arg.Equals("/silent", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("--silent", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("/s", StringComparison.OrdinalIgnoreCase) ||
+                    arg.Equals("-s", StringComparison.OrdinalIgnoreCase))
+                    IsSilentMode = true;
+                else if (arg.StartsWith("/dir=", StringComparison.OrdinalIgnoreCase))
+                    InstallDir = arg.Substring("/dir=".Length).Trim('"');
+                else if (arg.StartsWith("--dir=", StringComparison.OrdinalIgnoreCase))
+                    InstallDir = arg.Substring("--dir=".Length).Trim('"');
+                else if (arg.StartsWith("/d=", StringComparison.OrdinalIgnoreCase))
+                    InstallDir = arg.Substring("/d=".Length).Trim('"');
+                else if (arg.StartsWith("-d=", StringComparison.OrdinalIgnoreCase))
+                    InstallDir = arg.Substring("-d=".Length).Trim('"');
             }
-
-//#if DEBUG
-//            IsUninstallMode = true;
-//#endif
 
             // 尝试读取 Overlay 数据
             if (OverlayHelper.HasOverlay(exePath))
@@ -51,8 +89,9 @@ namespace EasyInstall.Setup
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("读取安装包数据失败：" + ex.Message, "错误",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    if (!IsSilentMode)
+                        MessageBox.Show("读取安装包数据失败：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+
                     Shutdown(1);
                     return;
                 }
@@ -76,8 +115,168 @@ namespace EasyInstall.Setup
                 };
             }
 
-            var mainWindow = new MainWindow();
-            mainWindow.Show();
+            if (IsSilentMode)
+            {
+                // 静默安装
+                await RunSilent(exePath);
+                Shutdown(0);
+            }
+            else
+            {
+                // 界面安装
+                var mainWindow = new MainWindow();
+                mainWindow.Show();
+            }
+        }
+
+        /// <summary>
+        /// 静默执行安装或卸载
+        /// </summary>
+        private async Task RunSilent(string exePath)
+        {
+            if (IsUninstallMode)
+                await SilentUninstall(exePath);
+            else
+                await SilentInstall(exePath);
+        }
+
+        /// <summary>
+        /// 静默安装
+        /// </summary>
+        private async Task SilentInstall(string exePath)
+        {
+            // 安装优先级：1.传入参数的安装路径 2.注册表中记录上次安装的路径 3.配置文件中的默认安装路径
+            string installDir;
+            if (!string.IsNullOrEmpty(App.InstallDir))
+            {
+                installDir = App.InstallDir;
+            }
+            if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
+            {
+                installDir = RegistryHelper.GetInstallLocation(App.Config.RegistryKey ?? App.Config.AppName);
+            }
+            else
+            {
+                installDir = PathHelper.Resolve(App.Config.DefaultInstallDir, App.Config.CompanySimplify, App.Config.AppName);
+            }
+
+            try
+            {
+                Directory.CreateDirectory(installDir);
+
+                // 解压文件
+                if (PackageData != null && PackageData.Length > 0)
+                    await Task.Run(() => ZipHelper.Decompress(PackageData, installDir, null));
+
+                // 写注册表 + 复制卸载程序
+                string uninstallDest = Path.Combine(installDir, "uninstall.exe");
+                await Task.Run(() =>
+                {
+                    File.Copy(exePath, uninstallDest, true);
+                    RegistryHelper.RegisterUninstall(
+                        Config.AppName,
+                        Config.RegistryKey ?? Config.AppName,
+                        installDir,
+                        Config.MainExecutable,
+                        Config.AppVersion ?? "v1.0.0.0",
+                        Config.Company ?? "",
+                        uninstallDest,
+                        Config.Website ?? "");
+                });
+
+                // 创建快捷方式
+                string mainExe = Path.Combine(installDir, Config.MainExecutable ?? "");
+                await Task.Run(() =>
+                {
+                    if (File.Exists(mainExe))
+                    {
+                        if (Config.DesktopShortcut)
+                            ShortcutHelper.CreateDesktopShortcut(Config.AppName, mainExe, installDir);
+                        if (Config.StartMenuShortcut)
+                            ShortcutHelper.CreateStartMenuShortcut(Config.AppName, mainExe, installDir);
+                        RegistryHelper.SetAutoRun(Config.AppName, mainExe, Config.StartWithWindows);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // 静默模式下写入事件日志，不弹窗
+                try
+                {
+                    EventLog.WriteEntry("Application", $"[EasyInstall] 静默安装失败: {ex.Message}", EventLogEntryType.Error);
+                }
+                catch { }
+
+                Shutdown(1);
+            }
+        }
+
+        /// <summary>
+        /// 静默卸载
+        /// </summary>
+        private async Task SilentUninstall(string exePath)
+        {
+            // 卸载优先级：1.注册表中记录上次安装的路径 2.当前程序所在目录
+            string uninstallDir;
+            if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
+            {
+                uninstallDir = RegistryHelper.GetInstallLocation(App.Config.RegistryKey ?? App.Config.AppName);
+            }
+            else
+            {
+                uninstallDir = System.IO.Path.GetDirectoryName(exePath);
+            }
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    ShortcutHelper.RemoveDesktopShortcut(Config.AppName);
+                    ShortcutHelper.RemoveStartMenuShortcut(Config.AppName);
+                    RegistryHelper.SetAutoRun(Config.AppName, string.Empty, false);
+                    RegistryHelper.UnregisterUninstall(Config.RegistryKey ?? Config.AppName);
+
+                    if (!string.IsNullOrEmpty(uninstallDir) && Directory.Exists(uninstallDir))
+                    {
+                        foreach (var file in Directory.GetFiles(uninstallDir, "*", SearchOption.AllDirectories))
+                        {
+                            if (string.Equals(file, exePath, StringComparison.OrdinalIgnoreCase))
+                                continue;
+                            try
+                            {
+                                File.SetAttributes(file, FileAttributes.Normal);
+                                File.Delete(file);
+                            }
+                            catch { }
+                        }
+                    }
+                });
+
+                // 延迟删除自身及目录
+                string args = !string.IsNullOrEmpty(uninstallDir)
+                    ? $"/c ping 127.0.0.1 -n 3 > nul & del /f /q \"{exePath}\" & rd /s /q \"{uninstallDir}\""
+                    : $"/c ping 127.0.0.1 -n 3 > nul & del /f /q \"{exePath}\"";
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = args,
+                    WorkingDirectory = Path.GetTempPath(),
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    EventLog.WriteEntry("Application", $"[EasyInstall] 静默卸载失败: {ex.Message}", EventLogEntryType.Error);
+                }
+                catch { }
+
+                Shutdown(1);
+            }
         }
     }
 }
