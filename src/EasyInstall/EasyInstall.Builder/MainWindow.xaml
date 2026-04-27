@@ -5,8 +5,275 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EasyInstall.Builder"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        
+        Title="EasyInstall Builder" Height="620" Width="820"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F6FA">
+
+    <Window.Resources>
+        <Style x:Key="SectionLabel" TargetType="Label">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="Padding" Value="0,0,0,2"/>
+        </Style>
+        <Style x:Key="InputBox" TargetType="TextBox">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="BorderBrush" Value="#CCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="ActionBtn" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Background" Value="#4083FD"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#256EEB"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#AAA"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DangerBtn" TargetType="Button" BasedOn="{StaticResource ActionBtn}">
+            <Setter Property="Background" Value="#E05252"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#C03030"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
+            <TextBlock Text="EasyInstall Builder" FontSize="20" FontWeight="Bold" Foreground="#222" VerticalAlignment="Center"/>
+            <TextBlock Text="  —  安装包制作工具" FontSize="13" Foreground="#888" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Tab Content -->
+        <TabControl Grid.Row="1" Background="White" BorderBrush="#DDD">
+
+            <!-- ══ Tab 1: 基本信息 ══ -->
+            <TabItem Header="基本信息">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <Grid Margin="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- App Name -->
+                        <Label Grid.Row="0" Grid.Column="0" Content="应用名称 *" Style="{StaticResource SectionLabel}"/>
+                        <TextBox x:Name="TxtAppName" Grid.Row="1" Grid.Column="0" Style="{StaticResource InputBox}" Margin="0,0,0,10"/>
+
+                        <!-- App Version -->
+                        <Label Grid.Row="0" Grid.Column="2" Content="版本号 *" Style="{StaticResource SectionLabel}"/>
+                        <TextBox x:Name="TxtAppVersion" Grid.Row="1" Grid.Column="2" Style="{StaticResource InputBox}" Margin="0,0,0,10" Text="v1.0.0.0"/>
+
+                        <!-- Company -->
+                        <Label Grid.Row="2" Grid.Column="0" Content="公司全称" Style="{StaticResource SectionLabel}"/>
+                        <TextBox x:Name="TxtCompany" Grid.Row="3" Grid.Column="0" Style="{StaticResource InputBox}" Margin="0,0,0,10"/>
+
+                        <!-- Company Simplify -->
+                        <Label Grid.Row="2" Grid.Column="2" Content="公司简称" Style="{StaticResource SectionLabel}"/>
+                        <TextBox x:Name="TxtCompanySimplify" Grid.Row="3" Grid.Column="2" Style="{StaticResource InputBox}" Margin="0,0,0,10"/>
+
+                        <!-- Website -->
+                        <Label Grid.Row="4" Grid.Column="0" Content="官网地址" Style="{StaticResource SectionLabel}"/>
+                        <TextBox x:Name="TxtWebsite" Grid.Row="5" Grid.Column="0" Style="{StaticResource InputBox}" Margin="0,0,0,10"/>
+
+                        <!-- Registry Key -->
+                        <Label Grid.Row="4" Grid.Column="2" Content="注册表键名" Style="{StaticResource SectionLabel}"/>
+                        <TextBox x:Name="TxtRegistryKey" Grid.Row="5" Grid.Column="2" Style="{StaticResource InputBox}" Margin="0,0,0,10"/>
+
+                        <!-- Default Install Dir -->
+                        <Label Grid.Row="6" Grid.Column="0" Content="默认安装路径（支持 {ProgramFiles} {Company} {AppName}）" Style="{StaticResource SectionLabel}"/>
+                        <TextBox x:Name="TxtDefaultInstallDir" Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource InputBox}" Margin="0,0,0,10"
+                                 Text="{}{ProgramFiles}\{Company}\{AppName}"/>
+
+                        <!-- Main Executable -->
+                        <Label Grid.Row="8" Grid.Column="0" Content="主程序（相对安装目录）" Style="{StaticResource SectionLabel}"/>
+                        <TextBox x:Name="TxtMainExecutable" Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="3" Style="{StaticResource InputBox}" Margin="0,0,0,10"/>
+
+                        <!-- Shortcuts -->
+                        <StackPanel Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,4,0,0">
+                            <CheckBox x:Name="ChkDesktop" Content="创建桌面快捷方式" IsChecked="True" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                            <CheckBox x:Name="ChkStartMenu" Content="创建开始菜单快捷方式" IsChecked="True" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                            <CheckBox x:Name="ChkAutoRun" Content="开机自启" IsChecked="False" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ══ Tab 2: 图标 ══ -->
+            <TabItem Header="图标">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="150"/>
+                        <RowDefinition Height="16"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="150"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 安装图标 -->
+                    <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="安装程序图标（.ico，将替换 EXE 图标）" Style="{StaticResource SectionLabel}"/>
+                    <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,4,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="TxtIconPath" Grid.Column="0" Style="{StaticResource InputBox}" IsReadOnly="True" Background="#F9F9F9"/>
+                        <Button Grid.Column="2" Content="浏览..." Style="{StaticResource ActionBtn}" Click="BrowseIcon_Click"/>
+                        <Button Grid.Column="4" Content="清除" Style="{StaticResource DangerBtn}" Click="ClearIcon_Click"/>
+                    </Grid>
+                    <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Background="#FAFAFA">
+                        <Grid>
+                            <TextBlock Text="安装图标预览" Foreground="#BBB" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13"/>
+                            <Image x:Name="ImgIconPreview" MaxWidth="96" MaxHeight="96" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- 卸载图标 -->
+                    <Label Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Content="卸载程序图标（.ico，留空则使用内置 Uninstall.png）" Style="{StaticResource SectionLabel}"/>
+                    <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,4,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="TxtUninstallIconPath" Grid.Column="0" Style="{StaticResource InputBox}" IsReadOnly="True" Background="#F9F9F9"/>
+                        <Button Grid.Column="2" Content="浏览..." Style="{StaticResource ActionBtn}" Click="BrowseUninstallIcon_Click"/>
+                        <Button Grid.Column="4" Content="清除" Style="{StaticResource DangerBtn}" Click="ClearUninstallIcon_Click"/>
+                    </Grid>
+                    <Border Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3" BorderBrush="#DDD" BorderThickness="1" CornerRadius="4" Background="#FAFAFA">
+                        <Grid>
+                            <TextBlock Text="卸载图标预览（留空使用内置）" Foreground="#BBB" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="13"/>
+                            <Image x:Name="ImgUninstallIconPreview" MaxWidth="96" MaxHeight="96" HorizontalAlignment="Center" VerticalAlignment="Center" Stretch="Uniform"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- ══ Tab 3: 文件列表 ══ -->
+            <TabItem Header="文件列表">
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Content="要打包的文件 / 目录" Style="{StaticResource SectionLabel}" Margin="0,0,0,4"/>
+
+                    <ListView x:Name="FileList" Grid.Row="1" BorderBrush="#DDD" BorderThickness="1">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="源路径" Width="380" DisplayMemberBinding="{Binding Source}"/>
+                                <GridViewColumn Header="目标子目录" Width="200" DisplayMemberBinding="{Binding TargetDir}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0" HorizontalAlignment="Left">
+                        <Button Content="添加文件" Style="{StaticResource ActionBtn}" Margin="0,0,8,0" Click="AddFile_Click"/>
+                        <Button Content="添加目录" Style="{StaticResource ActionBtn}" Margin="0,0,8,0" Click="AddFolder_Click"/>
+                        <Button Content="删除选中" Style="{StaticResource DangerBtn}" Click="RemoveFile_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- ══ Tab 4: 用户协议 ══ -->
+            <TabItem Header="用户协议">
+                <Grid Margin="16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Label Grid.Row="0" Content="用户许可协议（EULA）" Style="{StaticResource SectionLabel}" Margin="0,0,0,4"/>
+                    <TextBox x:Name="TxtLicense" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Visible" BorderBrush="#DDD" BorderThickness="1"
+                             FontFamily="Consolas" FontSize="12" Padding="6"/>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+                        <Button Content="从文件导入..." Style="{StaticResource ActionBtn}" Margin="0,0,8,0" Click="ImportLicense_Click"/>
+                        <Button Content="清空" Style="{StaticResource DangerBtn}" Click="ClearLicense_Click"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- Bottom Action Bar -->
+        <Grid Grid.Row="2" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="8"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Status -->
+            <TextBlock x:Name="TxtStatus" Grid.Column="0" VerticalAlignment="Center" Foreground="#555" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+
+            <!-- Progress -->
+            <ProgressBar x:Name="BuildProgress" Grid.Column="0" Height="4" VerticalAlignment="Bottom"
+                         Minimum="0" Maximum="100" Visibility="Collapsed" Foreground="#4083FD" Background="#DDD" BorderThickness="0"/>
+
+            <Button Grid.Column="1" Content="导入配置" Style="{StaticResource ActionBtn}" Background="#6C757D" Click="ImportConfig_Click"/>
+            <Button Grid.Column="3" Content="导出配置" Style="{StaticResource ActionBtn}" Background="#28A745" Click="ExportConfig_Click"/>
+            <Button Grid.Column="5" Content="生成安装包" Style="{StaticResource ActionBtn}" Width="110" FontWeight="SemiBold" Click="BuildSetup_Click"/>
+        </Grid>
     </Grid>
 </Window>
