@@ -72,8 +72,17 @@ namespace EasyInstall.Core.Models
         public bool StartWithWindows { get; set; } = false;
 
         // ── 界面定制 ──────────────────────────────────────────────
+        /// <summary>
+        /// 安装程序图标（ICO Base64），为空时使用内置 Install.png
+        /// </summary>
         [DataMember]
-        public string LogoBase64 { get; set; }
+        public string InstallIconBase64 { get; set; }
+
+        /// <summary>
+        /// 卸载程序图标（ICO Base64），为空时使用内置 Uninstall.png
+        /// </summary>
+        [DataMember]
+        public string UninstallIconBase64 { get; set; }
     }
 
     [DataContract]

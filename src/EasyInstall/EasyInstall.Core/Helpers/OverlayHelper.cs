@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +15,117 @@ namespace EasyInstall.Core.Helpers
     public static class OverlayHelper
     {
         private static readonly byte[] Magic = Encoding.ASCII.GetBytes("EASYINST");
+
+        // ── Win32 图标替换 API ────────────────────────────────────
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        private static extern IntPtr BeginUpdateResource(string pFileName, bool bDeleteExistingResources);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool UpdateResource(IntPtr hUpdate, IntPtr lpType, IntPtr lpName,
+            ushort wLanguage, byte[] lpData, uint cbData);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool EndUpdateResource(IntPtr hUpdate, bool fDiscard);
+
+        private static readonly IntPtr RT_ICON = new IntPtr(3);
+        private static readonly IntPtr RT_GROUP_ICON = new IntPtr(14);
+
+        /// <summary>
+        /// 将 ICO 文件字节写入 EXE 的图标资源（替换第一个图标组）
+        /// </summary>
+        public static void SetExeIcon(string exePath, byte[] icoBytes)
+        {
+            if (icoBytes == null || icoBytes.Length < 6) return;
+
+            // 解析 ICO 格式
+            // ICO header: reserved(2) type(2) count(2)
+            int count = BitConverter.ToUInt16(icoBytes, 4);
+            if (count == 0) return;
+
+            // 构建 GRPICONDIR 用于 RT_GROUP_ICON
+            // GRPICONDIR = WORD reserved, WORD type, WORD count, GRPICONDIRENTRY[count]
+            // GRPICONDIRENTRY = BYTE width, BYTE height, BYTE colorCount, BYTE reserved,
+            //                   WORD planes, WORD bitCount, DWORD bytesInRes, WORD id
+            int grpSize = 6 + count * 14;
+            byte[] grpData = new byte[grpSize];
+            // header
+            grpData[0] = 0; grpData[1] = 0;   // reserved
+            grpData[2] = 1; grpData[3] = 0;   // type = 1 (icon)
+            grpData[4] = (byte)count; grpData[5] = 0;
+
+            IntPtr hUpdate = BeginUpdateResource(exePath, false);
+            if (hUpdate == IntPtr.Zero) return;
+
+            try
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    int entryOffset = 6 + i * 16; // ICONDIRENTRY is 16 bytes
+                    byte width = icoBytes[entryOffset];
+                    byte height = icoBytes[entryOffset + 1];
+                    byte colorCount = icoBytes[entryOffset + 2];
+                    byte reserved = icoBytes[entryOffset + 3];
+                    ushort planes = BitConverter.ToUInt16(icoBytes, entryOffset + 4);
+                    ushort bitCount = BitConverter.ToUInt16(icoBytes, entryOffset + 6);
+                    int dataSize = BitConverter.ToInt32(icoBytes, entryOffset + 8);
+                    int dataOffset = BitConverter.ToInt32(icoBytes, entryOffset + 12);
+
+                    // 提取单个图标数据
+                    byte[] iconData = new byte[dataSize];
+                    Array.Copy(icoBytes, dataOffset, iconData, 0, dataSize);
+
+                    ushort iconId = (ushort)(i + 1);
+
+                    // 写 RT_ICON
+                    UpdateResource(hUpdate, RT_ICON, new IntPtr(iconId), 0, iconData, (uint)iconData.Length);
+
+                    // 填 GRPICONDIRENTRY（14 bytes）
+                    int grpEntry = 6 + i * 14;
+                    grpData[grpEntry] = width;
+                    grpData[grpEntry + 1] = height;
+                    grpData[grpEntry + 2] = colorCount;
+                    grpData[grpEntry + 3] = reserved;
+                    grpData[grpEntry + 4] = (byte)(planes & 0xFF);
+                    grpData[grpEntry + 5] = (byte)(planes >> 8);
+                    grpData[grpEntry + 6] = (byte)(bitCount & 0xFF);
+                    grpData[grpEntry + 7] = (byte)(bitCount >> 8);
+                    grpData[grpEntry + 8] = (byte)(dataSize & 0xFF);
+                    grpData[grpEntry + 9] = (byte)((dataSize >> 8) & 0xFF);
+                    grpData[grpEntry + 10] = (byte)((dataSize >> 16) & 0xFF);
+                    grpData[grpEntry + 11] = (byte)((dataSize >> 24) & 0xFF);
+                    grpData[grpEntry + 12] = (byte)(iconId & 0xFF);
+                    grpData[grpEntry + 13] = (byte)(iconId >> 8);
+                }
+
+                // 写 RT_GROUP_ICON（id=1）
+                UpdateResource(hUpdate, RT_GROUP_ICON, new IntPtr(1), 0, grpData, (uint)grpData.Length);
+                EndUpdateResource(hUpdate, false);
+            }
+            catch
+            {
+                EndUpdateResource(hUpdate, true); // discard on error
+            }
+        }
+
+        /// <summary>
+        /// 从带 Overlay 的 EXE 中读取原始 EXE 字节（不含 Overlay 部分）
+        /// </summary>
+        public static byte[] ReadOriginalExe(string exePath)
+        {
+            using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read))
+            using (var br = new BinaryReader(fs))
+            {
+                fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
+                int jsonLen = br.ReadInt32();
+                long dataLen = br.ReadInt64();
+                long overlayLen = dataLen + jsonLen + 4 + 8 + Magic.Length;
+                long exeLen = fs.Length - overlayLen;
+
+                fs.Seek(0, SeekOrigin.Begin);
+                byte[] exeBytes = br.ReadBytes((int)exeLen);
+                return exeBytes;
+            }
+        }
 
         /// <summary>
         /// 将 Setup.exe + 压缩数据 + JSON配置 合并为单个 EXE

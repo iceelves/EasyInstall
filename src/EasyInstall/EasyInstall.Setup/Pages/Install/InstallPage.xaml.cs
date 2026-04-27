@@ -84,7 +84,7 @@ namespace EasyInstall.Setup.Pages.Install
 
             // 写入注册表、复制自身到安装目录作为卸载程序
             string exePath = System.IO.Path.Combine(installDir, App.Config.MainExecutable ?? "");
-            string uninstallExe = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string selfExePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string uninstallDest = System.IO.Path.Combine(installDir, "uninstall.exe");
             await Task.Run(() =>
             {
@@ -94,10 +94,50 @@ namespace EasyInstall.Setup.Pages.Install
                     if (data == null || data.Length <= 0)
                     {
                         string installDest = System.IO.Path.Combine(installDir, App.Config.MainExecutable);
-                        File.Copy(uninstallExe, installDest, true);
+                        File.Copy(selfExePath, installDest, true);
                     }
 #endif
-                    File.Copy(uninstallExe, uninstallDest, true);
+
+                    // 写出干净的 uninstall.exe：若当前 EXE 含 Overlay 则只取原始 EXE 部分，否则直接复制
+                    if (OverlayHelper.HasOverlay(selfExePath))
+                    {
+                        byte[] cleanExe = OverlayHelper.ReadOriginalExe(selfExePath);
+                        File.WriteAllBytes(uninstallDest, cleanExe);
+                    }
+                    else
+                    {
+                        File.Copy(selfExePath, uninstallDest, true);
+                    }
+
+                    // 替换卸载图标
+                    try
+                    {
+                        byte[] icoBytes = null;
+
+                        if (!string.IsNullOrEmpty(App.Config.UninstallIconBase64))
+                        {
+                            icoBytes = Convert.FromBase64String(App.Config.UninstallIconBase64);
+                        }
+                        else
+                        {
+                            // 从程序集资源中提取内置 Uninstall.png，转为 ICO
+                            var uri = new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png");
+                            var sri = Application.GetResourceStream(uri);
+                            if (sri != null)
+                            {
+                                using (var ms = new MemoryStream())
+                                {
+                                    sri.Stream.CopyTo(ms);
+                                    icoBytes = ImageHelper.PngToIco(ms.ToArray());
+                                }
+                            }
+                        }
+
+                        if (icoBytes != null)
+                            OverlayHelper.SetExeIcon(uninstallDest, icoBytes);
+                    }
+                    catch { }
+
                     RegistryHelper.RegisterUninstall(
                         App.Config.AppName,
                         App.Config.RegistryKey ?? App.Config.AppName,
