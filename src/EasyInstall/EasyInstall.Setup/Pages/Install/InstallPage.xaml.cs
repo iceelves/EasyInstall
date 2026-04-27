@@ -98,11 +98,11 @@ namespace EasyInstall.Setup.Pages.Install
                     }
 #endif
 
-                    // 写出干净的 uninstall.exe：若当前 EXE 含 Overlay 则只取原始 EXE 部分，否则直接复制
+                    // 写出 uninstall.exe：保留 EXE + JSON 配置，去掉压缩数据，确保卸载程序能读取配置
                     if (OverlayHelper.HasOverlay(selfExePath))
                     {
-                        byte[] cleanExe = OverlayHelper.ReadOriginalExe(selfExePath);
-                        File.WriteAllBytes(uninstallDest, cleanExe);
+                        byte[] uninstallExe = OverlayHelper.BuildUninstallExe(selfExePath);
+                        File.WriteAllBytes(uninstallDest, uninstallExe);
                     }
                     else
                     {

@@ -172,11 +172,11 @@ namespace EasyInstall.Setup
                 string uninstallDest = Path.Combine(installDir, "uninstall.exe");
                 await Task.Run(() =>
                 {
-                    // 写出干净的 uninstall.exe：若当前 EXE 含 Overlay 则只取原始 EXE 部分，否则直接复制
+                    // 写出 uninstall.exe：保留 EXE + JSON 配置，去掉压缩数据，确保卸载程序能读取配置
                     if (OverlayHelper.HasOverlay(exePath))
                     {
-                        byte[] cleanExe = OverlayHelper.ReadOriginalExe(exePath);
-                        File.WriteAllBytes(uninstallDest, cleanExe);
+                        byte[] uninstallExe = OverlayHelper.BuildUninstallExe(exePath);
+                        File.WriteAllBytes(uninstallDest, uninstallExe);
                     }
                     else
                     {
