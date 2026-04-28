@@ -1,9 +1,11 @@
 ﻿using EasyInstall.Core.Helpers;
 using EasyInstall.Core.Models;
 using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -149,7 +151,8 @@ namespace EasyInstall.Builder
 
             try
             {
-                JsonHelper.SerializeToFile(BuildConfig(), dlg.FileName);
+                var vBuildConfig = JsonConvert.SerializeObject(BuildConfig(), Formatting.Indented);
+                File.WriteAllText(dlg.FileName, vBuildConfig, Encoding.UTF8);
                 SetStatus("配置已导出：" + dlg.FileName, false);
             }
             catch (Exception ex)
@@ -169,7 +172,7 @@ namespace EasyInstall.Builder
 
             try
             {
-                ApplyConfig(JsonHelper.DeserializeFromFile<InstallConfig>(dlg.FileName));
+                ApplyConfig(JsonConvert.DeserializeObject<InstallConfig>(File.ReadAllText(dlg.FileName, Encoding.UTF8)));
                 SetStatus("配置已导入：" + dlg.FileName, false);
             }
             catch (Exception ex)
@@ -210,7 +213,7 @@ namespace EasyInstall.Builder
 
             string outputPath = saveDlg.FileName;
             var cfg = BuildConfig();
-            string configJson = JsonHelper.Serialize(cfg);
+            string configJson = JsonConvert.SerializeObject(cfg);
 
             SetStatus("正在压缩文件...", false);
             BuildProgress.Visibility = Visibility.Visible;
@@ -295,19 +298,19 @@ namespace EasyInstall.Builder
         {
             var cfg = new InstallConfig
             {
-                AppName           = TxtAppName.Text.Trim(),
-                AppVersion        = TxtAppVersion.Text.Trim(),
-                Company           = TxtCompany.Text.Trim(),
-                CompanySimplify   = TxtCompanySimplify.Text.Trim(),
-                Website           = TxtWebsite.Text.Trim(),
-                RegistryKey       = TxtRegistryKey.Text.Trim(),
+                AppName = TxtAppName.Text.Trim(),
+                AppVersion = TxtAppVersion.Text.Trim(),
+                Company = TxtCompany.Text.Trim(),
+                CompanySimplify = TxtCompanySimplify.Text.Trim(),
+                Website = TxtWebsite.Text.Trim(),
+                RegistryKey = TxtRegistryKey.Text.Trim(),
                 DefaultInstallDir = TxtDefaultInstallDir.Text.Trim(),
-                MainExecutable    = TxtMainExecutable.Text.Trim(),
-                LicenseText       = TxtLicense.Text,
-                DesktopShortcut   = ChkDesktop.IsChecked == true,
+                MainExecutable = TxtMainExecutable.Text.Trim(),
+                LicenseText = TxtLicense.Text,
+                DesktopShortcut = ChkDesktop.IsChecked == true,
                 StartMenuShortcut = ChkStartMenu.IsChecked == true,
-                StartWithWindows  = ChkAutoRun.IsChecked == true,
-                InstallIconBase64   = _iconBase64,
+                StartWithWindows = ChkAutoRun.IsChecked == true,
+                InstallIconBase64 = _iconBase64,
                 UninstallIconBase64 = _uninstallIconBase64
             };
             foreach (var f in _files)
@@ -317,18 +320,18 @@ namespace EasyInstall.Builder
 
         private void ApplyConfig(InstallConfig cfg)
         {
-            TxtAppName.Text           = cfg.AppName ?? "";
-            TxtAppVersion.Text        = cfg.AppVersion ?? "";
-            TxtCompany.Text           = cfg.Company ?? "";
-            TxtCompanySimplify.Text   = cfg.CompanySimplify ?? "";
-            TxtWebsite.Text           = cfg.Website ?? "";
-            TxtRegistryKey.Text       = cfg.RegistryKey ?? "";
+            TxtAppName.Text = cfg.AppName ?? "";
+            TxtAppVersion.Text = cfg.AppVersion ?? "";
+            TxtCompany.Text = cfg.Company ?? "";
+            TxtCompanySimplify.Text = cfg.CompanySimplify ?? "";
+            TxtWebsite.Text = cfg.Website ?? "";
+            TxtRegistryKey.Text = cfg.RegistryKey ?? "";
             TxtDefaultInstallDir.Text = cfg.DefaultInstallDir ?? @"{ProgramFiles}\{Company}\{AppName}";
-            TxtMainExecutable.Text    = cfg.MainExecutable ?? "";
-            TxtLicense.Text           = cfg.LicenseText ?? "";
-            ChkDesktop.IsChecked      = cfg.DesktopShortcut;
-            ChkStartMenu.IsChecked    = cfg.StartMenuShortcut;
-            ChkAutoRun.IsChecked      = cfg.StartWithWindows;
+            TxtMainExecutable.Text = cfg.MainExecutable ?? "";
+            TxtLicense.Text = cfg.LicenseText ?? "";
+            ChkDesktop.IsChecked = cfg.DesktopShortcut;
+            ChkStartMenu.IsChecked = cfg.StartMenuShortcut;
+            ChkAutoRun.IsChecked = cfg.StartWithWindows;
 
             _files.Clear();
             if (cfg.Files != null)
