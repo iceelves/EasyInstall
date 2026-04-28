@@ -109,33 +109,47 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 从带 Overlay 的安装包 EXE 中提取 JSON 配置，附加到指定的 EXE 文件末尾，
-        /// 生成一个不含压缩数据的卸载程序 EXE。
-        /// 适用于先对 EXE 替换图标（会破坏 overlay）再重新附加配置的场景。
+        /// 从带 Overlay 的安装包中提取原始 EXE 字节（不含 overlay 部分）。
+        /// 用于将纯 EXE 写入目标路径，后续再替换图标和追加 overlay。
         /// </summary>
-        /// <param name="baseExePath">作为卸载程序主体的 EXE 路径（已替换图标，无 overlay）</param>
-        /// <param name="overlaySourcePath">含完整 Overlay 的安装包路径（用于读取 JSON 配置）</param>
-        /// <returns>可直接写入磁盘的卸载程序字节</returns>
-        public static byte[] BuildUninstallExe(string baseExePath, string overlaySourcePath)
+        /// <param name="exePath">含完整 Overlay 的安装包路径</param>
+        /// <returns>原始 EXE 字节（不含 overlay）</returns>
+        public static byte[] ReadExeBytes(string exePath)
         {
-            // 从安装包读取 JSON 配置
+            using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read))
+            using (var br = new BinaryReader(fs))
+            {
+                // 尾部结构：[JSON][jsonLen(4)][dataLen(8)][Magic(8)]
+                fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
+                int jsonLen = br.ReadInt32();
+                long dataLen = br.ReadInt64();
+
+                // 纯 EXE 长度 = 总长度 - dataLen - jsonLen - 4 - 8 - Magic.Length
+                long exeLen = fs.Length - dataLen - jsonLen - 4 - 8 - Magic.Length;
+                fs.Seek(0, SeekOrigin.Begin);
+                return br.ReadBytes((int)exeLen);
+            }
+        }
+
+        /// <summary>
+        /// 将卸载 overlay（JSON 配置 + 元数据）直接追加到已存在的 EXE 文件末尾。
+        /// 调用前该文件必须已完成图标替换且不含 overlay。
+        /// </summary>
+        /// <param name="exePath">目标 EXE 路径（原地追加）</param>
+        /// <param name="overlaySourcePath">含完整 Overlay 的安装包路径（用于读取 JSON 配置）</param>
+        public static void AppendUninstallOverlay(string exePath, string overlaySourcePath)
+        {
             string json = ReadConfig(overlaySourcePath);
             byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
             int jsonLen = jsonBytes.Length;
 
-            // 读取作为主体的 EXE（已替换图标，不含 overlay）
-            byte[] exeBytes = File.ReadAllBytes(baseExePath);
-
-            // 重新打包：EXE + JSON + 元数据（dataLen = 0，无压缩数据）
-            using (var ms = new MemoryStream(exeBytes.Length + jsonLen + 4 + 8 + Magic.Length))
-            using (var bw = new BinaryWriter(ms))
+            using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write))
+            using (var bw = new BinaryWriter(fs))
             {
-                bw.Write(exeBytes);
                 bw.Write(jsonBytes);
                 bw.Write(jsonLen);       // 4 bytes：JSON 长度
                 bw.Write((long)0);       // 8 bytes：压缩数据长度为 0
                 bw.Write(Magic);         // 8 bytes：魔数
-                return ms.ToArray();
             }
         }
 

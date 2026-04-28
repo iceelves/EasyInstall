@@ -172,55 +172,37 @@ namespace EasyInstall.Setup
                 string uninstallDest = Path.Combine(installDir, "uninstall.exe");
                 await Task.Run(() =>
                 {
-                    // 写出 uninstall.exe：
-                    // 注意：必须先替换图标再附加 overlay。
-                    // SetExeIcon 调用 UpdateResource 会重建 PE 文件并截断末尾数据，
-                    // 若先附加 overlay 再替换图标，overlay 会被破坏导致 HasOverlay 返回 false。
+                    // 写出 uninstall.exe
                     if (OverlayHelper.HasOverlay(selfExePath))
                     {
-                        // 先把原始安装包 EXE 的图标替换到一个临时文件
-                        string tempExe = uninstallDest + ".tmp";
-                        try
-                        {
-                            // 从安装包中提取原始 EXE 字节写入临时文件，用于图标替换
-                            File.Copy(selfExePath, tempExe, true);
+                        // 1.提取纯 EXE 字节写入目标路径
+                        byte[] exeOnly = OverlayHelper.ReadExeBytes(selfExePath);
+                        File.WriteAllBytes(uninstallDest, exeOnly);
 
-                            byte[] icoBytes = null;
-                            if (!string.IsNullOrEmpty(App.Config.UninstallIconBase64))
+                        // 2.替换图标
+                        byte[] icoBytes = null;
+                        if (!string.IsNullOrEmpty(App.Config.UninstallIconBase64))
+                        {
+                            icoBytes = Convert.FromBase64String(App.Config.UninstallIconBase64);
+                        }
+                        else
+                        {
+                            var uri = new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png");
+                            var sri = Application.GetResourceStream(uri);
+                            if (sri != null)
                             {
-                                icoBytes = Convert.FromBase64String(App.Config.UninstallIconBase64);
-                            }
-                            else
-                            {
-                                var uri = new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png");
-                                var sri = Application.GetResourceStream(uri);
-                                if (sri != null)
+                                using (var ms = new MemoryStream())
                                 {
-                                    using (var ms = new MemoryStream())
-                                    {
-                                        sri.Stream.CopyTo(ms);
-                                        icoBytes = ImageHelper.PngToIco(ms.ToArray());
-                                    }
+                                    sri.Stream.CopyTo(ms);
+                                    icoBytes = ImageHelper.PngToIco(ms.ToArray());
                                 }
                             }
-
-                            // 在临时文件上替换图标（此时 tempExe 还没有 overlay，UpdateResource 安全）
-                            if (icoBytes != null)
-                                OverlayHelper.SetExeIcon(tempExe, icoBytes);
-
-                            // 再从替换了图标的临时文件构建带 overlay 的卸载程序
-                            byte[] uninstallExe = OverlayHelper.BuildUninstallExe(tempExe, selfExePath);
-                            File.WriteAllBytes(uninstallDest, uninstallExe);
                         }
-                        finally
-                        {
-                            if (File.Exists(tempExe))
-                                try
-                                {
-                                    File.Delete(tempExe);
-                                }
-                                catch { }
-                        }
+                        if (icoBytes != null)
+                            OverlayHelper.SetExeIcon(uninstallDest, icoBytes);
+
+                        // 3.追加卸载 overlay（JSON 配置，无压缩数据）
+                        OverlayHelper.AppendUninstallOverlay(uninstallDest, selfExePath);
                     }
                     else
                     {
