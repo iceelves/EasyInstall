@@ -51,8 +51,8 @@ namespace EasyInstall.Setup
         /// <param name="e"></param>
         private async void Application_Startup(object sender, StartupEventArgs e)
         {
-            string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            string exeName = System.IO.Path.GetFileNameWithoutExtension(exePath);
+            string selfExePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string exeName = System.IO.Path.GetFileNameWithoutExtension(selfExePath);
 
             // 文件名是 uninstall（不区分大小写）或传入 /uninstall 参数，均进入卸载模式
             if (exeName.Equals("uninstall", StringComparison.OrdinalIgnoreCase))
@@ -78,14 +78,14 @@ namespace EasyInstall.Setup
             }
 
             // 尝试读取 Overlay 数据
-            if (OverlayHelper.HasOverlay(exePath))
+            if (OverlayHelper.HasOverlay(selfExePath))
             {
                 try
                 {
-                    string json = OverlayHelper.ReadConfig(exePath);
+                    string json = OverlayHelper.ReadConfig(selfExePath);
                     Config = JsonHelper.Deserialize<InstallConfig>(json);
                     if (!IsUninstallMode)
-                        PackageData = OverlayHelper.ReadData(exePath);
+                        PackageData = OverlayHelper.ReadData(selfExePath);
                 }
                 catch (Exception ex)
                 {
@@ -118,7 +118,7 @@ namespace EasyInstall.Setup
             if (IsSilentMode)
             {
                 // 静默安装
-                await RunSilent(exePath);
+                await RunSilent(selfExePath);
                 Shutdown(0);
             }
             else
@@ -132,18 +132,18 @@ namespace EasyInstall.Setup
         /// <summary>
         /// 静默执行安装或卸载
         /// </summary>
-        private async Task RunSilent(string exePath)
+        private async Task RunSilent(string selfExePath)
         {
             if (IsUninstallMode)
-                await SilentUninstall(exePath);
+                await SilentUninstall(selfExePath);
             else
-                await SilentInstall(exePath);
+                await SilentInstall(selfExePath);
         }
 
         /// <summary>
         /// 静默安装
         /// </summary>
-        private async Task SilentInstall(string exePath)
+        private async Task SilentInstall(string selfExePath)
         {
             // 安装优先级：1.传入参数的安装路径 2.注册表中记录上次安装的路径 3.配置文件中的默认安装路径
             string installDir;
@@ -151,7 +151,7 @@ namespace EasyInstall.Setup
             {
                 installDir = App.InstallDir;
             }
-            if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
+            else if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
             {
                 installDir = RegistryHelper.GetInstallLocation(App.Config.RegistryKey ?? App.Config.AppName);
             }
@@ -172,45 +172,60 @@ namespace EasyInstall.Setup
                 string uninstallDest = Path.Combine(installDir, "uninstall.exe");
                 await Task.Run(() =>
                 {
-                    // 写出 uninstall.exe：保留 EXE + JSON 配置，去掉压缩数据，确保卸载程序能读取配置
-                    if (OverlayHelper.HasOverlay(exePath))
+                    // 写出 uninstall.exe：
+                    // 注意：必须先替换图标再附加 overlay。
+                    // SetExeIcon 调用 UpdateResource 会重建 PE 文件并截断末尾数据，
+                    // 若先附加 overlay 再替换图标，overlay 会被破坏导致 HasOverlay 返回 false。
+                    if (OverlayHelper.HasOverlay(selfExePath))
                     {
-                        byte[] uninstallExe = OverlayHelper.BuildUninstallExe(exePath);
-                        File.WriteAllBytes(uninstallDest, uninstallExe);
+                        // 先把原始安装包 EXE 的图标替换到一个临时文件
+                        string tempExe = uninstallDest + ".tmp";
+                        try
+                        {
+                            // 从安装包中提取原始 EXE 字节写入临时文件，用于图标替换
+                            File.Copy(selfExePath, tempExe, true);
+
+                            byte[] icoBytes = null;
+                            if (!string.IsNullOrEmpty(App.Config.UninstallIconBase64))
+                            {
+                                icoBytes = Convert.FromBase64String(App.Config.UninstallIconBase64);
+                            }
+                            else
+                            {
+                                var uri = new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png");
+                                var sri = Application.GetResourceStream(uri);
+                                if (sri != null)
+                                {
+                                    using (var ms = new MemoryStream())
+                                    {
+                                        sri.Stream.CopyTo(ms);
+                                        icoBytes = ImageHelper.PngToIco(ms.ToArray());
+                                    }
+                                }
+                            }
+
+                            // 在临时文件上替换图标（此时 tempExe 还没有 overlay，UpdateResource 安全）
+                            if (icoBytes != null)
+                                OverlayHelper.SetExeIcon(tempExe, icoBytes);
+
+                            // 再从替换了图标的临时文件构建带 overlay 的卸载程序
+                            byte[] uninstallExe = OverlayHelper.BuildUninstallExe(tempExe, selfExePath);
+                            File.WriteAllBytes(uninstallDest, uninstallExe);
+                        }
+                        finally
+                        {
+                            if (File.Exists(tempExe))
+                                try
+                                {
+                                    File.Delete(tempExe);
+                                }
+                                catch { }
+                        }
                     }
                     else
                     {
-                        File.Copy(exePath, uninstallDest, true);
+                        File.Copy(selfExePath, uninstallDest, true);
                     }
-
-                    // 替换卸载图标
-                    try
-                    {
-                        byte[] icoBytes = null;
-
-                        if (!string.IsNullOrEmpty(App.Config.UninstallIconBase64))
-                        {
-                            icoBytes = Convert.FromBase64String(App.Config.UninstallIconBase64);
-                        }
-                        else
-                        {
-                            // 从程序集资源中提取内置 Uninstall.png，转为 ICO
-                            var uri = new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png");
-                            var sri = Application.GetResourceStream(uri);
-                            if (sri != null)
-                            {
-                                using (var ms = new MemoryStream())
-                                {
-                                    sri.Stream.CopyTo(ms);
-                                    icoBytes = ImageHelper.PngToIco(ms.ToArray());
-                                }
-                            }
-                        }
-
-                        if (icoBytes != null)
-                            OverlayHelper.SetExeIcon(uninstallDest, icoBytes);
-                    }
-                    catch { }
 
                     RegistryHelper.RegisterUninstall(
                         Config.AppName,
@@ -253,7 +268,7 @@ namespace EasyInstall.Setup
         /// <summary>
         /// 静默卸载
         /// </summary>
-        private async Task SilentUninstall(string exePath)
+        private async Task SilentUninstall(string selfExePath)
         {
             // 卸载优先级：1.注册表中记录上次安装的路径 2.当前程序所在目录
             string uninstallDir;
@@ -263,7 +278,7 @@ namespace EasyInstall.Setup
             }
             else
             {
-                uninstallDir = System.IO.Path.GetDirectoryName(exePath);
+                uninstallDir = System.IO.Path.GetDirectoryName(selfExePath);
             }
 
             try
@@ -279,7 +294,7 @@ namespace EasyInstall.Setup
                     {
                         foreach (var file in Directory.GetFiles(uninstallDir, "*", SearchOption.AllDirectories))
                         {
-                            if (string.Equals(file, exePath, StringComparison.OrdinalIgnoreCase))
+                            if (string.Equals(file, selfExePath, StringComparison.OrdinalIgnoreCase))
                                 continue;
                             try
                             {
@@ -293,8 +308,8 @@ namespace EasyInstall.Setup
 
                 // 延迟删除自身及目录
                 string args = !string.IsNullOrEmpty(uninstallDir)
-                    ? $"/c ping 127.0.0.1 -n 3 > nul & del /f /q \"{exePath}\" & rd /s /q \"{uninstallDir}\""
-                    : $"/c ping 127.0.0.1 -n 3 > nul & del /f /q \"{exePath}\"";
+                    ? $"/c ping 127.0.0.1 -n 3 > nul & del /f /q \"{selfExePath}\" & rd /s /q \"{uninstallDir}\""
+                    : $"/c ping 127.0.0.1 -n 3 > nul & del /f /q \"{selfExePath}\"";
 
                 Process.Start(new ProcessStartInfo
                 {

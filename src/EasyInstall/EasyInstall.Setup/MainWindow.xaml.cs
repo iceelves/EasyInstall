@@ -64,7 +64,7 @@ namespace EasyInstall.Setup
                 {
                     InstallPath = App.InstallDir;
                 }
-                if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
+                else if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
                 {
                     InstallPath = RegistryHelper.GetInstallLocation(App.Config.RegistryKey ?? App.Config.AppName);
                 }
