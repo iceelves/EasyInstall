@@ -261,21 +261,27 @@ namespace EasyInstall.Builder
 
                     reportProgress(1, 0);
 
-                    // 阶段 1：序列化 + 写入 overlay
+                    // 阶段 1：序列化 JSON
                     string configJson = JsonConvert.SerializeObject(config, Formatting.Indented);
-                    OverlayHelper.Pack(setupExe, compressed, configJson, outputPath);
 
-                    reportProgress(1, 100);
+                    // 阶段 2：先把纯 Setup.exe 复制到输出路径，替换图标
+                    // 必须在 Pack（追加 overlay）之前替换图标！
+                    // BeginUpdateResource 会重写 PE 文件，会截断末尾追加的 overlay 数据。
+                    File.Copy(setupExe, outputPath, overwrite: true);
 
-                    // 阶段 2：替换图标
                     if (!string.IsNullOrEmpty(config.InstallIconBase64))
                     {
                         reportProgress(2, 0);
                         byte[] icoBytes = Convert.FromBase64String(config.InstallIconBase64);
                         OverlayHelper.SetExeIcon(outputPath, icoBytes);
+                        reportProgress(2, 100);
                     }
 
-                    reportProgress(2, 100);
+                    // 阶段 3：追加 overlay（压缩数据 + JSON + 尾部元数据）
+                    // 此步骤必须在图标替换之后，否则图标替换会破坏 overlay
+                    reportProgress(1, 50);
+                    OverlayHelper.AppendOverlay(outputPath, compressed, configJson);
+                    reportProgress(1, 100);
                 });
 
                 ShowProgress(100);
@@ -594,43 +600,74 @@ namespace EasyInstall.Builder
         {
             var config = new InstallConfig
             {
-                AppName            = TxtAppName.Text.Trim(),
-                AppVersion         = TxtAppVersion.Text.Trim(),
-                Company            = TxtCompany.Text.Trim(),
-                CompanySimplify    = TxtCompanySimplify.Text.Trim(),
-                Website            = TxtWebsite.Text.Trim(),
-                DefaultInstallDir  = TxtDefaultInstallDir.Text.Trim(),
-                RegistryKey        = TxtRegistryKey.Text.Trim(),
-                MainExecutable     = TxtMainExecutable.Text.Trim(),
-                LicenseText        = TxtLicense.Text,
-                DesktopShortcut    = ChkDesktopShortcut.IsChecked == true,
-                StartMenuShortcut  = ChkStartMenuShortcut.IsChecked == true,
-                StartWithWindows   = ChkStartWithWindows.IsChecked == true,
-                InstallIconBase64  = _installIconBase64,
+                AppName             = TxtAppName.Text.Trim(),
+                AppVersion          = TxtAppVersion.Text.Trim(),
+                Company             = TxtCompany.Text.Trim(),
+                CompanySimplify     = TxtCompanySimplify.Text.Trim(),
+                Website             = TxtWebsite.Text.Trim(),
+                DefaultInstallDir   = TxtDefaultInstallDir.Text.Trim(),
+                RegistryKey         = TxtRegistryKey.Text.Trim(),
+                MainExecutable      = TxtMainExecutable.Text.Trim(),
+                LicenseText         = TxtLicense.Text,
+                DesktopShortcut     = ChkDesktopShortcut.IsChecked == true,
+                StartMenuShortcut   = ChkStartMenuShortcut.IsChecked == true,
+                StartWithWindows    = ChkStartWithWindows.IsChecked == true,
+                InstallIconBase64   = _installIconBase64,
                 UninstallIconBase64 = _uninstallIconBase64,
-                Files              = CollectPackageFiles()
+                Files               = CollectPackageFiles()
             };
             return config;
         }
 
         /// <summary>
-        /// 将文件树转换为 PackageFile 列表
+        /// 将文件树展开为每一个叶子文件的 PackageFile 记录。
+        /// Source  = 文件绝对路径
+        /// TargetDir = 相对于该文件所属根节点的子目录（保留目录结构）
         /// </summary>
         private List<PackageFile> CollectPackageFiles()
         {
             var list = new List<PackageFile>();
             foreach (var root in FileRoots)
-            {
-                if (root.IsDirectory)
-                    list.Add(new PackageFile { Source = root.FullPath, TargetDir = "" });
-                else
-                    list.Add(new PackageFile { Source = root.FullPath, TargetDir = "" });
-            }
+                CollectLeafFiles(root, root, list);
             return list;
         }
 
         /// <summary>
-        /// 将 InstallConfig 加载到界面控件
+        /// 递归收集叶子文件。
+        /// rootNode  = 该文件所属的顶层根节点（用于计算相对路径）
+        /// </summary>
+        private static void CollectLeafFiles(
+            FileTreeItem rootNode,
+            FileTreeItem current,
+            List<PackageFile> list)
+        {
+            if (!current.IsDirectory)
+            {
+                // 计算相对于根节点父目录的 TargetDir
+                // 例：根节点 C:\App\bin，文件 C:\App\bin\sub\a.dll → TargetDir = "sub"
+                string targetDir = "";
+                if (rootNode.IsDirectory)
+                {
+                    string rootParent = rootNode.FullPath; // 根节点本身是目录
+                    string fileDir    = Path.GetDirectoryName(current.FullPath);
+                    if (!string.IsNullOrEmpty(fileDir) &&
+                        fileDir.StartsWith(rootParent, StringComparison.OrdinalIgnoreCase) &&
+                        fileDir.Length > rootParent.Length)
+                    {
+                        targetDir = fileDir.Substring(rootParent.Length).TrimStart('\\', '/');
+                    }
+                }
+                list.Add(new PackageFile { Source = current.FullPath, TargetDir = targetDir });
+            }
+            else
+            {
+                foreach (var child in current.Children)
+                    CollectLeafFiles(rootNode, child, list);
+            }
+        }
+
+        /// <summary>
+        /// 将 InstallConfig 加载到界面控件，按文件路径还原树结构（不重新扫磁盘）
         /// </summary>
         private void LoadConfig(InstallConfig config)
         {
@@ -654,43 +691,137 @@ namespace EasyInstall.Builder
             _installIconBase64 = config.InstallIconBase64;
             if (!string.IsNullOrEmpty(_installIconBase64))
                 ShowIconPreview(ImgInstallIcon, TxtInstallIconPath, _installIconBase64);
-            else
-            {
-                ImgInstallIcon.Source = null;
-                TxtInstallIconPath.Text = "(默认)";
-            }
+            else { ImgInstallIcon.Source = null; TxtInstallIconPath.Text = "(默认)"; }
 
             _uninstallIconBase64 = config.UninstallIconBase64;
             if (!string.IsNullOrEmpty(_uninstallIconBase64))
                 ShowIconPreview(ImgUninstallIcon, TxtUninstallIconPath, _uninstallIconBase64);
+            else { ImgUninstallIcon.Source = null; TxtUninstallIconPath.Text = "(默认)"; }
+
+            // ── 文件树：按路径还原，不重新扫磁盘 ─────────────────
+            FileRoots.Clear();
+            FileTree.UncheckAll();
+
+            if (config.Files == null || config.Files.Count == 0) return;
+
+            // 按 Source 路径重建树节点
+            // 规则：同一个 TargetDir 前缀的文件归属同一棵子树
+            // 简单策略：把每个文件的完整路径按目录层级插入树
+            foreach (var pf in config.Files)
+            {
+                if (string.IsNullOrEmpty(pf.Source)) continue;
+                RestoreFileToTree(pf.Source, pf.TargetDir);
+            }
+        }
+
+        /// <summary>
+        /// 将一个文件路径还原到树中，按目录层级自动创建中间节点。
+        /// targetDir 用于判断该文件属于哪个根目录节点。
+        /// </summary>
+        private void RestoreFileToTree(string filePath, string targetDir)
+        {
+            // 根据 targetDir 反推根目录路径
+            // targetDir = "" 表示文件直接在根节点下
+            // targetDir = "sub\dir" 表示文件在根节点的 sub\dir 子目录下
+            string fileDir = Path.GetDirectoryName(filePath) ?? "";
+
+            string rootPath;
+            if (string.IsNullOrEmpty(targetDir))
+            {
+                // 文件直接在某个目录下，或是独立文件
+                rootPath = fileDir;
+            }
             else
             {
-                ImgUninstallIcon.Source = null;
-                TxtUninstallIconPath.Text = "(默认)";
+                // 从文件目录向上退 targetDir 的层数，得到根目录
+                int depth = targetDir.Split(new[] { '\\', '/' },
+                    StringSplitOptions.RemoveEmptyEntries).Length;
+                string dir = fileDir;
+                for (int i = 0; i < depth; i++)
+                    dir = Path.GetDirectoryName(dir) ?? dir;
+                rootPath = dir;
             }
 
-            // 文件树
-            FileRoots.Clear();
-            if (config.Files != null)
+            // 查找或创建根节点
+            // 如果 rootPath == fileDir 且 targetDir 为空，说明是独立文件（无目录层级）
+            bool isStandaloneFile = string.IsNullOrEmpty(targetDir) &&
+                                    string.Equals(rootPath, fileDir,
+                                        StringComparison.OrdinalIgnoreCase);
+
+            if (isStandaloneFile)
             {
-                foreach (var pf in config.Files)
+                // 独立文件：直接加到根
+                if (!FileRoots.Any(r => r.FullPath.Equals(filePath,
+                        StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (string.IsNullOrEmpty(pf.Source)) continue;
-                    if (Directory.Exists(pf.Source))
-                        AddFolderToTree(pf.Source);
-                    else if (File.Exists(pf.Source))
-                        AddFileToTree(pf.Source);
-                    else
+                    InsertSorted(FileRoots, new FileTreeItem
                     {
-                        // 路径不存在时仍显示（可能是相对路径）
-                        FileRoots.Add(new FileTreeItem
-                        {
-                            Name = Path.GetFileName(pf.Source),
-                            FullPath = pf.Source,
-                            IsDirectory = false
-                        });
-                    }
+                        Name = Path.GetFileName(filePath),
+                        FullPath = filePath,
+                        IsDirectory = false
+                    });
                 }
+                return;
+            }
+
+            // 有目录结构：找或创建根目录节点
+            var rootNode = FileRoots.FirstOrDefault(r =>
+                r.IsDirectory &&
+                r.FullPath.Equals(rootPath, StringComparison.OrdinalIgnoreCase));
+
+            if (rootNode == null)
+            {
+                rootNode = new FileTreeItem
+                {
+                    Name = Path.GetFileName(rootPath),
+                    FullPath = rootPath,
+                    IsDirectory = true,
+                    IsExpanded = true
+                };
+                InsertSorted(FileRoots, rootNode);
+            }
+
+            // 在根节点下按 targetDir 路径逐级创建中间目录节点
+            var parentNode = rootNode;
+            if (!string.IsNullOrEmpty(targetDir))
+            {
+                string[] parts = targetDir.Split(new[] { '\\', '/' },
+                    StringSplitOptions.RemoveEmptyEntries);
+                string currentPath = rootPath;
+                foreach (string part in parts)
+                {
+                    currentPath = Path.Combine(currentPath, part);
+                    var existing = parentNode.Children.FirstOrDefault(c =>
+                        c.IsDirectory &&
+                        c.Name.Equals(part, StringComparison.OrdinalIgnoreCase));
+                    if (existing == null)
+                    {
+                        existing = new FileTreeItem
+                        {
+                            Name = part,
+                            FullPath = currentPath,
+                            IsDirectory = true,
+                            IsExpanded = true,
+                            Parent = parentNode
+                        };
+                        InsertSorted(parentNode.Children, existing);
+                    }
+                    parentNode = existing;
+                }
+            }
+
+            // 在最终目录节点下添加文件
+            if (!parentNode.Children.Any(c =>
+                    !c.IsDirectory &&
+                    c.FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
+            {
+                InsertSorted(parentNode.Children, new FileTreeItem
+                {
+                    Name = Path.GetFileName(filePath),
+                    FullPath = filePath,
+                    IsDirectory = false,
+                    Parent = parentNode
+                });
             }
         }
 

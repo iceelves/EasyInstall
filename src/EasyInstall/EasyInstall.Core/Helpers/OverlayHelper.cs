@@ -154,27 +154,21 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 将 Setup.exe + 压缩数据 + JSON配置 合并为单个 EXE
+        /// 将压缩数据和 JSON 配置追加到已存在的 EXE 文件末尾（原地追加）。
+        /// 调用前必须已完成图标替换，因为图标替换会截断末尾数据。
         /// </summary>
-        /// <param name="setupExePath"></param>
-        /// <param name="compressedData"></param>
-        /// <param name="configJson"></param>
-        /// <param name="outputPath"></param>
-        public static void Pack(string setupExePath, byte[] compressedData,
-            string configJson, string outputPath)
+        public static void AppendOverlay(string exePath, byte[] compressedData, string configJson)
         {
-            byte[] exeBytes = File.ReadAllBytes(setupExePath);
             byte[] jsonBytes = Encoding.UTF8.GetBytes(configJson);
 
-            using (var fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+            using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write))
             using (var bw = new BinaryWriter(fs))
             {
-                bw.Write(exeBytes);
                 bw.Write(compressedData);
                 bw.Write(jsonBytes);
-                bw.Write(jsonBytes.Length);          // 4 bytes
+                bw.Write(jsonBytes.Length);            // 4 bytes
                 bw.Write((long)compressedData.Length); // 8 bytes
-                bw.Write(Magic);                     // 8 bytes
+                bw.Write(Magic);                       // 8 bytes
             }
         }
 
