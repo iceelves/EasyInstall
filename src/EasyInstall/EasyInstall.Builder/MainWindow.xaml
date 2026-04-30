@@ -95,9 +95,10 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="2"/>
         </Style>
-        <!-- TreeViewItem：只绑定 IsExpanded（OneWay，不反写，让 WPF 原生控制展开/折叠）-->
+        <!-- TreeViewItem：双向绑定 IsExpanded，手动展开/折叠时同步回 ViewModel，
+             确保"全部展开/折叠"按钮能正确感知并触发状态变化 -->
         <Style TargetType="TreeViewItem">
-            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=OneWay}"/>
+            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
             <Setter Property="Padding" Value="1,1"/>
             <Style.Triggers>
                 <!-- 去掉原生蓝色选中高亮，选中状态由 CheckBox 表示 -->
