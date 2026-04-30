@@ -90,6 +90,9 @@ namespace EasyInstall.Builder.Controls
             }
             else
             {
+                // 如果点击落在滚动条上，不启动框选，让滚动条正常处理
+                if (IsHitScrollBar(e.GetPosition(this))) return;
+
                 // 空白处：开始框选
                 if (!ctrl && !shift) UncheckAll();
                 _dragOrigin = e.GetPosition(this);
@@ -261,6 +264,21 @@ namespace EasyInstall.Builder.Controls
                         parent = VisualTreeHelper.GetParent(parent);
                     }
                 }
+                hit = VisualTreeHelper.GetParent(hit);
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// 判断点击是否落在滚动条（ScrollBar / ScrollViewer 的 Track/Thumb 等）上，
+        /// 若是则不应启动框选，让滚动条正常处理拖动。
+        /// </summary>
+        private bool IsHitScrollBar(Point pt)
+        {
+            var hit = InputHitTest(pt) as DependencyObject;
+            while (hit != null && !(hit is MultiSelectTreeView))
+            {
+                if (hit is ScrollBar) return true;
                 hit = VisualTreeHelper.GetParent(hit);
             }
             return false;
