@@ -1,0 +1,76 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:System="clr-namespace:System;assembly=mscorlib">
+
+    <!--Window title-->
+    <System:String x:Key="BuilderTitle">EasyInstall Builder</System:String>
+
+    <!--Menu / Toolbar-->
+    <System:String x:Key="MenuFile">File</System:String>
+    <System:String x:Key="MenuNew">New Config</System:String>
+    <System:String x:Key="MenuOpen">Import Config</System:String>
+    <System:String x:Key="MenuSave">Export Config</System:String>
+
+    <!--Basic info-->
+    <System:String x:Key="SectionBasicInfo">Basic Information</System:String>
+    <System:String x:Key="LabelAppName">App Name</System:String>
+    <System:String x:Key="LabelAppVersion">Version</System:String>
+    <System:String x:Key="LabelCompany">Company</System:String>
+    <System:String x:Key="LabelCompanySimplify">Company Short Name</System:String>
+    <System:String x:Key="LabelWebsite">Website</System:String>
+    <System:String x:Key="LabelDefaultInstallDir">Default Install Dir</System:String>
+    <System:String x:Key="LabelRegistryKey">Registry Key</System:String>
+    <System:String x:Key="LabelMainExecutable">Main Executable</System:String>
+
+    <!--Shortcuts-->
+    <System:String x:Key="SectionShortcuts">Shortcuts &amp; Startup</System:String>
+
+    <!--License-->
+    <System:String x:Key="SectionLicense">License Agreement</System:String>
+    <System:String x:Key="LabelLicenseText">License Text</System:String>
+
+    <!--Icons-->
+    <System:String x:Key="SectionIcons">Program Icons</System:String>
+    <System:String x:Key="LabelInstallIcon">Install Icon</System:String>
+    <System:String x:Key="LabelUninstallIcon">Uninstall Icon</System:String>
+    <System:String x:Key="BtnSelectIcon">Select Icon...</System:String>
+    <System:String x:Key="BtnClearIcon">Clear</System:String>
+
+    <!--Files-->
+    <System:String x:Key="SectionFiles">Install Files</System:String>
+    <System:String x:Key="BtnAddFiles">Add Files</System:String>
+    <System:String x:Key="BtnAddFolder">Add Folder</System:String>
+    <System:String x:Key="BtnRemoveSelected">Remove Selected</System:String>
+    <System:String x:Key="BtnExpandAll">Expand All</System:String>
+    <System:String x:Key="BtnCollapseAll">Collapse All</System:String>
+
+    <!--Build-->
+    <System:String x:Key="BtnBuild">Build</System:String>
+    <System:String x:Key="BtnNewConfig">New</System:String>
+    <System:String x:Key="BtnImportConfig">Import Config</System:String>
+    <System:String x:Key="BtnExportConfig">Export Config</System:String>
+
+    <!--Messages-->
+    <System:String x:Key="MsgBuildSuccess">Build succeeded!\nOutput: </System:String>
+    <System:String x:Key="MsgBuildFailed">Build failed: </System:String>
+    <System:String x:Key="MsgSelectSetupExe">Please select the Setup.exe path first</System:String>
+    <System:String x:Key="MsgNoFiles">Please add at least one install file</System:String>
+    <System:String x:Key="MsgConfigSaved">Config exported</System:String>
+    <System:String x:Key="MsgConfigLoaded">Config imported</System:String>
+    <System:String x:Key="MsgConfirmNew">Current config is unsaved. Create new anyway?</System:String>
+    <System:String x:Key="MsgConfirmDelete">Delete selected files/folders?</System:String>
+
+    <!--Setup.exe path-->
+    <System:String x:Key="LabelSetupExe">Setup.exe Path</System:String>
+    <System:String x:Key="BtnBrowseSetup">Browse...</System:String>
+
+    <!--Output path-->
+    <System:String x:Key="LabelOutputPath">Output Path</System:String>
+    <System:String x:Key="BtnBrowseOutput">Browse...</System:String>
+
+    <!--Status bar-->
+    <System:String x:Key="StatusReady">Ready</System:String>
+    <System:String x:Key="StatusBuilding">Building...</System:String>
+    <System:String x:Key="StatusBuildDone">Build complete</System:String>
+
+</ResourceDictionary>

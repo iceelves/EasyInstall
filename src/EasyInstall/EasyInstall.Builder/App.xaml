@@ -4,6 +4,21 @@
              xmlns:local="clr-namespace:EasyInstall.Builder"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--语言-->
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Language/zh-CN.xaml"/>
+                <!--控件样式-->
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceButtonStyle.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceSvgButtonStyle.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceScrollViewerStyle.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceCheckBoxStyle.xaml"/>
+                <!--Builder 自身语言-->
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Builder;component/Language/zh-CN.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <!--全局默认样式-->
+            <Style TargetType="{x:Type ScrollViewer}" BasedOn="{StaticResource IceScrollViewerStyle}"/>
+            <Style TargetType="{x:Type CheckBox}"     BasedOn="{StaticResource IceCheckBoxStyle}"/>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

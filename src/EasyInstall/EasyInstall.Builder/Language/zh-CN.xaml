@@ -1,0 +1,76 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:System="clr-namespace:System;assembly=mscorlib">
+
+    <!--窗口标题-->
+    <System:String x:Key="BuilderTitle">EasyInstall 打包工具</System:String>
+
+    <!--菜单/工具栏-->
+    <System:String x:Key="MenuFile">文件</System:String>
+    <System:String x:Key="MenuNew">新建配置</System:String>
+    <System:String x:Key="MenuOpen">导入配置</System:String>
+    <System:String x:Key="MenuSave">导出配置</System:String>
+
+    <!--基本信息-->
+    <System:String x:Key="SectionBasicInfo">基本信息</System:String>
+    <System:String x:Key="LabelAppName">应用名称</System:String>
+    <System:String x:Key="LabelAppVersion">版本号</System:String>
+    <System:String x:Key="LabelCompany">公司名称</System:String>
+    <System:String x:Key="LabelCompanySimplify">公司简称</System:String>
+    <System:String x:Key="LabelWebsite">官方网站</System:String>
+    <System:String x:Key="LabelDefaultInstallDir">默认安装路径</System:String>
+    <System:String x:Key="LabelRegistryKey">注册表键名</System:String>
+    <System:String x:Key="LabelMainExecutable">主程序文件名</System:String>
+
+    <!--快捷方式-->
+    <System:String x:Key="SectionShortcuts">快捷方式与启动</System:String>
+
+    <!--协议-->
+    <System:String x:Key="SectionLicense">用户许可协议</System:String>
+    <System:String x:Key="LabelLicenseText">协议内容</System:String>
+
+    <!--图标-->
+    <System:String x:Key="SectionIcons">程序图标</System:String>
+    <System:String x:Key="LabelInstallIcon">安装程序图标</System:String>
+    <System:String x:Key="LabelUninstallIcon">卸载程序图标</System:String>
+    <System:String x:Key="BtnSelectIcon">选择图标...</System:String>
+    <System:String x:Key="BtnClearIcon">清除</System:String>
+
+    <!--文件列表-->
+    <System:String x:Key="SectionFiles">安装文件</System:String>
+    <System:String x:Key="BtnAddFiles">添加文件</System:String>
+    <System:String x:Key="BtnAddFolder">添加文件夹</System:String>
+    <System:String x:Key="BtnRemoveSelected">删除选中</System:String>
+    <System:String x:Key="BtnExpandAll">全部展开</System:String>
+    <System:String x:Key="BtnCollapseAll">全部折叠</System:String>
+
+    <!--打包-->
+    <System:String x:Key="BtnBuild">打包</System:String>
+    <System:String x:Key="BtnNewConfig">新建</System:String>
+    <System:String x:Key="BtnImportConfig">导入配置</System:String>
+    <System:String x:Key="BtnExportConfig">导出配置</System:String>
+
+    <!--消息-->
+    <System:String x:Key="MsgBuildSuccess">打包成功！\n输出文件：</System:String>
+    <System:String x:Key="MsgBuildFailed">打包失败：</System:String>
+    <System:String x:Key="MsgSelectSetupExe">请先选择 Setup.exe 路径</System:String>
+    <System:String x:Key="MsgNoFiles">请至少添加一个安装文件</System:String>
+    <System:String x:Key="MsgConfigSaved">配置已导出</System:String>
+    <System:String x:Key="MsgConfigLoaded">配置已导入</System:String>
+    <System:String x:Key="MsgConfirmNew">当前配置未保存，确定新建吗？</System:String>
+    <System:String x:Key="MsgConfirmDelete">确定删除选中的文件/文件夹吗？</System:String>
+
+    <!--Setup.exe 路径-->
+    <System:String x:Key="LabelSetupExe">Setup.exe 路径</System:String>
+    <System:String x:Key="BtnBrowseSetup">浏览...</System:String>
+
+    <!--输出路径-->
+    <System:String x:Key="LabelOutputPath">输出路径</System:String>
+    <System:String x:Key="BtnBrowseOutput">浏览...</System:String>
+
+    <!--状态栏-->
+    <System:String x:Key="StatusReady">就绪</System:String>
+    <System:String x:Key="StatusBuilding">正在打包...</System:String>
+    <System:String x:Key="StatusBuildDone">打包完成</System:String>
+
+</ResourceDictionary>

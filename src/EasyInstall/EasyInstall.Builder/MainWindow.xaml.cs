@@ -1,469 +1,711 @@
-﻿using EasyInstall.Core.Helpers;
+﻿using EasyInstall.Builder.Models;
+using EasyInstall.Core.Helpers;
 using EasyInstall.Core.Models;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace EasyInstall.Builder
 {
+    /// <summary>
+    /// MainWindow.xaml 的交互逻辑
+    /// </summary>
     public partial class MainWindow : Window
     {
-        // ── 文件列表数据源 ──────────────────────────────────────────
-        private readonly ObservableCollection<PackageFile> _files = new ObservableCollection<PackageFile>();
+        // ── 文件树根节点集合（绑定到 TreeView）────────────────────
+        public ObservableCollection<FileTreeItem> FileRoots { get; }
+            = new ObservableCollection<FileTreeItem>();
 
-        // ── 安装图标（ICO 字节 + Base64）──────────────────────────
-        private byte[] _iconBytes = null;
-        private string _iconBase64 = null;
-
-        // ── 卸载图标（ICO 字节 + Base64）──────────────────────────
-        private byte[] _uninstallIconBytes = null;
-        private string _uninstallIconBase64 = null;
+        // ── 图标 Base64 缓存 ──────────────────────────────────────
+        private string _installIconBase64;
+        private string _uninstallIconBase64;
 
         public MainWindow()
         {
             InitializeComponent();
-            FileList.ItemsSource = _files;
+            DataContext = this;
+            SetStatus("StatusReady");
+
+            // 默认安装路径占位符提示
+            TxtDefaultInstallDir.Text = @"{ProgramFiles}\{Company}\{AppName}";
+
+            // 自动检测同目录下的 Setup.exe
+            AutoDetectSetupExe();
         }
 
-        // ══════════════════════════════════════════════════════════
-        //  图标 Tab — 安装图标
-        // ══════════════════════════════════════════════════════════
-
-        private void BrowseIcon_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// 在 Builder.exe 所在目录查找 EasyInstall.Setup.exe / Setup.exe
+        /// 优先查找 Release 版本
+        /// </summary>
+        private void AutoDetectSetupExe()
         {
-            string path = BrowseIcoFile("选择安装程序图标");
-            if (path == null) return;
-            LoadInstallIcon(path);
+            string selfDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            // 同目录直接查找（Release 发布时 Builder 和 Setup 在同一目录）
+            string[] candidates = new[]
+            {
+                Path.Combine(selfDir, "EasyInstall.Setup.exe"),
+                Path.Combine(selfDir, "Setup.exe"),
+            };
+            foreach (string path in candidates)
+            {
+                if (File.Exists(path))
+                {
+                    TxtSetupExe.Text = path;
+                    return;
+                }
+            }
+
+            // 开发环境：从 Builder\bin\Debug 向上找 Setup\bin\Release 或 bin\Debug
+            string solutionDir = GetSolutionDir(selfDir);
+            if (solutionDir != null)
+            {
+                string[] devCandidates = new[]
+                {
+                    Path.Combine(solutionDir, "EasyInstall.Setup", "bin", "Release", "EasyInstall.Setup.exe"),
+                    Path.Combine(solutionDir, "EasyInstall.Setup", "bin", "Debug",   "EasyInstall.Setup.exe"),
+                };
+                foreach (string path in devCandidates)
+                {
+                    if (File.Exists(path))
+                    {
+                        TxtSetupExe.Text = path;
+                        return;
+                    }
+                }
+            }
         }
 
-        private void ClearIcon_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// 从当前目录向上查找包含 .sln 文件的目录
+        /// </summary>
+        private static string GetSolutionDir(string startDir)
         {
-            _iconBytes = null;
-            _iconBase64 = null;
-            TxtIconPath.Text = string.Empty;
-            ImgIconPreview.Source = null;
+            var dir = new DirectoryInfo(startDir);
+            while (dir != null)
+            {
+                if (dir.GetFiles("*.sln").Length > 0)
+                    return dir.FullName;
+                dir = dir.Parent;
+            }
+            return null;
         }
 
-        // ══════════════════════════════════════════════════════════
-        //  图标 Tab — 卸载图标
-        // ══════════════════════════════════════════════════════════
-
-        private void BrowseUninstallIcon_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// 检测 Setup.exe 是否已通过 Costura.Fody 嵌入了依赖（自包含）。
+        /// Costura 会把依赖 DLL 以 "costura." 前缀嵌入为资源，检测该特征。
+        /// </summary>
+        private static bool IsSetupExeSelfContained(string exePath)
         {
-            string path = BrowseIcoFile("选择卸载程序图标");
-            if (path == null) return;
-            LoadUninstallIcon(path);
+            try
+            {
+                // 用独立 AppDomain 反射加载，避免锁定文件
+                byte[] bytes = File.ReadAllBytes(exePath);
+                // 简单扫描 PE 资源节中是否含有 "costura." 字样
+                // Costura 嵌入的资源名形如 "costura.easyinstall.core.dll.compressed"
+                string content = System.Text.Encoding.ASCII.GetString(bytes);
+                return content.IndexOf("costura.", StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+            catch
+            {
+                return true; // 读取失败时不阻止打包
+            }
         }
 
-        private void ClearUninstallIcon_Click(object sender, RoutedEventArgs e)
+        // ══ 工具栏按钮 ════════════════════════════════════════════
+
+        private void BtnNew_Click(object sender, RoutedEventArgs e)
         {
-            _uninstallIconBytes = null;
-            _uninstallIconBase64 = null;
-            TxtUninstallIconPath.Text = string.Empty;
-            ImgUninstallIconPreview.Source = null;
+            if (MessageBox.Show(
+                    FindRes("MsgConfirmNew"),
+                    FindRes("BuilderTitle"),
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question) != MessageBoxResult.Yes)
+                return;
+
+            ClearForm();
         }
 
-        // ══════════════════════════════════════════════════════════
-        //  文件列表 Tab
-        // ══════════════════════════════════════════════════════════
-
-        private void AddFile_Click(object sender, RoutedEventArgs e)
+        private void BtnImport_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new OpenFileDialog
             {
-                Title = "选择文件",
-                Multiselect = true,
-                Filter = "所有文件|*.*"
-            };
-            if (dlg.ShowDialog() != true) return;
-
-            foreach (var f in dlg.FileNames)
-                _files.Add(new PackageFile { Source = f, TargetDir = "" });
-        }
-
-        private void AddFolder_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new System.Windows.Forms.FolderBrowserDialog
-            {
-                Description = "选择要打包的目录",
-                ShowNewFolderButton = false
-            };
-            if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-            _files.Add(new PackageFile { Source = dlg.SelectedPath, TargetDir = "" });
-        }
-
-        private void RemoveFile_Click(object sender, RoutedEventArgs e)
-        {
-            var selected = FileList.SelectedItem as PackageFile;
-            if (selected != null)
-                _files.Remove(selected);
-        }
-
-        // ══════════════════════════════════════════════════════════
-        //  用户协议 Tab
-        // ══════════════════════════════════════════════════════════
-
-        private void ImportLicense_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new OpenFileDialog
-            {
-                Title = "导入协议文件",
-                Filter = "文本文件|*.txt;*.md;*.rtf|所有文件|*.*"
+                Title = FindRes("BtnImportConfig"),
+                Filter = "JSON 配置文件 (*.json)|*.json|所有文件 (*.*)|*.*"
             };
             if (dlg.ShowDialog() != true) return;
 
             try
             {
-                TxtLicense.Text = File.ReadAllText(dlg.FileName, System.Text.Encoding.UTF8);
+                string json = File.ReadAllText(dlg.FileName, Encoding.UTF8);
+                var config = JsonConvert.DeserializeObject<InstallConfig>(json);
+                LoadConfig(config);
+                SetStatus("MsgConfigLoaded");
             }
             catch (Exception ex)
             {
-                MessageBox.Show("读取文件失败：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(FindRes("MsgBuildFailed") + ex.Message,
+                    FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void ClearLicense_Click(object sender, RoutedEventArgs e)
+        private void BtnExport_Click(object sender, RoutedEventArgs e)
         {
-            TxtLicense.Text = string.Empty;
-        }
-
-        // ══════════════════════════════════════════════════════════
-        //  配置 导入 / 导出
-        // ══════════════════════════════════════════════════════════
-
-        private void ExportConfig_Click(object sender, RoutedEventArgs e)
-        {
-            if (!ValidateBasicInfo()) return;
-
             var dlg = new SaveFileDialog
             {
-                Title = "导出配置文件",
-                Filter = "JSON 配置|*.json",
+                Title = FindRes("BtnExportConfig"),
+                Filter = "JSON 配置文件 (*.json)|*.json",
                 FileName = "install.json"
             };
             if (dlg.ShowDialog() != true) return;
 
             try
             {
-                var vBuildConfig = JsonConvert.SerializeObject(BuildConfig(), Formatting.Indented);
-                File.WriteAllText(dlg.FileName, vBuildConfig, Encoding.UTF8);
-                SetStatus("配置已导出：" + dlg.FileName, false);
+                var config = BuildConfig();
+                string json = JsonConvert.SerializeObject(config, Formatting.Indented);
+                File.WriteAllText(dlg.FileName, json, Encoding.UTF8);
+                SetStatus("MsgConfigSaved");
+                MessageBox.Show(FindRes("MsgConfigSaved") + "\n" + dlg.FileName,
+                    FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("导出失败：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(FindRes("MsgBuildFailed") + ex.Message,
+                    FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void ImportConfig_Click(object sender, RoutedEventArgs e)
+        private async void BtnBuild_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new OpenFileDialog
+            // 校验 Setup.exe
+            if (string.IsNullOrWhiteSpace(TxtSetupExe.Text) || !File.Exists(TxtSetupExe.Text))
             {
-                Title = "导入配置文件",
-                Filter = "JSON 配置|*.json|所有文件|*.*"
-            };
-            if (dlg.ShowDialog() != true) return;
-
-            try
-            {
-                ApplyConfig(JsonConvert.DeserializeObject<InstallConfig>(File.ReadAllText(dlg.FileName, Encoding.UTF8)));
-                SetStatus("配置已导入：" + dlg.FileName, false);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("导入失败：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        // ══════════════════════════════════════════════════════════
-        //  生成安装包
-        // ══════════════════════════════════════════════════════════
-
-        private async void BuildSetup_Click(object sender, RoutedEventArgs e)
-        {
-            if (!ValidateBasicInfo()) return;
-
-            if (_files.Count == 0)
-            {
-                MessageBox.Show("请至少添加一个文件或目录。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(FindRes("MsgSelectSetupExe"),
+                    FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            string setupTemplate = FindSetupTemplate();
-            if (setupTemplate == null)
+            // 检测 Setup.exe 是否已嵌入依赖（Costura 处理过）
+            if (!IsSetupExeSelfContained(TxtSetupExe.Text))
             {
-                MessageBox.Show("未找到 EasyInstall.Setup.exe，请确保它与 Builder 在同一目录或上级目录。",
-                    "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                var r = MessageBox.Show(
+                    "检测到所选 Setup.exe 未嵌入依赖程序集（可能是 Debug 版本）。\n\n" +
+                    "打包后的安装程序运行时将因找不到 EasyInstall.Core.dll 而崩溃。\n\n" +
+                    "请使用 Release 版本的 Setup.exe，或重新编译 Setup 项目（Release 配置）后再打包。\n\n" +
+                    "是否仍然继续打包？",
+                    FindRes("BuilderTitle"),
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+                if (r != MessageBoxResult.Yes) return;
+            }
+
+            if (!FileRoots.Any())
+            {
+                MessageBox.Show(FindRes("MsgNoFiles"),
+                    FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var saveDlg = new SaveFileDialog
+            // 选择输出路径
+            string outputPath = TxtOutputPath.Text;
+            if (string.IsNullOrWhiteSpace(outputPath))
             {
-                Title = "保存安装包",
-                Filter = "可执行文件|*.exe",
-                FileName = TxtAppName.Text.Trim() + "_Setup.exe"
-            };
-            if (saveDlg.ShowDialog() != true) return;
+                var dlg = new SaveFileDialog
+                {
+                    Title = FindRes("LabelOutputPath"),
+                    Filter = "可执行文件 (*.exe)|*.exe",
+                    FileName = (TxtAppName.Text.Trim().Length > 0 ? TxtAppName.Text.Trim() : "Setup") + "_Install.exe"
+                };
+                if (dlg.ShowDialog() != true) return;
+                outputPath = dlg.FileName;
+                TxtOutputPath.Text = outputPath;
+            }
 
-            string outputPath = saveDlg.FileName;
-            var cfg = BuildConfig();
-            string configJson = JsonConvert.SerializeObject(cfg);
-
-            SetStatus("正在压缩文件...", false);
-            BuildProgress.Visibility = Visibility.Visible;
-            BuildProgress.Value = 0;
+            SetStatus("StatusBuilding");
             IsEnabled = false;
 
             try
             {
-                // 1. 压缩文件
-                byte[] compressed = null;
-                ZipHelper.ProgressChanged += OnZipProgress;
+                var config = BuildConfig();
+                string setupExe = TxtSetupExe.Text;
+
                 await Task.Run(() =>
                 {
-                    compressed = ZipHelper.CompressPaths(cfg.Files, AppDomain.CurrentDomain.BaseDirectory);
-                });
-                ZipHelper.ProgressChanged -= OnZipProgress;
+                    // 1. 压缩文件
+                    byte[] compressed = ZipHelper.CompressPaths(config.Files, "");
 
-                BuildProgress.Value = 100;
-                SetStatus("正在打包 EXE...", false);
+                    // 2. 序列化配置（Newtonsoft 格式化）
+                    string configJson = JsonConvert.SerializeObject(config, Formatting.Indented);
 
-                // 2. 先替换模板图标（在临时文件上操作），再附加 Overlay
-                //    顺序必须是：替换图标 → 附加 Overlay
-                //    因为 UpdateResource 会截断文件末尾，若先 Overlay 再改图标会破坏数据
-                string templateForPack = setupTemplate;
-                string tempIconExe = null;
-                byte[] iconBytes = _iconBytes;
+                    // 3. 打包
+                    OverlayHelper.Pack(setupExe, compressed, configJson, outputPath);
 
-                if (iconBytes != null)
-                {
-                    SetStatus("正在替换安装图标...", false);
-                    tempIconExe = Path.GetTempFileName();
-                    await Task.Run(() =>
+                    // 4. 替换图标
+                    if (!string.IsNullOrEmpty(config.InstallIconBase64))
                     {
-                        File.Copy(setupTemplate, tempIconExe, true);
-                        try { OverlayHelper.SetExeIcon(tempIconExe, iconBytes); }
-                        catch { /* 图标替换失败，回退用原模板 */ }
-                    });
-                    templateForPack = tempIconExe;
-                }
+                        byte[] icoBytes = Convert.FromBase64String(config.InstallIconBase64);
+                        OverlayHelper.SetExeIcon(outputPath, icoBytes);
+                    }
+                });
 
-                try
-                {
-                    SetStatus("正在写入安装包...", false);
-                    await Task.Run(() => OverlayHelper.Pack(templateForPack, compressed, configJson, outputPath));
-                }
-                finally
-                {
-                    if (tempIconExe != null && File.Exists(tempIconExe))
-                        try { File.Delete(tempIconExe); } catch { }
-                }
-
-                SetStatus("生成完成：" + outputPath, false);
-                MessageBox.Show("安装包已生成：\n" + outputPath, "完成", MessageBoxButton.OK, MessageBoxImage.Information);
+                SetStatus("StatusBuildDone");
+                MessageBox.Show(FindRes("MsgBuildSuccess").Replace("\\n", "\n") + outputPath,
+                    FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                SetStatus("生成失败：" + ex.Message, true);
-                MessageBox.Show("生成失败：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                SetStatus("StatusReady");
+                MessageBox.Show(FindRes("MsgBuildFailed") + ex.Message,
+                    FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
-                ZipHelper.ProgressChanged -= OnZipProgress;
-                BuildProgress.Visibility = Visibility.Collapsed;
                 IsEnabled = true;
             }
         }
 
-        private void OnZipProgress(int pct)
+        // ══ 图标按钮 ══════════════════════════════════════════════
+
+        private void BtnSelectInstallIcon_Click(object sender, RoutedEventArgs e)
         {
-            Dispatcher.InvokeAsync(() =>
-            {
-                BuildProgress.Value = pct;
-                SetStatus($"正在压缩文件... {pct}%", false);
-            });
+            string base64 = PickIcon();
+            if (base64 == null) return;
+            _installIconBase64 = base64;
+            ShowIconPreview(ImgInstallIcon, TxtInstallIconPath, base64);
         }
 
-        // ══════════════════════════════════════════════════════════
-        //  辅助方法
-        // ══════════════════════════════════════════════════════════
-
-        private InstallConfig BuildConfig()
+        private void BtnClearInstallIcon_Click(object sender, RoutedEventArgs e)
         {
-            var cfg = new InstallConfig
-            {
-                AppName = TxtAppName.Text.Trim(),
-                AppVersion = TxtAppVersion.Text.Trim(),
-                Company = TxtCompany.Text.Trim(),
-                CompanySimplify = TxtCompanySimplify.Text.Trim(),
-                Website = TxtWebsite.Text.Trim(),
-                RegistryKey = TxtRegistryKey.Text.Trim(),
-                DefaultInstallDir = TxtDefaultInstallDir.Text.Trim(),
-                MainExecutable = TxtMainExecutable.Text.Trim(),
-                LicenseText = TxtLicense.Text,
-                DesktopShortcut = ChkDesktop.IsChecked == true,
-                StartMenuShortcut = ChkStartMenu.IsChecked == true,
-                StartWithWindows = ChkAutoRun.IsChecked == true,
-                InstallIconBase64 = _iconBase64,
-                UninstallIconBase64 = _uninstallIconBase64
-            };
-            foreach (var f in _files)
-                cfg.Files.Add(f);
-            return cfg;
+            _installIconBase64 = null;
+            ImgInstallIcon.Source = null;
+            TxtInstallIconPath.Text = "(默认)";
         }
 
-        private void ApplyConfig(InstallConfig cfg)
+        private void BtnSelectUninstallIcon_Click(object sender, RoutedEventArgs e)
         {
-            TxtAppName.Text = cfg.AppName ?? "";
-            TxtAppVersion.Text = cfg.AppVersion ?? "";
-            TxtCompany.Text = cfg.Company ?? "";
-            TxtCompanySimplify.Text = cfg.CompanySimplify ?? "";
-            TxtWebsite.Text = cfg.Website ?? "";
-            TxtRegistryKey.Text = cfg.RegistryKey ?? "";
-            TxtDefaultInstallDir.Text = cfg.DefaultInstallDir ?? @"{ProgramFiles}\{Company}\{AppName}";
-            TxtMainExecutable.Text = cfg.MainExecutable ?? "";
-            TxtLicense.Text = cfg.LicenseText ?? "";
-            ChkDesktop.IsChecked = cfg.DesktopShortcut;
-            ChkStartMenu.IsChecked = cfg.StartMenuShortcut;
-            ChkAutoRun.IsChecked = cfg.StartWithWindows;
-
-            _files.Clear();
-            if (cfg.Files != null)
-                foreach (var f in cfg.Files)
-                    _files.Add(f);
-
-            // 恢复安装图标
-            RestoreIconFromBase64(cfg.InstallIconBase64,
-                ref _iconBytes, ref _iconBase64,
-                TxtIconPath, ImgIconPreview, "安装图标");
-
-            // 恢复卸载图标
-            RestoreIconFromBase64(cfg.UninstallIconBase64,
-                ref _uninstallIconBytes, ref _uninstallIconBase64,
-                TxtUninstallIconPath, ImgUninstallIconPreview, "卸载图标");
+            string base64 = PickIcon();
+            if (base64 == null) return;
+            _uninstallIconBase64 = base64;
+            ShowIconPreview(ImgUninstallIcon, TxtUninstallIconPath, base64);
         }
 
-        private void RestoreIconFromBase64(string base64,
-            ref byte[] bytesField, ref string base64Field,
-            System.Windows.Controls.TextBox pathBox,
-            System.Windows.Controls.Image previewImg,
-            string label)
+        private void BtnClearUninstallIcon_Click(object sender, RoutedEventArgs e)
         {
-            bytesField = null;
-            base64Field = null;
-            pathBox.Text = string.Empty;
-            previewImg.Source = null;
-
-            if (string.IsNullOrEmpty(base64)) return;
-            try
-            {
-                byte[] bytes = Convert.FromBase64String(base64);
-                bytesField = bytes;
-                base64Field = base64;
-                previewImg.Source = LoadBitmapFromBytes(bytes);
-                pathBox.Text = $"(已从配置加载 — {label})";
-            }
-            catch { }
+            _uninstallIconBase64 = null;
+            ImgUninstallIcon.Source = null;
+            TxtUninstallIconPath.Text = "(默认)";
         }
 
-        private bool ValidateBasicInfo()
-        {
-            if (string.IsNullOrWhiteSpace(TxtAppName.Text))
-            {
-                MessageBox.Show("请填写应用名称。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(TxtAppVersion.Text))
-            {
-                MessageBox.Show("请填写版本号。", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return false;
-            }
-            return true;
-        }
-
-        private void SetStatus(string msg, bool isError)
-        {
-            TxtStatus.Text = msg;
-            TxtStatus.Foreground = isError
-                ? System.Windows.Media.Brushes.Red
-                : System.Windows.Media.Brushes.DimGray;
-        }
-
-        private string FindSetupTemplate()
-        {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string[] candidates = new[]
-            {
-                Path.Combine(baseDir, "EasyInstall.Setup.exe"),
-                Path.Combine(baseDir, "..", "EasyInstall.Setup", "bin", "Debug",   "EasyInstall.Setup.exe"),
-                Path.Combine(baseDir, "..", "EasyInstall.Setup", "bin", "Release", "EasyInstall.Setup.exe"),
-            };
-            foreach (var c in candidates)
-            {
-                string full = Path.GetFullPath(c);
-                if (File.Exists(full)) return full;
-            }
-            return null;
-        }
-
-        // ── 图标加载辅助 ──────────────────────────────────────────
-
-        private string BrowseIcoFile(string title)
+        private string PickIcon()
         {
             var dlg = new OpenFileDialog
             {
-                Title = title,
-                Filter = "ICO 图标|*.ico|所有文件|*.*"
+                Title = FindRes("BtnSelectIcon"),
+                Filter = "图标文件 (*.ico)|*.ico|所有文件 (*.*)|*.*"
             };
-            return dlg.ShowDialog() == true ? dlg.FileName : null;
+            if (dlg.ShowDialog() != true) return null;
+            byte[] bytes = File.ReadAllBytes(dlg.FileName);
+            return Convert.ToBase64String(bytes);
         }
 
-        private void LoadInstallIcon(string path)
+        private void ShowIconPreview(Image imgCtrl, TextBlock txtCtrl, string base64)
         {
             try
             {
-                byte[] bytes = File.ReadAllBytes(path);
-                _iconBytes = bytes;
-                _iconBase64 = Convert.ToBase64String(bytes);
-                TxtIconPath.Text = path;
-                ImgIconPreview.Source = LoadBitmapFromBytes(bytes);
+                byte[] bytes = Convert.FromBase64String(base64);
+                using (var ms = new MemoryStream(bytes))
+                {
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.StreamSource = ms;
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    imgCtrl.Source = bmp;
+                }
+                txtCtrl.Text = $"{bytes.Length / 1024.0:F1} KB";
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show("读取图标失败：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                imgCtrl.Source = null;
+                txtCtrl.Text = "(无效)";
             }
         }
 
-        private void LoadUninstallIcon(string path)
+        // ══ 路径浏览 ══════════════════════════════════════════════
+
+        private void BtnBrowseSetup_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new OpenFileDialog
+            {
+                Title = FindRes("LabelSetupExe"),
+                Filter = "可执行文件 (*.exe)|*.exe"
+            };
+            if (dlg.ShowDialog() == true)
+                TxtSetupExe.Text = dlg.FileName;
+        }
+
+        private void BtnBrowseOutput_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new SaveFileDialog
+            {
+                Title = FindRes("LabelOutputPath"),
+                Filter = "可执行文件 (*.exe)|*.exe",
+                FileName = (TxtAppName.Text.Trim().Length > 0 ? TxtAppName.Text.Trim() : "Setup") + "_Install.exe"
+            };
+            if (dlg.ShowDialog() == true)
+                TxtOutputPath.Text = dlg.FileName;
+        }
+
+        // ══ 文件树操作 ════════════════════════════════════════════
+
+        private void BtnAddFiles_Click(object sender, RoutedEventArgs e)
+        {
+            var dlg = new OpenFileDialog
+            {
+                Title = FindRes("BtnAddFiles"),
+                Multiselect = true,
+                Filter = "所有文件 (*.*)|*.*"
+            };
+            if (dlg.ShowDialog() != true) return;
+
+            foreach (string path in dlg.FileNames)
+                AddFileToTree(path);
+        }
+
+        private void BtnAddFolder_Click(object sender, RoutedEventArgs e)
+        {
+            // WPF 没有内置文件夹选择对话框，使用 WinForms
+            using (var dlg = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                dlg.Description = FindRes("BtnAddFolder");
+                dlg.ShowNewFolderButton = false;
+                if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+                AddFolderToTree(dlg.SelectedPath);
+            }
+        }
+
+        private void BtnRemoveSelected_Click(object sender, RoutedEventArgs e)
+        {
+            var checked_ = FileTree.CheckedItems?.ToList();
+            if (checked_ == null || checked_.Count == 0) return;
+
+            if (MessageBox.Show(FindRes("MsgConfirmDelete"),
+                    FindRes("BuilderTitle"),
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question) != MessageBoxResult.Yes)
+                return;
+
+            // 找出所有"最顶层的勾选节点"：
+            // 如果一个节点的祖先也在勾选列表里，则跳过它（随祖先一起删除）
+            var checkedSet = new HashSet<FileTreeItem>(checked_);
+            var toDelete = checked_
+                .Where(item => !HasCheckedAncestor(item, checkedSet))
+                .ToList();
+
+            foreach (var item in toDelete)
+            {
+                // 从根集合或父节点的 Children 中删除
+                if (!FileRoots.Remove(item))
+                    RemoveFromParent(FileRoots, item);
+            }
+
+            FileTree.UncheckAll();
+        }
+
+        /// <summary>
+        /// 判断节点的任意祖先是否在勾选集合中
+        /// </summary>
+        private static bool HasCheckedAncestor(FileTreeItem item, HashSet<FileTreeItem> checkedSet)
+        {
+            var p = item.Parent;
+            while (p != null)
+            {
+                if (checkedSet.Contains(p)) return true;
+                p = p.Parent;
+            }
+            return false;
+        }
+
+        private bool RemoveFromParent(ObservableCollection<FileTreeItem> collection, FileTreeItem target)
+        {
+            if (collection.Remove(target)) return true;
+            foreach (var node in collection)
+            {
+                if (RemoveFromParent(node.Children, target)) return true;
+            }
+            return false;
+        }
+
+        private void BtnExpandAll_Click(object sender, RoutedEventArgs e)
+            => SetExpandedAll(FileRoots, true);
+
+        private void BtnCollapseAll_Click(object sender, RoutedEventArgs e)
+            => SetExpandedAll(FileRoots, false);
+
+        private void SetExpandedAll(IEnumerable<FileTreeItem> items, bool expanded)
+        {
+            foreach (var item in items)
+            {
+                item.IsExpanded = expanded;
+                SetExpandedAll(item.Children, expanded);
+            }
+        }
+
+        // ══ 文件树构建辅助 ════════════════════════════════════════
+
+        /// <summary>
+        /// 将单个文件插入树（文件夹在前、文件在后、字母排序）
+        /// </summary>
+        private void AddFileToTree(string filePath)
+        {
+            if (FileRoots.Any(r => r.FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
+                return;
+
+            var node = new FileTreeItem
+            {
+                Name = Path.GetFileName(filePath),
+                FullPath = filePath,
+                IsDirectory = false
+            };
+            InsertSorted(FileRoots, node);
+        }
+
+        /// <summary>
+        /// 将文件夹（含子文件夹/文件）插入树（文件夹在前、文件在后、字母排序）
+        /// </summary>
+        private void AddFolderToTree(string folderPath)
+        {
+            if (FileRoots.Any(r => r.FullPath.Equals(folderPath, StringComparison.OrdinalIgnoreCase)))
+                return;
+
+            var node = BuildFolderNode(folderPath);
+            InsertSorted(FileRoots, node);
+        }
+
+        private FileTreeItem BuildFolderNode(string folderPath, FileTreeItem parent = null)
+        {
+            var node = new FileTreeItem
+            {
+                Name = Path.GetFileName(folderPath),
+                FullPath = folderPath,
+                IsDirectory = true,
+                IsExpanded = true,
+                Parent = parent
+            };
+
+            // 子文件夹（字母排序）
+            foreach (string subDir in Directory.GetDirectories(folderPath)
+                                               .OrderBy(d => Path.GetFileName(d),
+                                                        StringComparer.OrdinalIgnoreCase))
+                node.Children.Add(BuildFolderNode(subDir, node));
+
+            // 文件（字母排序）
+            foreach (string file in Directory.GetFiles(folderPath)
+                                             .OrderBy(f => Path.GetFileName(f),
+                                                      StringComparer.OrdinalIgnoreCase))
+            {
+                node.Children.Add(new FileTreeItem
+                {
+                    Name = Path.GetFileName(file),
+                    FullPath = file,
+                    IsDirectory = false,
+                    Parent = node
+                });
+            }
+
+            return node;
+        }
+
+        /// <summary>
+        /// 按"文件夹在前、文件在后、同类按字母"插入到集合的正确位置
+        /// </summary>
+        private static void InsertSorted(ObservableCollection<FileTreeItem> col, FileTreeItem item)
+        {
+            int index = 0;
+            for (int i = 0; i < col.Count; i++)
+            {
+                var cur = col[i];
+                // 文件夹 < 文件
+                if (item.IsDirectory && !cur.IsDirectory) break;
+                if (!item.IsDirectory && cur.IsDirectory) { index = i + 1; continue; }
+                // 同类按字母
+                if (string.Compare(item.Name, cur.Name, StringComparison.OrdinalIgnoreCase) <= 0) break;
+                index = i + 1;
+            }
+            col.Insert(index, item);
+        }
+
+        // ══ 配置构建与加载 ════════════════════════════════════════
+
+        /// <summary>
+        /// 从界面控件构建 InstallConfig
+        /// </summary>
+        private InstallConfig BuildConfig()
+        {
+            var config = new InstallConfig
+            {
+                AppName            = TxtAppName.Text.Trim(),
+                AppVersion         = TxtAppVersion.Text.Trim(),
+                Company            = TxtCompany.Text.Trim(),
+                CompanySimplify    = TxtCompanySimplify.Text.Trim(),
+                Website            = TxtWebsite.Text.Trim(),
+                DefaultInstallDir  = TxtDefaultInstallDir.Text.Trim(),
+                RegistryKey        = TxtRegistryKey.Text.Trim(),
+                MainExecutable     = TxtMainExecutable.Text.Trim(),
+                LicenseText        = TxtLicense.Text,
+                DesktopShortcut    = ChkDesktopShortcut.IsChecked == true,
+                StartMenuShortcut  = ChkStartMenuShortcut.IsChecked == true,
+                StartWithWindows   = ChkStartWithWindows.IsChecked == true,
+                InstallIconBase64  = _installIconBase64,
+                UninstallIconBase64 = _uninstallIconBase64,
+                Files              = CollectPackageFiles()
+            };
+            return config;
+        }
+
+        /// <summary>
+        /// 将文件树转换为 PackageFile 列表
+        /// </summary>
+        private List<PackageFile> CollectPackageFiles()
+        {
+            var list = new List<PackageFile>();
+            foreach (var root in FileRoots)
+            {
+                if (root.IsDirectory)
+                    list.Add(new PackageFile { Source = root.FullPath, TargetDir = "" });
+                else
+                    list.Add(new PackageFile { Source = root.FullPath, TargetDir = "" });
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 将 InstallConfig 加载到界面控件
+        /// </summary>
+        private void LoadConfig(InstallConfig config)
+        {
+            if (config == null) return;
+
+            TxtAppName.Text           = config.AppName ?? "";
+            TxtAppVersion.Text        = config.AppVersion ?? "";
+            TxtCompany.Text           = config.Company ?? "";
+            TxtCompanySimplify.Text   = config.CompanySimplify ?? "";
+            TxtWebsite.Text           = config.Website ?? "";
+            TxtDefaultInstallDir.Text = config.DefaultInstallDir ?? @"{ProgramFiles}\{Company}\{AppName}";
+            TxtRegistryKey.Text       = config.RegistryKey ?? "";
+            TxtMainExecutable.Text    = config.MainExecutable ?? "";
+            TxtLicense.Text           = config.LicenseText ?? "";
+
+            ChkDesktopShortcut.IsChecked   = config.DesktopShortcut;
+            ChkStartMenuShortcut.IsChecked = config.StartMenuShortcut;
+            ChkStartWithWindows.IsChecked  = config.StartWithWindows;
+
+            // 图标
+            _installIconBase64 = config.InstallIconBase64;
+            if (!string.IsNullOrEmpty(_installIconBase64))
+                ShowIconPreview(ImgInstallIcon, TxtInstallIconPath, _installIconBase64);
+            else
+            {
+                ImgInstallIcon.Source = null;
+                TxtInstallIconPath.Text = "(默认)";
+            }
+
+            _uninstallIconBase64 = config.UninstallIconBase64;
+            if (!string.IsNullOrEmpty(_uninstallIconBase64))
+                ShowIconPreview(ImgUninstallIcon, TxtUninstallIconPath, _uninstallIconBase64);
+            else
+            {
+                ImgUninstallIcon.Source = null;
+                TxtUninstallIconPath.Text = "(默认)";
+            }
+
+            // 文件树
+            FileRoots.Clear();
+            if (config.Files != null)
+            {
+                foreach (var pf in config.Files)
+                {
+                    if (string.IsNullOrEmpty(pf.Source)) continue;
+                    if (Directory.Exists(pf.Source))
+                        AddFolderToTree(pf.Source);
+                    else if (File.Exists(pf.Source))
+                        AddFileToTree(pf.Source);
+                    else
+                    {
+                        // 路径不存在时仍显示（可能是相对路径）
+                        FileRoots.Add(new FileTreeItem
+                        {
+                            Name = Path.GetFileName(pf.Source),
+                            FullPath = pf.Source,
+                            IsDirectory = false
+                        });
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 清空表单
+        /// </summary>
+        private void ClearForm()
+        {
+            TxtAppName.Text           = "";
+            TxtAppVersion.Text        = "";
+            TxtCompany.Text           = "";
+            TxtCompanySimplify.Text   = "";
+            TxtWebsite.Text           = "";
+            TxtDefaultInstallDir.Text = @"{ProgramFiles}\{Company}\{AppName}";
+            TxtRegistryKey.Text       = "";
+            TxtMainExecutable.Text    = "";
+            TxtLicense.Text           = "";
+            TxtSetupExe.Text          = "";
+            TxtOutputPath.Text        = "";
+
+            ChkDesktopShortcut.IsChecked   = true;
+            ChkStartMenuShortcut.IsChecked = true;
+            ChkStartWithWindows.IsChecked  = false;
+
+            _installIconBase64   = null;
+            _uninstallIconBase64 = null;
+            ImgInstallIcon.Source   = null;
+            ImgUninstallIcon.Source = null;
+            TxtInstallIconPath.Text   = "(默认)";
+            TxtUninstallIconPath.Text = "(默认)";
+
+            FileRoots.Clear();
+            FileTree.UncheckAll();
+            SetStatus("StatusReady");
+        }
+
+        // ══ 辅助 ══════════════════════════════════════════════════
+
+        private void SetStatus(string resourceKey)
         {
             try
             {
-                byte[] bytes = File.ReadAllBytes(path);
-                _uninstallIconBytes = bytes;
-                _uninstallIconBase64 = Convert.ToBase64String(bytes);
-                TxtUninstallIconPath.Text = path;
-                ImgUninstallIconPreview.Source = LoadBitmapFromBytes(bytes);
+                var res = Application.Current.FindResource(resourceKey);
+                StatusText.Text = res?.ToString() ?? resourceKey;
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show("读取图标失败：" + ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                StatusText.Text = resourceKey;
             }
         }
 
-        private static BitmapImage LoadBitmapFromBytes(byte[] bytes)
+        private string FindRes(string key)
         {
-            var bmp = new BitmapImage();
-            bmp.BeginInit();
-            bmp.StreamSource = new MemoryStream(bytes);
-            bmp.CacheOption = BitmapCacheOption.OnLoad;
-            bmp.EndInit();
-            return bmp;
+            try { return Application.Current.FindResource(key)?.ToString() ?? key; }
+            catch { return key; }
         }
     }
 }
