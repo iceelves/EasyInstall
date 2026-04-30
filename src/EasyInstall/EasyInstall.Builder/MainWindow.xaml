@@ -398,8 +398,59 @@
 
         <!-- ══ 状态栏 ══════════════════════════════════════════════ -->
         <Border Grid.Row="2" Background="#F5F7FA" BorderBrush="#E0E6ED" BorderThickness="0,1,0,0">
-            <TextBlock x:Name="StatusText" Text="{DynamicResource StatusReady}"
-                       VerticalAlignment="Center" Margin="12,0" Foreground="#555" FontSize="12"/>
+            <Grid Margin="8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 状态文字 -->
+                <TextBlock x:Name="StatusText" Grid.Column="0"
+                           Text="{DynamicResource StatusReady}"
+                           VerticalAlignment="Center"
+                           Foreground="#555" FontSize="12"
+                           MinWidth="120"/>
+
+                <!-- 进度条（打包时显示）-->
+                <ProgressBar x:Name="BuildProgress" Grid.Column="1"
+                             Height="6" Margin="10,0"
+                             Minimum="0" Maximum="100" Value="0"
+                             Visibility="Collapsed"
+                             Background="#E0E6ED"
+                             Foreground="#2C7BE5"
+                             BorderThickness="0">
+                    <ProgressBar.Style>
+                        <Style TargetType="ProgressBar">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ProgressBar">
+                                        <Border x:Name="Root" CornerRadius="3"
+                                                Background="{TemplateBinding Background}"
+                                                BorderThickness="0">
+                                            <Border x:Name="PART_Track" CornerRadius="3">
+                                                <Grid>
+                                                    <Border x:Name="PART_Indicator"
+                                                            HorizontalAlignment="Left"
+                                                            CornerRadius="3"
+                                                            Background="{TemplateBinding Foreground}"/>
+                                                </Grid>
+                                            </Border>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ProgressBar.Style>
+                </ProgressBar>
+
+                <!-- 百分比文字 -->
+                <TextBlock x:Name="ProgressText" Grid.Column="2"
+                           VerticalAlignment="Center"
+                           Foreground="#2C7BE5" FontSize="11"
+                           Visibility="Collapsed"
+                           MinWidth="36" TextAlignment="Right"/>
+            </Grid>
         </Border>
     </Grid>
 </Window>

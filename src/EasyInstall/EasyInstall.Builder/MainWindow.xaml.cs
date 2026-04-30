@@ -230,33 +230,55 @@ namespace EasyInstall.Builder
                 TxtOutputPath.Text = outputPath;
             }
 
+            // ── 开始打包 ──────────────────────────────────────────
             SetStatus("StatusBuilding");
+            ShowProgress(0);
             IsEnabled = false;
 
             try
             {
-                var config = BuildConfig();
+                var config      = BuildConfig();
                 string setupExe = TxtSetupExe.Text;
+
+                // 进度回调：stage 0=压缩(0-80%) 1=打包(80-90%) 2=图标(90-100%)
+                // 必须 Dispatcher.Invoke 回到 UI 线程更新控件
+                Action<int, int> reportProgress = (stage, pct) =>
+                {
+                    int overall = stage == 0 ? pct * 80 / 100
+                                : stage == 1 ? 80 + pct * 10 / 100
+                                :              90 + pct * 10 / 100;
+                    Dispatcher.Invoke(() => ShowProgress(overall));
+                };
 
                 await Task.Run(() =>
                 {
-                    // 1. 压缩文件
-                    byte[] compressed = ZipHelper.CompressPaths(config.Files, "");
+                    // 阶段 0：压缩文件（利用 ZipHelper.ProgressChanged 事件）
+                    Action<int> zipHandler = pct => reportProgress(0, pct);
+                    ZipHelper.ProgressChanged += zipHandler;
+                    byte[] compressed;
+                    try   { compressed = ZipHelper.CompressPaths(config.Files, ""); }
+                    finally { ZipHelper.ProgressChanged -= zipHandler; }
 
-                    // 2. 序列化配置（Newtonsoft 格式化）
+                    reportProgress(1, 0);
+
+                    // 阶段 1：序列化 + 写入 overlay
                     string configJson = JsonConvert.SerializeObject(config, Formatting.Indented);
-
-                    // 3. 打包
                     OverlayHelper.Pack(setupExe, compressed, configJson, outputPath);
 
-                    // 4. 替换图标
+                    reportProgress(1, 100);
+
+                    // 阶段 2：替换图标
                     if (!string.IsNullOrEmpty(config.InstallIconBase64))
                     {
+                        reportProgress(2, 0);
                         byte[] icoBytes = Convert.FromBase64String(config.InstallIconBase64);
                         OverlayHelper.SetExeIcon(outputPath, icoBytes);
                     }
+
+                    reportProgress(2, 100);
                 });
 
+                ShowProgress(100);
                 SetStatus("StatusBuildDone");
                 MessageBox.Show(FindRes("MsgBuildSuccess").Replace("\\n", "\n") + outputPath,
                     FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
@@ -270,7 +292,25 @@ namespace EasyInstall.Builder
             finally
             {
                 IsEnabled = true;
+                HideProgress();
             }
+        }
+
+        /// <summary>显示进度条并更新进度值（0-100）</summary>
+        private void ShowProgress(int value)
+        {
+            BuildProgress.Visibility = Visibility.Visible;
+            ProgressText.Visibility  = Visibility.Visible;
+            BuildProgress.Value      = value;
+            ProgressText.Text        = $"{value}%";
+        }
+
+        /// <summary>隐藏进度条</summary>
+        private void HideProgress()
+        {
+            BuildProgress.Visibility = Visibility.Collapsed;
+            ProgressText.Visibility  = Visibility.Collapsed;
+            BuildProgress.Value      = 0;
         }
 
         // ══ 图标按钮 ══════════════════════════════════════════════
