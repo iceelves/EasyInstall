@@ -73,4 +73,16 @@
     <System:String x:Key="StatusBuilding">Building...</System:String>
     <System:String x:Key="StatusBuildDone">Build complete</System:String>
 
+    <!--Builder UI language switcher-->
+    <System:String x:Key="LabelBuilderLang">Language</System:String>
+    <System:String x:Key="BuilderLangAuto">Follow System</System:String>
+    <System:String x:Key="BuilderLangZhCN">中文</System:String>
+    <System:String x:Key="BuilderLangEnUS">English</System:String>
+
+    <!--Installer language setting-->
+    <System:String x:Key="SectionLanguage">Installer Language</System:String>
+    <System:String x:Key="LangFollowSystem">Follow System</System:String>
+    <System:String x:Key="LangZhCN">简体中文</System:String>
+    <System:String x:Key="LangEnUS">English</System:String>
+
 </ResourceDictionary>

@@ -158,21 +158,43 @@
 
         <!-- ══ 工具栏 ══════════════════════════════════════════════ -->
         <Border Grid.Row="0" Background="White" BorderBrush="#E0E6ED" BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
-                <control:IceButton Style="{StaticResource ToolBtn}"
-                                   Content="{DynamicResource BtnNewConfig}"
-                                   Click="BtnNew_Click"/>
-                <control:IceButton Style="{StaticResource ToolBtn}"
-                                   Content="{DynamicResource BtnImportConfig}"
-                                   Click="BtnImport_Click"/>
-                <control:IceButton Style="{StaticResource ToolBtn}"
-                                   Content="{DynamicResource BtnExportConfig}"
-                                   Click="BtnExport_Click"/>
-                <Separator Width="1" Background="#E0E6ED" Margin="4,4"/>
-                <control:IceButton Style="{StaticResource PrimaryBtn}"
-                                   Content="{DynamicResource BtnBuild}"
-                                   Click="BtnBuild_Click"/>
-            </StackPanel>
+            <Grid Margin="10,0">
+                <!-- 左侧：操作按钮 -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                            HorizontalAlignment="Left">
+                    <control:IceButton Style="{StaticResource ToolBtn}"
+                                       Content="{DynamicResource BtnNewConfig}"
+                                       Click="BtnNew_Click"/>
+                    <control:IceButton Style="{StaticResource ToolBtn}"
+                                       Content="{DynamicResource BtnImportConfig}"
+                                       Click="BtnImport_Click"/>
+                    <control:IceButton Style="{StaticResource ToolBtn}"
+                                       Content="{DynamicResource BtnExportConfig}"
+                                       Click="BtnExport_Click"/>
+                    <Separator Width="1" Background="#E0E6ED" Margin="4,4"/>
+                    <control:IceButton Style="{StaticResource PrimaryBtn}"
+                                       Content="{DynamicResource BtnBuild}"
+                                       Click="BtnBuild_Click"/>
+                </StackPanel>
+
+                <!-- 右侧：Builder 界面语言切换 -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                            HorizontalAlignment="Right">
+                    <TextBlock Text="{DynamicResource LabelBuilderLang}"
+                               VerticalAlignment="Center"
+                               Foreground="#666" FontSize="12" Margin="0,0,6,0"/>
+                    <ComboBox x:Name="CmbBuilderLang"
+                              Width="100" Height="26"
+                              Padding="6,2"
+                              BorderBrush="#C8D0D8" BorderThickness="1"
+                              VerticalContentAlignment="Center"
+                              SelectionChanged="CmbBuilderLang_SelectionChanged">
+                        <ComboBoxItem Tag=""      Content="{DynamicResource BuilderLangAuto}"/>
+                        <ComboBoxItem Tag="zh-CN" Content="{DynamicResource BuilderLangZhCN}"/>
+                        <ComboBoxItem Tag="en-US" Content="{DynamicResource BuilderLangEnUS}"/>
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- ══ 主内容区 ════════════════════════════════════════════ -->
@@ -240,6 +262,19 @@
                             <CheckBox x:Name="ChkDesktopShortcut"   Content="{DynamicResource DesktopShortcut}"   Margin="0,4" IsChecked="True"/>
                             <CheckBox x:Name="ChkStartMenuShortcut" Content="{DynamicResource StartMenuShortcut}" Margin="0,4" IsChecked="True"/>
                             <CheckBox x:Name="ChkStartWithWindows"  Content="{DynamicResource StartWithWindows}"  Margin="0,4"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 语言 -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource SectionLanguage}" Style="{StaticResource SectionHeader}"/>
+                            <ComboBox x:Name="CmbLanguage" Height="26" Padding="6,2"
+                                      BorderBrush="#C8D0D8" BorderThickness="1">
+                                <ComboBoxItem x:Name="CmbLangAuto"   Content="{DynamicResource LangFollowSystem}" Tag=""/>
+                                <ComboBoxItem x:Name="CmbLangZhCN"   Content="{DynamicResource LangZhCN}"         Tag="zh-CN"/>
+                                <ComboBoxItem x:Name="CmbLangEnUS"   Content="{DynamicResource LangEnUS}"         Tag="en-US"/>
+                            </ComboBox>
                         </StackPanel>
                     </Border>
 

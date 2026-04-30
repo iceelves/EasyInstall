@@ -48,6 +48,14 @@ namespace EasyInstall.Core.Models
         [DataMember]
         public string LicenseText { get; set; }
 
+        // ── 语言 ──────────────────────────────────────────────────
+        /// <summary>
+        /// 安装/卸载界面语言。
+        /// null 或 "" = 跟随系统；"zh-CN" = 简体中文；"en-US" = 英文
+        /// </summary>
+        [DataMember]
+        public string Language { get; set; }
+
         // ── 文件列表 ──────────────────────────────────────────────
         [DataMember]
         public List<PackageFile> Files { get; set; } = new List<PackageFile>();

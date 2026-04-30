@@ -115,6 +115,9 @@ namespace EasyInstall.Setup
                 };
             }
 
+            // 根据配置切换语言（在显示 UI 之前）
+            LanguageHelper.Apply(Config?.Language);
+
             if (IsSilentMode)
             {
                 // 静默安装

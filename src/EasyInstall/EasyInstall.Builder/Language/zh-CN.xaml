@@ -73,4 +73,16 @@
     <System:String x:Key="StatusBuilding">正在打包...</System:String>
     <System:String x:Key="StatusBuildDone">打包完成</System:String>
 
+    <!--Builder 界面语言切换-->
+    <System:String x:Key="LabelBuilderLang">界面语言</System:String>
+    <System:String x:Key="BuilderLangAuto">跟随系统</System:String>
+    <System:String x:Key="BuilderLangZhCN">中文</System:String>
+    <System:String x:Key="BuilderLangEnUS">English</System:String>
+
+    <!--安装包语言设置-->
+    <System:String x:Key="SectionLanguage">安装界面语言</System:String>
+    <System:String x:Key="LangFollowSystem">跟随系统</System:String>
+    <System:String x:Key="LangZhCN">简体中文</System:String>
+    <System:String x:Key="LangEnUS">English</System:String>
+
 </ResourceDictionary>

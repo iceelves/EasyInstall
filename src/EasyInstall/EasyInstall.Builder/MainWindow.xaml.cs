@@ -37,9 +37,30 @@ namespace EasyInstall.Builder
 
             // 默认安装路径占位符提示
             TxtDefaultInstallDir.Text = @"{ProgramFiles}\{Company}\{AppName}";
+            // 语言默认：跟随系统
+            CmbLanguage.SelectedIndex = 0;
+
+            // 初始化 Builder 界面语言 ComboBox（默认"跟随系统"）
+            _suppressLangChange = true;
+            CmbBuilderLang.SelectedIndex = 0; // 第一项 = 跟随系统
+            _suppressLangChange = false;
 
             // 自动检测同目录下的 Setup.exe
             AutoDetectSetupExe();
+        }
+
+        // 防止初始化时触发语言切换
+        private bool _suppressLangChange;
+
+        /// <summary>Builder 界面语言切换（右上角 ComboBox）</summary>
+        private void CmbBuilderLang_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (_suppressLangChange) return;
+            var item = CmbBuilderLang.SelectedItem as System.Windows.Controls.ComboBoxItem;
+            if (item == null) return;
+            // Tag = "" 表示跟随系统，ApplyLanguage 内部会解析
+            string lang = item.Tag as string ?? "";
+            App.ApplyLanguage(lang);
         }
 
         /// <summary>
@@ -252,12 +273,31 @@ namespace EasyInstall.Builder
 
                 await Task.Run(() =>
                 {
+                    // ── 验证文件列表 ──────────────────────────────
+                    if (config.Files == null || config.Files.Count == 0)
+                        throw new InvalidOperationException(
+                            "文件列表为空，请确认文件树中有文件节点（非空文件夹）。");
+
+                    // 检查所有文件是否存在
+                    var missing = config.Files
+                        .Where(f => !File.Exists(f.Source))
+                        .Select(f => f.Source)
+                        .ToList();
+                    if (missing.Count > 0)
+                        throw new FileNotFoundException(
+                            "以下文件不存在，无法打包：\n" +
+                            string.Join("\n", missing.Take(10)));
+
                     // 阶段 0：压缩文件（利用 ZipHelper.ProgressChanged 事件）
                     Action<int> zipHandler = pct => reportProgress(0, pct);
                     ZipHelper.ProgressChanged += zipHandler;
                     byte[] compressed;
                     try   { compressed = ZipHelper.CompressPaths(config.Files, ""); }
                     finally { ZipHelper.ProgressChanged -= zipHandler; }
+
+                    // GZip 空流约 26 字节，正常压缩数据远大于此
+                    // 用文件条目数判断更可靠
+                    // （此处 config.Files.Count > 0 已在上方验证）
 
                     reportProgress(1, 0);
 
@@ -614,6 +654,7 @@ namespace EasyInstall.Builder
                 StartWithWindows    = ChkStartWithWindows.IsChecked == true,
                 InstallIconBase64   = _installIconBase64,
                 UninstallIconBase64 = _uninstallIconBase64,
+                Language            = GetSelectedLanguage(),
                 Files               = CollectPackageFiles()
             };
             return config;
@@ -686,6 +727,7 @@ namespace EasyInstall.Builder
             ChkDesktopShortcut.IsChecked   = config.DesktopShortcut;
             ChkStartMenuShortcut.IsChecked = config.StartMenuShortcut;
             ChkStartWithWindows.IsChecked  = config.StartWithWindows;
+            SetSelectedLanguage(config.Language);
 
             // 图标
             _installIconBase64 = config.InstallIconBase64;
@@ -845,6 +887,7 @@ namespace EasyInstall.Builder
             ChkDesktopShortcut.IsChecked   = true;
             ChkStartMenuShortcut.IsChecked = true;
             ChkStartWithWindows.IsChecked  = false;
+            CmbLanguage.SelectedIndex      = 0;
 
             _installIconBase64   = null;
             _uninstallIconBase64 = null;
@@ -859,6 +902,28 @@ namespace EasyInstall.Builder
         }
 
         // ══ 辅助 ══════════════════════════════════════════════════
+
+        /// <summary>读取 ComboBox 当前选中的语言代码（"", "zh-CN", "en-US"）</summary>
+        private string GetSelectedLanguage()
+        {
+            var item = CmbLanguage.SelectedItem as System.Windows.Controls.ComboBoxItem;
+            return item?.Tag as string ?? "";
+        }
+
+        /// <summary>根据语言代码设置 ComboBox 选中项</summary>
+        private void SetSelectedLanguage(string code)
+        {
+            foreach (System.Windows.Controls.ComboBoxItem item in CmbLanguage.Items)
+            {
+                if (string.Equals(item.Tag as string, code ?? "",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    CmbLanguage.SelectedItem = item;
+                    return;
+                }
+            }
+            CmbLanguage.SelectedIndex = 0; // 默认跟随系统
+        }
 
         private void SetStatus(string resourceKey)
         {
