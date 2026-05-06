@@ -227,8 +227,15 @@ namespace EasyInstall.Builder.Controls
             var hit = InputHitTest(pt) as DependencyObject;
             while (hit != null && !(hit is MultiSelectTreeView))
             {
+                // 方式1：TreeViewItem.Header 直接是 FileTreeItem
                 if (hit is TreeViewItem tvi && tvi.Header is FileTreeItem fi)
                     return fi;
+
+                // 方式2：FrameworkElement.DataContext 是 FileTreeItem
+                // 覆盖点击 Image（Icon）时 DataContext 已绑定但未走到 TreeViewItem 的情况
+                if (hit is FrameworkElement fe && fe.DataContext is FileTreeItem fdc)
+                    return fdc;
+
                 hit = VisualTreeHelper.GetParent(hit);
             }
             return null;

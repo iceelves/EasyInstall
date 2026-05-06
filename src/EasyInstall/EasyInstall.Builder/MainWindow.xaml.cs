@@ -487,13 +487,19 @@ namespace EasyInstall.Builder
                 dlg.ShowNewFolderButton = false;
                 if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
                 AddFolderToTree(dlg.SelectedPath);
+                SetExpandedAll(FileRoots, false);
             }
         }
 
         private void BtnRemoveSelected_Click(object sender, RoutedEventArgs e)
         {
-            var checked_ = FileTree.CheckedItems?.ToList();
-            if (checked_ == null || checked_.Count == 0) return;
+            // CheckedItems 只跟踪通过鼠标拖选/Ctrl点击的勾选。
+            // 直接点击 CheckBox 时 IsChecked 已更新但 CheckedItems 未同步，
+            // 因此直接遍历树收集所有 IsChecked == true 的节点。
+            var checked_ = new List<FileTreeItem>();
+            CollectChecked(FileRoots, checked_);
+
+            if (checked_.Count == 0) return;
 
             if (MessageBox.Show(FindRes("MsgConfirmDelete"),
                     FindRes("BuilderTitle"),
@@ -510,12 +516,23 @@ namespace EasyInstall.Builder
 
             foreach (var item in toDelete)
             {
-                // 从根集合或父节点的 Children 中删除
                 if (!FileRoots.Remove(item))
                     RemoveFromParent(FileRoots, item);
             }
 
             FileTree.UncheckAll();
+        }
+
+        /// <summary>
+        /// 递归收集所有 IsChecked == true 的节点
+        /// </summary>
+        private static void CollectChecked(IEnumerable<FileTreeItem> items, List<FileTreeItem> result)
+        {
+            foreach (var item in items)
+            {
+                if (item.IsChecked) result.Add(item);
+                CollectChecked(item.Children, result);
+            }
         }
 
         /// <summary>
@@ -615,7 +632,7 @@ namespace EasyInstall.Builder
                 Name = Path.GetFileName(folderPath),
                 FullPath = folderPath,
                 IsDirectory = true,
-                IsExpanded = true,
+                IsExpanded = false,
                 Parent = parent
             };
 
@@ -774,6 +791,8 @@ namespace EasyInstall.Builder
                 if (string.IsNullOrEmpty(pf.Source)) continue;
                 RestoreFileToTree(pf.Source, pf.TreeRootPath ?? "");
             }
+
+            SetExpandedAll(FileRoots, false);
         }
 
         /// <summary>
@@ -810,7 +829,7 @@ namespace EasyInstall.Builder
                     Name = Path.GetFileName(treeRootPath.TrimEnd('\\', '/')),
                     FullPath = treeRootPath,
                     IsDirectory = true,
-                    IsExpanded = true
+                    IsExpanded = false
                 };
                 InsertSorted(FileRoots, rootNode);
             }
@@ -845,7 +864,7 @@ namespace EasyInstall.Builder
                             Name = part,
                             FullPath = currentPath,
                             IsDirectory = true,
-                            IsExpanded = true,
+                            IsExpanded = false,
                             Parent = parentNode
                         };
                         InsertSorted(parentNode.Children, existing);
