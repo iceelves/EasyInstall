@@ -321,6 +321,15 @@ namespace EasyInstall.Builder
                         OverlayHelper.SetExeIcon(outputPath, icoBytes);
                         reportProgress(2, 100);
                     }
+                    else
+                    {
+                        // 配置中无自定义图标，使用内嵌的默认 Install.png
+                        reportProgress(2, 0);
+                        byte[] icoBytes = ImageHelper.GetDefaultInstallIco();
+                        if (icoBytes != null)
+                            OverlayHelper.SetExeIcon(outputPath, icoBytes);
+                        reportProgress(2, 100);
+                    }
 
                     // 阶段 3：追加 overlay（压缩数据 + JSON + 尾部元数据）
                     // 此步骤必须在图标替换之后，否则图标替换会破坏 overlay

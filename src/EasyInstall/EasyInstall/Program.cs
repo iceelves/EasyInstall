@@ -210,16 +210,20 @@ namespace EasyInstall
                 File.Copy(setupExe, outputPath, overwrite: true);
 
                 // ── 阶段 4：替换图标（必须在追加 Overlay 之前）────
+                byte[] icoBytes = null;
                 if (!string.IsNullOrEmpty(config.InstallIconBase64))
                 {
                     PrintStep(4, "Replacing installer icon...");
-                    byte[] icoBytes = Convert.FromBase64String(config.InstallIconBase64);
-                    OverlayHelper.SetExeIcon(outputPath, icoBytes);
+                    icoBytes = Convert.FromBase64String(config.InstallIconBase64);
                 }
                 else
                 {
-                    PrintStep(4, "Using default icon (skipped)");
+                    PrintStep(4, "Using default icon...");
+                    icoBytes = ImageHelper.GetDefaultInstallIco();
                 }
+
+                if (icoBytes != null)
+                    OverlayHelper.SetExeIcon(outputPath, icoBytes);
 
                 // ── 阶段 5：追加 Overlay 数据 ─────────────────────
                 PrintStep(5, "Appending install data...");
