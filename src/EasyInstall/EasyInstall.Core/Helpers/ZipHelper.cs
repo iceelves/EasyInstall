@@ -40,20 +40,39 @@ namespace EasyInstall.Core.Helpers
                     ? pf.Source
                     : Path.Combine(baseDir, pf.Source);
 
+                // 计算该文件在安装目录下的相对路径：
+                //   TreeRootPath 有值 → 以根节点目录名为前缀，再拼文件相对根节点的子路径
+                //   TreeRootPath 为空 → 独立文件，直接放安装根目录
+                string rootPrefix = string.IsNullOrEmpty(pf.TreeRootPath)
+                    ? ""
+                    : Path.GetFileName(pf.TreeRootPath.TrimEnd('\\', '/'));
+
                 if (Directory.Exists(src))
                 {
                     foreach (var f in Directory.GetFiles(src, "*", SearchOption.AllDirectories))
                     {
-                        string rel = Path.Combine(
-                            pf.TargetDir ?? "",
-                            f.Substring(src.TrimEnd('\\', '/').Length + 1));
+                        string rel = f.Substring(src.TrimEnd('\\', '/').Length + 1);
                         entries.Add(new FileEntry { RelPath = rel, AbsPath = f });
                     }
                 }
                 else if (File.Exists(src))
                 {
-                    string rel = Path.Combine(pf.TargetDir ?? "", Path.GetFileName(src));
-                    entries.Add(new FileEntry { RelPath = rel, AbsPath = src });
+                    // 计算文件相对于根节点的子路径
+                    string subPath = Path.GetFileName(src);
+                    if (!string.IsNullOrEmpty(pf.TreeRootPath))
+                    {
+                        string fileDir = Path.GetDirectoryName(src) ?? "";
+                        string rootPath = pf.TreeRootPath.TrimEnd('\\', '/');
+                        if (fileDir.StartsWith(rootPath, StringComparison.OrdinalIgnoreCase)
+                            && fileDir.Length > rootPath.Length)
+                        {
+                            string sub = fileDir.Substring(rootPath.Length).TrimStart('\\', '/');
+                            subPath = Path.Combine(sub, Path.GetFileName(src));
+                        }
+                        subPath = Path.Combine(rootPrefix, subPath);
+                    }
+
+                    entries.Add(new FileEntry { RelPath = subPath, AbsPath = src });
                 }
             }
 

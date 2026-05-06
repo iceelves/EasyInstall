@@ -103,9 +103,10 @@ namespace EasyInstall.Core.Models
         public string Source { get; set; }
 
         /// <summary>
-        /// 安装目标子目录（相对安装根目录），空表示根目录
+        /// 该文件在 Builder 文件树中所属的根节点完整路径。
+        /// 为空时表示该文件是直接添加的独立文件（无目录根节点）。
         /// </summary>
         [DataMember]
-        public string TargetDir { get; set; } = "";
+        public string TreeRootPath { get; set; } = "";
     }
 }

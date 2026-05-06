@@ -6,7 +6,12 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!--控件样式（不含语言，语言在 App.xaml.cs 里按系统动态加载）-->
+                <!--设置语言-->
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Language/en-US.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Language/zh-CN.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Builder;component/Language/en-US.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/EasyInstall.Builder;component/Language/zh-CN.xaml"/>
+                <!--控件样式-->
                 <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceButtonStyle.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceSvgButtonStyle.xaml"/>
                 <ResourceDictionary Source="pack://application:,,,/EasyInstall.Core;component/Themes/IceScrollViewerStyle.xaml"/>

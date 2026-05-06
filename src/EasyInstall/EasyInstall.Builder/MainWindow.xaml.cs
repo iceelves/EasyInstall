@@ -52,7 +52,11 @@ namespace EasyInstall.Builder
         // 防止初始化时触发语言切换
         private bool _suppressLangChange;
 
-        /// <summary>Builder 界面语言切换（右上角 ComboBox）</summary>
+        /// <summary>
+        /// Builder 界面语言切换（右上角 ComboBox）
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CmbBuilderLang_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             if (_suppressLangChange) return;
@@ -138,7 +142,8 @@ namespace EasyInstall.Builder
             }
             catch
             {
-                return true; // 读取失败时不阻止打包
+                // 读取失败时不阻止打包
+                return true;
             }
         }
 
@@ -258,7 +263,7 @@ namespace EasyInstall.Builder
 
             try
             {
-                var config      = BuildConfig();
+                var config = BuildConfig();
                 string setupExe = TxtSetupExe.Text;
 
                 // 进度回调：stage 0=压缩(0-80%) 1=打包(80-90%) 2=图标(90-100%)
@@ -267,7 +272,7 @@ namespace EasyInstall.Builder
                 {
                     int overall = stage == 0 ? pct * 80 / 100
                                 : stage == 1 ? 80 + pct * 10 / 100
-                                :              90 + pct * 10 / 100;
+                                : 90 + pct * 10 / 100;
                     Dispatcher.Invoke(() => ShowProgress(overall));
                 };
 
@@ -292,7 +297,7 @@ namespace EasyInstall.Builder
                     Action<int> zipHandler = pct => reportProgress(0, pct);
                     ZipHelper.ProgressChanged += zipHandler;
                     byte[] compressed;
-                    try   { compressed = ZipHelper.CompressPaths(config.Files, ""); }
+                    try { compressed = ZipHelper.CompressPaths(config.Files, ""); }
                     finally { ZipHelper.ProgressChanged -= zipHandler; }
 
                     // GZip 空流约 26 字节，正常压缩数据远大于此
@@ -342,21 +347,26 @@ namespace EasyInstall.Builder
             }
         }
 
-        /// <summary>显示进度条并更新进度值（0-100）</summary>
+        /// <summary>
+        /// 显示进度条并更新进度值（0-100）
+        /// </summary>
+        /// <param name="value"></param>
         private void ShowProgress(int value)
         {
             BuildProgress.Visibility = Visibility.Visible;
-            ProgressText.Visibility  = Visibility.Visible;
-            BuildProgress.Value      = value;
-            ProgressText.Text        = $"{value}%";
+            ProgressText.Visibility = Visibility.Visible;
+            BuildProgress.Value = value;
+            ProgressText.Text = $"{value}%";
         }
 
-        /// <summary>隐藏进度条</summary>
+        /// <summary>
+        /// 隐藏进度条
+        /// </summary>
         private void HideProgress()
         {
             BuildProgress.Visibility = Visibility.Collapsed;
-            ProgressText.Visibility  = Visibility.Collapsed;
-            BuildProgress.Value      = 0;
+            ProgressText.Visibility = Visibility.Collapsed;
+            BuildProgress.Value = 0;
         }
 
         // ══ 图标按钮 ══════════════════════════════════════════════
@@ -567,15 +577,35 @@ namespace EasyInstall.Builder
         }
 
         /// <summary>
-        /// 将文件夹（含子文件夹/文件）插入树（文件夹在前、文件在后、字母排序）
+        /// 将文件夹内容（子文件夹/文件）插入树，不包含所选根目录本身。
+        /// 文件夹在前、文件在后、字母排序。
         /// </summary>
         private void AddFolderToTree(string folderPath)
         {
-            if (FileRoots.Any(r => r.FullPath.Equals(folderPath, StringComparison.OrdinalIgnoreCase)))
-                return;
+            // 子文件夹（字母排序）
+            foreach (string subDir in Directory.GetDirectories(folderPath)
+                                               .OrderBy(d => Path.GetFileName(d),
+                                                        StringComparer.OrdinalIgnoreCase))
+            {
+                if (FileRoots.Any(r => r.FullPath.Equals(subDir, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                InsertSorted(FileRoots, BuildFolderNode(subDir));
+            }
 
-            var node = BuildFolderNode(folderPath);
-            InsertSorted(FileRoots, node);
+            // 文件（字母排序）
+            foreach (string file in Directory.GetFiles(folderPath)
+                                             .OrderBy(f => Path.GetFileName(f),
+                                                      StringComparer.OrdinalIgnoreCase))
+            {
+                if (FileRoots.Any(r => r.FullPath.Equals(file, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+                InsertSorted(FileRoots, new FileTreeItem
+                {
+                    Name = Path.GetFileName(file),
+                    FullPath = file,
+                    IsDirectory = false
+                });
+            }
         }
 
         private FileTreeItem BuildFolderNode(string folderPath, FileTreeItem parent = null)
@@ -640,22 +670,22 @@ namespace EasyInstall.Builder
         {
             var config = new InstallConfig
             {
-                AppName             = TxtAppName.Text.Trim(),
-                AppVersion          = TxtAppVersion.Text.Trim(),
-                Company             = TxtCompany.Text.Trim(),
-                CompanySimplify     = TxtCompanySimplify.Text.Trim(),
-                Website             = TxtWebsite.Text.Trim(),
-                DefaultInstallDir   = TxtDefaultInstallDir.Text.Trim(),
-                RegistryKey         = TxtRegistryKey.Text.Trim(),
-                MainExecutable      = TxtMainExecutable.Text.Trim(),
-                LicenseText         = TxtLicense.Text,
-                DesktopShortcut     = ChkDesktopShortcut.IsChecked == true,
-                StartMenuShortcut   = ChkStartMenuShortcut.IsChecked == true,
-                StartWithWindows    = ChkStartWithWindows.IsChecked == true,
-                InstallIconBase64   = _installIconBase64,
+                AppName = TxtAppName.Text.Trim(),
+                AppVersion = TxtAppVersion.Text.Trim(),
+                Company = TxtCompany.Text.Trim(),
+                CompanySimplify = TxtCompanySimplify.Text.Trim(),
+                Website = TxtWebsite.Text.Trim(),
+                DefaultInstallDir = TxtDefaultInstallDir.Text.Trim(),
+                RegistryKey = TxtRegistryKey.Text.Trim(),
+                MainExecutable = TxtMainExecutable.Text.Trim(),
+                LicenseText = TxtLicense.Text,
+                DesktopShortcut = ChkDesktopShortcut.IsChecked == true,
+                StartMenuShortcut = ChkStartMenuShortcut.IsChecked == true,
+                StartWithWindows = ChkStartWithWindows.IsChecked == true,
+                InstallIconBase64 = _installIconBase64,
                 UninstallIconBase64 = _uninstallIconBase64,
-                Language            = GetSelectedLanguage(),
-                Files               = CollectPackageFiles()
+                Language = GetSelectedLanguage(),
+                Files = CollectPackageFiles()
             };
             return config;
         }
@@ -675,7 +705,7 @@ namespace EasyInstall.Builder
 
         /// <summary>
         /// 递归收集叶子文件。
-        /// rootNode  = 该文件所属的顶层根节点（用于计算相对路径）
+        /// rootNode = 该文件所属的顶层根节点（用于记录 TreeRootPath）
         /// </summary>
         private static void CollectLeafFiles(
             FileTreeItem rootNode,
@@ -684,21 +714,11 @@ namespace EasyInstall.Builder
         {
             if (!current.IsDirectory)
             {
-                // 计算相对于根节点父目录的 TargetDir
-                // 例：根节点 C:\App\bin，文件 C:\App\bin\sub\a.dll → TargetDir = "sub"
-                string targetDir = "";
-                if (rootNode.IsDirectory)
+                list.Add(new PackageFile
                 {
-                    string rootParent = rootNode.FullPath; // 根节点本身是目录
-                    string fileDir    = Path.GetDirectoryName(current.FullPath);
-                    if (!string.IsNullOrEmpty(fileDir) &&
-                        fileDir.StartsWith(rootParent, StringComparison.OrdinalIgnoreCase) &&
-                        fileDir.Length > rootParent.Length)
-                    {
-                        targetDir = fileDir.Substring(rootParent.Length).TrimStart('\\', '/');
-                    }
-                }
-                list.Add(new PackageFile { Source = current.FullPath, TargetDir = targetDir });
+                    Source = current.FullPath,
+                    TreeRootPath = rootNode.IsDirectory ? rootNode.FullPath : ""
+                });
             }
             else
             {
@@ -714,19 +734,19 @@ namespace EasyInstall.Builder
         {
             if (config == null) return;
 
-            TxtAppName.Text           = config.AppName ?? "";
-            TxtAppVersion.Text        = config.AppVersion ?? "";
-            TxtCompany.Text           = config.Company ?? "";
-            TxtCompanySimplify.Text   = config.CompanySimplify ?? "";
-            TxtWebsite.Text           = config.Website ?? "";
+            TxtAppName.Text = config.AppName ?? "";
+            TxtAppVersion.Text = config.AppVersion ?? "";
+            TxtCompany.Text = config.Company ?? "";
+            TxtCompanySimplify.Text = config.CompanySimplify ?? "";
+            TxtWebsite.Text = config.Website ?? "";
             TxtDefaultInstallDir.Text = config.DefaultInstallDir ?? @"{ProgramFiles}\{Company}\{AppName}";
-            TxtRegistryKey.Text       = config.RegistryKey ?? "";
-            TxtMainExecutable.Text    = config.MainExecutable ?? "";
-            TxtLicense.Text           = config.LicenseText ?? "";
+            TxtRegistryKey.Text = config.RegistryKey ?? "";
+            TxtMainExecutable.Text = config.MainExecutable ?? "";
+            TxtLicense.Text = config.LicenseText ?? "";
 
-            ChkDesktopShortcut.IsChecked   = config.DesktopShortcut;
+            ChkDesktopShortcut.IsChecked = config.DesktopShortcut;
             ChkStartMenuShortcut.IsChecked = config.StartMenuShortcut;
-            ChkStartWithWindows.IsChecked  = config.StartWithWindows;
+            ChkStartWithWindows.IsChecked = config.StartWithWindows;
             SetSelectedLanguage(config.Language);
 
             // 图标
@@ -752,47 +772,19 @@ namespace EasyInstall.Builder
             foreach (var pf in config.Files)
             {
                 if (string.IsNullOrEmpty(pf.Source)) continue;
-                RestoreFileToTree(pf.Source, pf.TargetDir);
+                RestoreFileToTree(pf.Source, pf.TreeRootPath ?? "");
             }
         }
 
         /// <summary>
         /// 将一个文件路径还原到树中，按目录层级自动创建中间节点。
-        /// targetDir 用于判断该文件属于哪个根目录节点。
+        /// 子目录结构直接由 Source 相对 TreeRootPath 推算，无需 TargetDir。
         /// </summary>
-        private void RestoreFileToTree(string filePath, string targetDir)
+        private void RestoreFileToTree(string filePath, string treeRootPath)
         {
-            // 根据 targetDir 反推根目录路径
-            // targetDir = "" 表示文件直接在根节点下
-            // targetDir = "sub\dir" 表示文件在根节点的 sub\dir 子目录下
-            string fileDir = Path.GetDirectoryName(filePath) ?? "";
-
-            string rootPath;
-            if (string.IsNullOrEmpty(targetDir))
+            // ── 独立文件（无目录根节点）────────────────────────────
+            if (string.IsNullOrEmpty(treeRootPath))
             {
-                // 文件直接在某个目录下，或是独立文件
-                rootPath = fileDir;
-            }
-            else
-            {
-                // 从文件目录向上退 targetDir 的层数，得到根目录
-                int depth = targetDir.Split(new[] { '\\', '/' },
-                    StringSplitOptions.RemoveEmptyEntries).Length;
-                string dir = fileDir;
-                for (int i = 0; i < depth; i++)
-                    dir = Path.GetDirectoryName(dir) ?? dir;
-                rootPath = dir;
-            }
-
-            // 查找或创建根节点
-            // 如果 rootPath == fileDir 且 targetDir 为空，说明是独立文件（无目录层级）
-            bool isStandaloneFile = string.IsNullOrEmpty(targetDir) &&
-                                    string.Equals(rootPath, fileDir,
-                                        StringComparison.OrdinalIgnoreCase);
-
-            if (isStandaloneFile)
-            {
-                // 独立文件：直接加到根
                 if (!FileRoots.Any(r => r.FullPath.Equals(filePath,
                         StringComparison.OrdinalIgnoreCase)))
                 {
@@ -806,28 +798,38 @@ namespace EasyInstall.Builder
                 return;
             }
 
-            // 有目录结构：找或创建根目录节点
+            // ── 有目录根节点：找或创建根节点 ──────────────────────
             var rootNode = FileRoots.FirstOrDefault(r =>
                 r.IsDirectory &&
-                r.FullPath.Equals(rootPath, StringComparison.OrdinalIgnoreCase));
+                r.FullPath.Equals(treeRootPath, StringComparison.OrdinalIgnoreCase));
 
             if (rootNode == null)
             {
                 rootNode = new FileTreeItem
                 {
-                    Name = Path.GetFileName(rootPath),
-                    FullPath = rootPath,
+                    Name = Path.GetFileName(treeRootPath.TrimEnd('\\', '/')),
+                    FullPath = treeRootPath,
                     IsDirectory = true,
                     IsExpanded = true
                 };
                 InsertSorted(FileRoots, rootNode);
             }
 
-            // 在根节点下按 targetDir 路径逐级创建中间目录节点
-            var parentNode = rootNode;
-            if (!string.IsNullOrEmpty(targetDir))
+            // ── 从 Source 推算相对于根节点的子路径 ────────────────
+            string fileDir = Path.GetDirectoryName(filePath) ?? "";
+            string rootPath = treeRootPath.TrimEnd('\\', '/');
+            string subDir = "";
+            if (fileDir.StartsWith(rootPath, StringComparison.OrdinalIgnoreCase)
+                && fileDir.Length > rootPath.Length)
             {
-                string[] parts = targetDir.Split(new[] { '\\', '/' },
+                subDir = fileDir.Substring(rootPath.Length).TrimStart('\\', '/');
+            }
+
+            // ── 按 subDir 逐级创建中间目录节点 ────────────────────
+            var parentNode = rootNode;
+            if (!string.IsNullOrEmpty(subDir))
+            {
+                string[] parts = subDir.Split(new[] { '\\', '/' },
                     StringSplitOptions.RemoveEmptyEntries);
                 string currentPath = rootPath;
                 foreach (string part in parts)
@@ -852,7 +854,7 @@ namespace EasyInstall.Builder
                 }
             }
 
-            // 在最终目录节点下添加文件
+            // ── 在最终目录节点下添加文件 ───────────────────────────
             if (!parentNode.Children.Any(c =>
                     !c.IsDirectory &&
                     c.FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
@@ -872,28 +874,28 @@ namespace EasyInstall.Builder
         /// </summary>
         private void ClearForm()
         {
-            TxtAppName.Text           = "";
-            TxtAppVersion.Text        = "";
-            TxtCompany.Text           = "";
-            TxtCompanySimplify.Text   = "";
-            TxtWebsite.Text           = "";
+            TxtAppName.Text = "";
+            TxtAppVersion.Text = "";
+            TxtCompany.Text = "";
+            TxtCompanySimplify.Text = "";
+            TxtWebsite.Text = "";
             TxtDefaultInstallDir.Text = @"{ProgramFiles}\{Company}\{AppName}";
-            TxtRegistryKey.Text       = "";
-            TxtMainExecutable.Text    = "";
-            TxtLicense.Text           = "";
-            TxtSetupExe.Text          = "";
-            TxtOutputPath.Text        = "";
+            TxtRegistryKey.Text = "";
+            TxtMainExecutable.Text = "";
+            TxtLicense.Text = "";
+            TxtSetupExe.Text = "";
+            TxtOutputPath.Text = "";
 
-            ChkDesktopShortcut.IsChecked   = true;
+            ChkDesktopShortcut.IsChecked = true;
             ChkStartMenuShortcut.IsChecked = true;
-            ChkStartWithWindows.IsChecked  = false;
-            CmbLanguage.SelectedIndex      = 0;
+            ChkStartWithWindows.IsChecked = false;
+            CmbLanguage.SelectedIndex = 0;
 
-            _installIconBase64   = null;
+            _installIconBase64 = null;
             _uninstallIconBase64 = null;
-            ImgInstallIcon.Source   = null;
+            ImgInstallIcon.Source = null;
             ImgUninstallIcon.Source = null;
-            TxtInstallIconPath.Text   = "(默认)";
+            TxtInstallIconPath.Text = "(默认)";
             TxtUninstallIconPath.Text = "(默认)";
 
             FileRoots.Clear();
@@ -903,14 +905,20 @@ namespace EasyInstall.Builder
 
         // ══ 辅助 ══════════════════════════════════════════════════
 
-        /// <summary>读取 ComboBox 当前选中的语言代码（"", "zh-CN", "en-US"）</summary>
+        /// <summary>
+        /// 读取 ComboBox 当前选中的语言代码（"", "zh-CN", "en-US"）
+        /// </summary>
+        /// <returns></returns>
         private string GetSelectedLanguage()
         {
             var item = CmbLanguage.SelectedItem as System.Windows.Controls.ComboBoxItem;
             return item?.Tag as string ?? "";
         }
 
-        /// <summary>根据语言代码设置 ComboBox 选中项</summary>
+        /// <summary>
+        /// 根据语言代码设置 ComboBox 选中项
+        /// </summary>
+        /// <param name="code"></param>
         private void SetSelectedLanguage(string code)
         {
             foreach (System.Windows.Controls.ComboBoxItem item in CmbLanguage.Items)

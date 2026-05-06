@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:control="clr-namespace:EasyInstall.Core.Controls;assembly=EasyInstall.Core"
         xmlns:local="clr-namespace:EasyInstall.Builder.Controls"
+        xmlns:model="clr-namespace:EasyInstall.Builder.Models"
         mc:Ignorable="d"
         Title="{DynamicResource BuilderTitle}"
         Height="700" Width="960"
@@ -411,8 +412,9 @@
                                                Style="{StaticResource FileTreeStyle}"
                                                ItemsSource="{Binding FileRoots}"
                                                VirtualizingStackPanel.IsVirtualizing="False">
-                        <TreeView.ItemTemplate>
-                            <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate DataType="{x:Type model:FileTreeItem}"
+                                                      ItemsSource="{Binding Children}">
                                 <StackPanel Orientation="Horizontal" Margin="0,1">
                                     <!-- 多选勾选框 -->
                                     <CheckBox Style="{StaticResource TreeCheckBox}"
@@ -425,7 +427,7 @@
                                                FontSize="12"/>
                                 </StackPanel>
                             </HierarchicalDataTemplate>
-                        </TreeView.ItemTemplate>
+                        </TreeView.Resources>
                     </local:MultiSelectTreeView>
 
                 </Grid>
