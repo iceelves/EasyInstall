@@ -40,6 +40,8 @@ namespace EasyInstall.Setup.Pages.Uninstall
         private void UninstallStartPage_Loaded(object sender, RoutedEventArgs e)
         {
             this.AppName.Content = $"{App.Config.AppName}";
+            if (App.UninstallIcon != null)
+                this.AppIcon.Source = App.UninstallIcon;
         }
 
         /// <summary>

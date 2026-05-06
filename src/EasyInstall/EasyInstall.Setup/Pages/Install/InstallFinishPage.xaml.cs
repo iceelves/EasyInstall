@@ -36,6 +36,8 @@ namespace EasyInstall.Setup.Pages.Install
         private void FinishPage_Loaded(object sender, RoutedEventArgs e)
         {
             this.AppName.Content = $"{App.Config.AppName}";
+            if (App.InstallIcon != null)
+                this.AppIcon.Source = App.InstallIcon;
         }
 
         /// <summary>

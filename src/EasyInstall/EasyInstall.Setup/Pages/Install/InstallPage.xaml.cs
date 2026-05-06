@@ -105,25 +105,8 @@ namespace EasyInstall.Setup.Pages.Install
                         byte[] exeOnly = OverlayHelper.ReadExeBytes(selfExePath);
                         File.WriteAllBytes(uninstallDest, exeOnly);
 
-                        // 2.替换图标
-                        byte[] icoBytes = null;
-                        if (!string.IsNullOrEmpty(App.Config.UninstallIconBase64))
-                        {
-                            icoBytes = Convert.FromBase64String(App.Config.UninstallIconBase64);
-                        }
-                        else
-                        {
-                            var uri = new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png");
-                            var sri = Application.GetResourceStream(uri);
-                            if (sri != null)
-                            {
-                                using (var ms = new MemoryStream())
-                                {
-                                    sri.Stream.CopyTo(ms);
-                                    icoBytes = ImageHelper.PngToIco(ms.ToArray());
-                                }
-                            }
-                        }
+                        // 2.替换图标（UninstallIcon → 默认）
+                        byte[] icoBytes = App.GetUninstallIcoBytes();
                         if (icoBytes != null)
                             OverlayHelper.SetExeIcon(uninstallDest, icoBytes);
 

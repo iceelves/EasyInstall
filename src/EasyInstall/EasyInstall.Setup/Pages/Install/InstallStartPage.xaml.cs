@@ -42,6 +42,8 @@ namespace EasyInstall.Setup.Pages.Install
         private void InstallStartPage_Loaded(object sender, RoutedEventArgs e)
         {
             this.AppName.Content = $"{App.Config.AppName}";
+            if (App.InstallIcon != null)
+                this.AppIcon.Source = App.InstallIcon;
             this.DesktopShortcut.IsChecked = _host.DesktopShortcut = App.Config.DesktopShortcut;
             this.StartMenuShortcut.IsChecked = _host.StartMenuShortcut = App.Config.StartMenuShortcut;
             this.StartWithWindows.IsChecked = _host.StartWithWindows = App.Config.StartWithWindows;

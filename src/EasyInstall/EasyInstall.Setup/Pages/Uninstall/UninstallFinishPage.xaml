@@ -15,7 +15,7 @@
             <RowDefinition Height="120"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
-            <Image Source="pack://application:,,,/EasyInstall.Core;component/images/Install.png" Width="100" Height="100" Margin="8"/>
+            <Image x:Name="AppIcon" Source="pack://application:,,,/EasyInstall.Core;component/images/Install.png" Width="100" Height="100" Margin="8"/>
             <Label x:Name="AppName" FontSize="24" HorizontalAlignment="Center"/>
         </StackPanel>
         <Grid Grid.Row="1">

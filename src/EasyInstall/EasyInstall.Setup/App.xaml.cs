@@ -28,6 +28,16 @@ namespace EasyInstall.Setup
         public static byte[] PackageData { get; private set; }
 
         /// <summary>
+        /// 安装图标（从 InstallIconBase64 转换，供 UI 直接绑定）
+        /// </summary>
+        public static System.Windows.Media.ImageSource InstallIcon { get; private set; }
+
+        /// <summary>
+        /// 卸载图标（从 UninstallIconBase64 转换，供 UI 直接绑定）
+        /// </summary>
+        public static System.Windows.Media.ImageSource UninstallIcon { get; private set; }
+
+        /// <summary>
         /// 是否是卸载模式
         /// </summary>
         public static bool IsUninstallMode { get; private set; }
@@ -118,6 +128,15 @@ namespace EasyInstall.Setup
             // 根据配置切换语言（在显示 UI 之前）
             LanguageHelper.Apply(Config?.Language);
 
+            // 预转换图标（Base64 → BitmapImage），供 UI 各页面直接使用
+            // 安装图标：InstallIconBase64 → 默认 Install.png
+            InstallIcon = Base64ToImage(Config?.InstallIconBase64,
+                "pack://application:,,,/EasyInstall.Core;component/images/Install.png");
+            // 卸载图标：UninstallIconBase64 → InstallIconBase64 → 默认 Uninstall.png
+            UninstallIcon = Base64ToImage(
+                !string.IsNullOrEmpty(Config?.UninstallIconBase64) ? Config.UninstallIconBase64 : Config?.InstallIconBase64,
+                "pack://application:,,,/EasyInstall.Core;component/images/Install.png");
+
             if (IsSilentMode)
             {
                 // 静默安装
@@ -182,25 +201,8 @@ namespace EasyInstall.Setup
                         byte[] exeOnly = OverlayHelper.ReadExeBytes(selfExePath);
                         File.WriteAllBytes(uninstallDest, exeOnly);
 
-                        // 2.替换图标
-                        byte[] icoBytes = null;
-                        if (!string.IsNullOrEmpty(App.Config.UninstallIconBase64))
-                        {
-                            icoBytes = Convert.FromBase64String(App.Config.UninstallIconBase64);
-                        }
-                        else
-                        {
-                            var uri = new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png");
-                            var sri = Application.GetResourceStream(uri);
-                            if (sri != null)
-                            {
-                                using (var ms = new MemoryStream())
-                                {
-                                    sri.Stream.CopyTo(ms);
-                                    icoBytes = ImageHelper.PngToIco(ms.ToArray());
-                                }
-                            }
-                        }
+                        // 2.替换图标（UninstallIcon → 默认）
+                        byte[] icoBytes = App.GetUninstallIcoBytes();
                         if (icoBytes != null)
                             OverlayHelper.SetExeIcon(uninstallDest, icoBytes);
 
@@ -316,6 +318,68 @@ namespace EasyInstall.Setup
 
                 Shutdown(1);
             }
+        }
+
+        /// <summary>
+        /// 获取卸载程序图标字节（ICO 格式）。
+        /// 优先级：UninstallIconBase64 → 内置 Uninstall.png
+        /// </summary>
+        public static byte[] GetUninstallIcoBytes()
+        {
+            // 1. 卸载图标
+            if (!string.IsNullOrEmpty(Config?.UninstallIconBase64))
+                return Convert.FromBase64String(Config.UninstallIconBase64);
+
+            // 2. 内置默认图标
+            try
+            {
+                var uri = new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png");
+                var sri = GetResourceStream(uri);
+                if (sri != null)
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        sri.Stream.CopyTo(ms);
+                        return ImageHelper.PngToIco(ms.ToArray());
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        /// <summary>
+        /// 将 Base64 ICO 字节转为 BitmapImage；Base64 为空时使用 fallbackUri 的内置资源。
+        /// </summary>
+        private static System.Windows.Media.ImageSource Base64ToImage(string base64, string fallbackUri)
+        {
+            if (!string.IsNullOrEmpty(base64))
+            {
+                try
+                {
+                    byte[] bytes = Convert.FromBase64String(base64);
+                    using (var ms = new System.IO.MemoryStream(bytes))
+                    {
+                        var bmp = new System.Windows.Media.Imaging.BitmapImage();
+                        bmp.BeginInit();
+                        bmp.StreamSource = ms;
+                        bmp.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                        bmp.EndInit();
+                        bmp.Freeze();
+                        return bmp;
+                    }
+                }
+                catch { }
+            }
+
+            // 回退到内置资源
+            try
+            {
+                var bmp = new System.Windows.Media.Imaging.BitmapImage(new Uri(fallbackUri));
+                bmp.Freeze();
+                return bmp;
+            }
+            catch { return null; }
         }
     }
 }

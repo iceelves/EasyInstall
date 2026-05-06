@@ -35,7 +35,8 @@ namespace EasyInstall.Setup
             if (App.IsUninstallMode)
             {
                 this.Title = $"{App.Config.AppName} {App.Config.AppVersion} {Application.Current.FindResource("UninstallWizard")}";
-                this.Icon = new BitmapImage(new Uri("pack://application:,,,/EasyInstall.Core;component/images/Uninstall.png"));
+                if (App.UninstallIcon != null)
+                    this.Icon = App.UninstallIcon;
 
                 // 卸载优先级：1.注册表中记录上次安装的路径 2.当前程序所在目录
                 if (RegistryHelper.IsInstalled(App.Config.RegistryKey ?? App.Config.AppName))
@@ -58,6 +59,8 @@ namespace EasyInstall.Setup
             else
             {
                 this.Title = $"{App.Config.AppName} {App.Config.AppVersion} {Application.Current.FindResource("InstallWizard")}";
+                if (App.InstallIcon != null)
+                    this.Icon = App.InstallIcon;
 
                 // 安装优先级：1.传入参数的安装路径 2.注册表中记录上次安装的路径 3.配置文件中的默认安装路径
                 if (!string.IsNullOrEmpty(App.InstallDir))
