@@ -214,7 +214,9 @@ namespace EasyInstall
                 if (!string.IsNullOrEmpty(config.InstallIconBase64))
                 {
                     PrintStep(4, "Replacing installer icon...");
-                    icoBytes = Convert.FromBase64String(config.InstallIconBase64);
+                    // 兜底转换：兼容旧配置文件中存的原始 PNG/JPG
+                    byte[] rawBytes = Convert.FromBase64String(config.InstallIconBase64);
+                    icoBytes = ImageHelper.ToIcoBytes(rawBytes) ?? rawBytes;
                 }
                 else
                 {

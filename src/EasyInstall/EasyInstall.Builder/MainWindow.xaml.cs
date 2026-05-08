@@ -336,7 +336,10 @@ namespace EasyInstall.Builder
                     if (!string.IsNullOrEmpty(config.InstallIconBase64))
                     {
                         reportProgress(2, 0);
-                        byte[] icoBytes = Convert.FromBase64String(config.InstallIconBase64);
+                        // InstallIconBase64 存储的已是 ICO 字节（PickIcon 时已转换）
+                        // 再过一次 ToIcoBytes 作为兜底，兼容旧配置文件中存的原始 PNG/JPG
+                        byte[] rawBytes = Convert.FromBase64String(config.InstallIconBase64);
+                        byte[] icoBytes = ImageHelper.ToIcoBytes(rawBytes) ?? rawBytes;
                         OverlayHelper.SetExeIcon(outputPath, icoBytes);
                         reportProgress(2, 100);
                     }
@@ -434,11 +437,25 @@ namespace EasyInstall.Builder
             var dlg = new OpenFileDialog
             {
                 Title = FindRes("BtnSelectIcon"),
-                Filter = "图标文件 (*.ico)|*.ico|所有文件 (*.*)|*.*"
+                Filter = "图标文件 (*.ico;*.png;*.jpg;*.jpeg;*.gif;*.bmp)|*.ico;*.png;*.jpg;*.jpeg;*.gif;*.bmp|所有文件 (*.*)|*.*"
             };
             if (dlg.ShowDialog() != true) return null;
-            byte[] bytes = File.ReadAllBytes(dlg.FileName);
-            return Convert.ToBase64String(bytes);
+
+            byte[] rawBytes = File.ReadAllBytes(dlg.FileName);
+
+            // 统一转换为 ICO 字节，确保 SetExeIcon 能正确写入
+            byte[] icoBytes = ImageHelper.ToIcoBytes(rawBytes);
+            if (icoBytes == null)
+            {
+                MessageBox.Show(
+                    $"无法将所选文件转换为图标格式，请选择有效的图片文件。",
+                    FindRes("BuilderTitle"),
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+                return null;
+            }
+
+            return Convert.ToBase64String(icoBytes);
         }
 
         private void ShowIconPreview(Image imgCtrl, TextBlock txtCtrl, string base64)
