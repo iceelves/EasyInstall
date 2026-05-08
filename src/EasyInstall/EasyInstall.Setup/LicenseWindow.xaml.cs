@@ -25,6 +25,9 @@ namespace EasyInstall.Setup
 
             this.Loaded += LicenseWindow_Loaded;
             this.ContentBorder.MouseLeftButtonDown += ContentBorder_MouseLeftButtonDown;
+
+            if (App.UninstallIcon != null)
+                this.Icon = App.UninstallIcon;
         }
 
         /// <summary>
