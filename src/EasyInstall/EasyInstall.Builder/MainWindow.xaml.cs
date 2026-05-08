@@ -1140,10 +1140,11 @@ namespace EasyInstall.Builder
         // ── 安装按钮颜色 ──────────────────────────────────────────
         private void BtnPickInstallColor_Click(object sender, RoutedEventArgs e)
         {
-            string hex = PickColor(_installButtonColor);
-            if (hex == null) return;
-            _installButtonColor = hex;
-            ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, hex);
+            ShowColorPicker(sender as FrameworkElement, _installButtonColor, hex =>
+            {
+                _installButtonColor = hex;
+                ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, hex);
+            });
         }
 
         private void BtnClearInstallColor_Click(object sender, RoutedEventArgs e)
@@ -1155,10 +1156,11 @@ namespace EasyInstall.Builder
         // ── 卸载按钮颜色 ──────────────────────────────────────────
         private void BtnPickUninstallColor_Click(object sender, RoutedEventArgs e)
         {
-            string hex = PickColor(_uninstallButtonColor);
-            if (hex == null) return;
-            _uninstallButtonColor = hex;
-            ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, hex);
+            ShowColorPicker(sender as FrameworkElement, _uninstallButtonColor, hex =>
+            {
+                _uninstallButtonColor = hex;
+                ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, hex);
+            });
         }
 
         private void BtnClearUninstallColor_Click(object sender, RoutedEventArgs e)
@@ -1170,10 +1172,11 @@ namespace EasyInstall.Builder
         // ── 安装 CheckBox 颜色 ────────────────────────────────────
         private void BtnPickInstallCheckBoxColor_Click(object sender, RoutedEventArgs e)
         {
-            string hex = PickColor(_installCheckBoxColor);
-            if (hex == null) return;
-            _installCheckBoxColor = hex;
-            ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, hex);
+            ShowColorPicker(sender as FrameworkElement, _installCheckBoxColor, hex =>
+            {
+                _installCheckBoxColor = hex;
+                ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, hex);
+            });
         }
 
         private void BtnClearInstallCheckBoxColor_Click(object sender, RoutedEventArgs e)
@@ -1185,10 +1188,11 @@ namespace EasyInstall.Builder
         // ── 安装进度条颜色 ────────────────────────────────────────
         private void BtnPickInstallProgressBarColor_Click(object sender, RoutedEventArgs e)
         {
-            string hex = PickColor(_installProgressBarColor);
-            if (hex == null) return;
-            _installProgressBarColor = hex;
-            ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, hex);
+            ShowColorPicker(sender as FrameworkElement, _installProgressBarColor, hex =>
+            {
+                _installProgressBarColor = hex;
+                ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, hex);
+            });
         }
 
         private void BtnClearInstallProgressBarColor_Click(object sender, RoutedEventArgs e)
@@ -1200,10 +1204,11 @@ namespace EasyInstall.Builder
         // ── 卸载 CheckBox 颜色 ────────────────────────────────────
         private void BtnPickUninstallCheckBoxColor_Click(object sender, RoutedEventArgs e)
         {
-            string hex = PickColor(_uninstallCheckBoxColor);
-            if (hex == null) return;
-            _uninstallCheckBoxColor = hex;
-            ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, hex);
+            ShowColorPicker(sender as FrameworkElement, _uninstallCheckBoxColor, hex =>
+            {
+                _uninstallCheckBoxColor = hex;
+                ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, hex);
+            });
         }
 
         private void BtnClearUninstallCheckBoxColor_Click(object sender, RoutedEventArgs e)
@@ -1215,10 +1220,11 @@ namespace EasyInstall.Builder
         // ── 卸载进度条颜色 ────────────────────────────────────────
         private void BtnPickUninstallProgressBarColor_Click(object sender, RoutedEventArgs e)
         {
-            string hex = PickColor(_uninstallProgressBarColor);
-            if (hex == null) return;
-            _uninstallProgressBarColor = hex;
-            ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, hex);
+            ShowColorPicker(sender as FrameworkElement, _uninstallProgressBarColor, hex =>
+            {
+                _uninstallProgressBarColor = hex;
+                ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, hex);
+            });
         }
 
         private void BtnClearUninstallProgressBarColor_Click(object sender, RoutedEventArgs e)
@@ -1327,12 +1333,12 @@ namespace EasyInstall.Builder
         }
 
         /// <summary>
-        /// 打开自定义颜色选择器，返回十六进制颜色字符串；取消返回 null
+        /// 在触发按钮旁边以悬浮 Popup 显示 HSV 颜色选择器，用户确认后回调。
         /// </summary>
-        private string PickColor(string currentHex)
+        private void ShowColorPicker(FrameworkElement target, string currentHex,
+            Action<string> onConfirm)
         {
-            var dlg = new ColorPickerDialog(currentHex) { Owner = this };
-            return dlg.ShowDialog() == true ? dlg.SelectedHex : null;
+            Controls.ColorPickerPopup.ShowAt(target, currentHex, onConfirm);
         }
 
         /// <summary>
