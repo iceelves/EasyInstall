@@ -35,6 +35,10 @@ namespace EasyInstall.Builder
         private string _uninstallBackgroundBase64;
         private string _installButtonColor;
         private string _uninstallButtonColor;
+        private string _installCheckBoxColor;
+        private string _uninstallCheckBoxColor;
+        private string _installProgressBarColor;
+        private string _uninstallProgressBarColor;
         // 轮播图：存储 Base64 字符串，ListBox 绑定 ImageSource
         private readonly ObservableCollection<ImageSource> _installCarouselSources
             = new ObservableCollection<ImageSource>();
@@ -755,6 +759,8 @@ namespace EasyInstall.Builder
                     UninstallBackgroundBase64 = _uninstallBackgroundBase64,
                     InstallButtonColor        = string.IsNullOrWhiteSpace(_installButtonColor)   ? null : _installButtonColor,
                     UninstallButtonColor      = string.IsNullOrWhiteSpace(_uninstallButtonColor) ? null : _uninstallButtonColor,
+                    CheckBoxColor             = string.IsNullOrWhiteSpace(_installCheckBoxColor) ? null : _installCheckBoxColor,
+                    ProgressBarColor          = string.IsNullOrWhiteSpace(_installProgressBarColor) ? null : _installProgressBarColor,
                     InstallCarouselImages     = new List<string>(_installCarouselBase64),
                     UninstallCarouselImages   = new List<string>(_uninstallCarouselBase64),
                 }
@@ -853,6 +859,18 @@ namespace EasyInstall.Builder
             // 卸载按钮颜色
             _uninstallButtonColor = style.UninstallButtonColor;
             ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, _uninstallButtonColor);
+
+            // CheckBox 颜色（安装/卸载共用同一字段）
+            _installCheckBoxColor = style.CheckBoxColor;
+            ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, _installCheckBoxColor);
+            _uninstallCheckBoxColor = style.CheckBoxColor;
+            ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, _uninstallCheckBoxColor);
+
+            // 进度条颜色（安装/卸载共用同一字段）
+            _installProgressBarColor = style.ProgressBarColor;
+            ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, _installProgressBarColor);
+            _uninstallProgressBarColor = style.ProgressBarColor;
+            ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, _uninstallProgressBarColor);
 
             // 安装轮播图
             _installCarouselBase64.Clear();
@@ -1018,8 +1036,16 @@ namespace EasyInstall.Builder
             ImgUninstallBackground.Source = null;
             _installButtonColor = null;
             _uninstallButtonColor = null;
+            _installCheckBoxColor = null;
+            _uninstallCheckBoxColor = null;
+            _installProgressBarColor = null;
+            _uninstallProgressBarColor = null;
             ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, null);
             ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, null);
+            ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, null);
+            ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, null);
+            ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, null);
+            ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, null);
             _installCarouselBase64.Clear();
             _installCarouselSources.Clear();
             _uninstallCarouselBase64.Clear();
@@ -1141,6 +1167,66 @@ namespace EasyInstall.Builder
             ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, null);
         }
 
+        // ── 安装 CheckBox 颜色 ────────────────────────────────────
+        private void BtnPickInstallCheckBoxColor_Click(object sender, RoutedEventArgs e)
+        {
+            string hex = PickColor(_installCheckBoxColor);
+            if (hex == null) return;
+            _installCheckBoxColor = hex;
+            ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, hex);
+        }
+
+        private void BtnClearInstallCheckBoxColor_Click(object sender, RoutedEventArgs e)
+        {
+            _installCheckBoxColor = null;
+            ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, null);
+        }
+
+        // ── 安装进度条颜色 ────────────────────────────────────────
+        private void BtnPickInstallProgressBarColor_Click(object sender, RoutedEventArgs e)
+        {
+            string hex = PickColor(_installProgressBarColor);
+            if (hex == null) return;
+            _installProgressBarColor = hex;
+            ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, hex);
+        }
+
+        private void BtnClearInstallProgressBarColor_Click(object sender, RoutedEventArgs e)
+        {
+            _installProgressBarColor = null;
+            ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, null);
+        }
+
+        // ── 卸载 CheckBox 颜色 ────────────────────────────────────
+        private void BtnPickUninstallCheckBoxColor_Click(object sender, RoutedEventArgs e)
+        {
+            string hex = PickColor(_uninstallCheckBoxColor);
+            if (hex == null) return;
+            _uninstallCheckBoxColor = hex;
+            ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, hex);
+        }
+
+        private void BtnClearUninstallCheckBoxColor_Click(object sender, RoutedEventArgs e)
+        {
+            _uninstallCheckBoxColor = null;
+            ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, null);
+        }
+
+        // ── 卸载进度条颜色 ────────────────────────────────────────
+        private void BtnPickUninstallProgressBarColor_Click(object sender, RoutedEventArgs e)
+        {
+            string hex = PickColor(_uninstallProgressBarColor);
+            if (hex == null) return;
+            _uninstallProgressBarColor = hex;
+            ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, hex);
+        }
+
+        private void BtnClearUninstallProgressBarColor_Click(object sender, RoutedEventArgs e)
+        {
+            _uninstallProgressBarColor = null;
+            ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, null);
+        }
+
         // ── 安装轮播图 ────────────────────────────────────────────
         private void BtnAddInstallCarousel_Click(object sender, RoutedEventArgs e)
         {
@@ -1241,23 +1327,12 @@ namespace EasyInstall.Builder
         }
 
         /// <summary>
-        /// 打开系统颜色选择器，返回十六进制颜色字符串；取消返回 null
+        /// 打开自定义颜色选择器，返回十六进制颜色字符串；取消返回 null
         /// </summary>
-        private static string PickColor(string currentHex)
+        private string PickColor(string currentHex)
         {
-            var dlg = new System.Windows.Forms.ColorDialog { FullOpen = true };
-            if (!string.IsNullOrEmpty(currentHex))
-            {
-                try
-                {
-                    var c = (Color)ColorConverter.ConvertFromString(currentHex);
-                    dlg.Color = System.Drawing.Color.FromArgb(c.R, c.G, c.B);
-                }
-                catch { }
-            }
-            if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return null;
-            var picked = dlg.Color;
-            return $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}";
+            var dlg = new ColorPickerDialog(currentHex) { Owner = this };
+            return dlg.ShowDialog() == true ? dlg.SelectedHex : null;
         }
 
         /// <summary>

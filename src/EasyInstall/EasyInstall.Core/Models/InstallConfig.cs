@@ -146,6 +146,19 @@ namespace EasyInstall.Core.Models
         /// </summary>
         [DataMember]
         public string UninstallButtonColor { get; set; }
+
+        // ── 通用控件颜色 ──────────────────────────────────────────
+        /// <summary>
+        /// CheckBox 勾选框颜色（十六进制），为空时使用默认色 #69AFE7
+        /// </summary>
+        [DataMember]
+        public string CheckBoxColor { get; set; }
+
+        /// <summary>
+        /// 进度条颜色（十六进制），为空时使用默认色 #1E90FF
+        /// </summary>
+        [DataMember]
+        public string ProgressBarColor { get; set; }
     }
 
     [DataContract]

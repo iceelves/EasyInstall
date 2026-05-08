@@ -49,6 +49,9 @@ namespace EasyInstall.Setup.Pages.Install
         /// </summary>
         private async void InstallPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // 应用进度条颜色
+            ApplyProgressBarColor(App.ProgressBarColor);
+
             // 初始化轮播图（有图时替换动画）
             InitCarousel(App.InstallCarousel);
 
@@ -208,6 +211,17 @@ namespace EasyInstall.Setup.Pages.Install
             double w = ProgressTotalWidth * value / 100.0;
             ProgressFill.Width = w;
             ShimmerClip.Width = w;
+        }
+
+        /// <summary>
+        /// 将配置中的进度条颜色应用到进度填充 Border
+        /// </summary>
+        private void ApplyProgressBarColor(System.Windows.Media.Color? color)
+        {
+            if (color == null) return;
+            var c = color.Value;
+            // 用单色替换渐变
+            ProgressFill.Background = new SolidColorBrush(c);
         }
     }
 }

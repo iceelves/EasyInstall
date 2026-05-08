@@ -70,6 +70,16 @@ namespace EasyInstall.Setup
         public static System.Windows.Media.Color? UninstallButtonColor { get; private set; }
 
         /// <summary>
+        /// CheckBox 勾选框颜色（解析自 StyleConfig.CheckBoxColor）
+        /// </summary>
+        public static System.Windows.Media.Color? CheckBoxColor { get; private set; }
+
+        /// <summary>
+        /// 进度条颜色（解析自 StyleConfig.ProgressBarColor）
+        /// </summary>
+        public static System.Windows.Media.Color? ProgressBarColor { get; private set; }
+
+        /// <summary>
         /// 是否是卸载模式
         /// </summary>
         public static bool IsUninstallMode { get; private set; }
@@ -182,6 +192,21 @@ namespace EasyInstall.Setup
 
             InstallButtonColor   = ParseColor(style.InstallButtonColor);
             UninstallButtonColor = ParseColor(style.UninstallButtonColor);
+            CheckBoxColor        = ParseColor(style.CheckBoxColor);
+            ProgressBarColor     = ParseColor(style.ProgressBarColor);
+
+            // 将 CheckBox 颜色注入全局资源（IceCheckBoxStyle 使用 DynamicResource CheckBackground）
+            if (CheckBoxColor.HasValue)
+            {
+                var brush = new System.Windows.Media.SolidColorBrush(CheckBoxColor.Value);
+                brush.Freeze();
+
+                // 直接写入 Application.Resources 顶层字典（优先级高于 MergedDictionaries）
+                Application.Current.Resources["CheckBackground"] = brush;
+
+                // 同时找到 IceCheckBoxStyle.xaml 所在的嵌套字典并覆盖，确保 DynamicResource 能感知
+                UpdateCheckBackgroundInDictionaries(Application.Current.Resources, brush);
+            }
 
             if (IsSilentMode)
             {
@@ -441,6 +466,22 @@ namespace EasyInstall.Setup
                 if (img != null) result.Add(img);
             }
             return result;
+        }
+
+        /// <summary>
+        /// 递归遍历 MergedDictionaries，找到包含 CheckBackground 的字典并覆盖其值，
+        /// 确保 DynamicResource 能感知到变化。
+        /// </summary>
+        private static void UpdateCheckBackgroundInDictionaries(ResourceDictionary dict,
+            System.Windows.Media.SolidColorBrush brush)
+        {
+            // 先处理当前字典的直接 key
+            if (dict.Contains("CheckBackground"))
+                dict["CheckBackground"] = brush;
+
+            // 再递归处理合并字典
+            foreach (var merged in dict.MergedDictionaries)
+                UpdateCheckBackgroundInDictionaries(merged, brush);
         }
 
         /// <summary>

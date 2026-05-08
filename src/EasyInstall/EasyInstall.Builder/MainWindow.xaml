@@ -371,9 +371,41 @@
                                                 <TextBlock x:Name="TxtInstallButtonColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
                                             </Border>
                                             <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
-                                                               Content="{DynamicResource BtnSelectImage}" Click="BtnPickInstallColor_Click"/>
+                                                               Content="{DynamicResource BtnPickColor}" Click="BtnPickInstallColor_Click"/>
                                             <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
-                                                               Content="{DynamicResource BtnClearImage}" Click="BtnClearInstallColor_Click"/>
+                                                               Content="{DynamicResource BtnClearColor}" Click="BtnClearInstallColor_Click"/>
+                                        </Grid>
+                                        <!-- CheckBox 颜色 -->
+                                        <TextBlock Text="{DynamicResource LabelCheckBoxColor}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" x:Name="InstallCheckBoxColorPreview" Height="26" CornerRadius="3" BorderBrush="#C8D0D8" BorderThickness="1" Background="White">
+                                                <TextBlock x:Name="TxtInstallCheckBoxColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnPickColor}" Click="BtnPickInstallCheckBoxColor_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearColor}" Click="BtnClearInstallCheckBoxColor_Click"/>
+                                        </Grid>
+                                        <!-- 进度条颜色 -->
+                                        <TextBlock Text="{DynamicResource LabelProgressBarColor}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" x:Name="InstallProgressBarColorPreview" Height="26" CornerRadius="3" BorderBrush="#C8D0D8" BorderThickness="1" Background="White">
+                                                <TextBlock x:Name="TxtInstallProgressBarColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnPickColor}" Click="BtnPickInstallProgressBarColor_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearColor}" Click="BtnClearInstallProgressBarColor_Click"/>
                                         </Grid>
                                         <!-- 轮播图 -->
                                         <Grid Margin="0,0,0,4">
@@ -435,9 +467,41 @@
                                                 <TextBlock x:Name="TxtUninstallButtonColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
                                             </Border>
                                             <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
-                                                               Content="{DynamicResource BtnSelectImage}" Click="BtnPickUninstallColor_Click"/>
+                                                               Content="{DynamicResource BtnPickColor}" Click="BtnPickUninstallColor_Click"/>
                                             <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
-                                                               Content="{DynamicResource BtnClearImage}" Click="BtnClearUninstallColor_Click"/>
+                                                               Content="{DynamicResource BtnClearColor}" Click="BtnClearUninstallColor_Click"/>
+                                        </Grid>
+                                        <!-- CheckBox 颜色 -->
+                                        <TextBlock Text="{DynamicResource LabelCheckBoxColor}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" x:Name="UninstallCheckBoxColorPreview" Height="26" CornerRadius="3" BorderBrush="#C8D0D8" BorderThickness="1" Background="White">
+                                                <TextBlock x:Name="TxtUninstallCheckBoxColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnPickColor}" Click="BtnPickUninstallCheckBoxColor_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearColor}" Click="BtnClearUninstallCheckBoxColor_Click"/>
+                                        </Grid>
+                                        <!-- 进度条颜色 -->
+                                        <TextBlock Text="{DynamicResource LabelProgressBarColor}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" x:Name="UninstallProgressBarColorPreview" Height="26" CornerRadius="3" BorderBrush="#C8D0D8" BorderThickness="1" Background="White">
+                                                <TextBlock x:Name="TxtUninstallProgressBarColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnPickColor}" Click="BtnPickUninstallProgressBarColor_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearColor}" Click="BtnClearUninstallProgressBarColor_Click"/>
                                         </Grid>
                                         <!-- 轮播图 -->
                                         <Grid Margin="0,0,0,4">
