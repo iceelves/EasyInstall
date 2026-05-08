@@ -1024,7 +1024,6 @@ namespace EasyInstall.Builder
             TxtRegistryKey.Text = "";
             TxtMainExecutable.Text = "";
             TxtLicense.Text = "";
-            TxtSetupExe.Text = "";
             TxtOutputPath.Text = "";
 
             ChkDesktopShortcut.IsChecked = true;
