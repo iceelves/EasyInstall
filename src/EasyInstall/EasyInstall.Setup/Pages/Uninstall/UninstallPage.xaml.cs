@@ -50,7 +50,7 @@ namespace EasyInstall.Setup.Pages.Uninstall
         private async void UninstallPage_Loaded(object sender, RoutedEventArgs e)
         {
             // 应用进度条颜色
-            ApplyProgressBarColor(App.ProgressBarColor);
+            ApplyProgressBarColor(App.UninstallProgressBarColor);
 
             // 初始化轮播图（有图时替换动画）
             InitCarousel(App.UninstallCarousel);

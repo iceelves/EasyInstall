@@ -70,14 +70,24 @@ namespace EasyInstall.Setup
         public static System.Windows.Media.Color? UninstallButtonColor { get; private set; }
 
         /// <summary>
-        /// CheckBox 勾选框颜色（解析自 StyleConfig.CheckBoxColor）
+        /// 安装阶段 CheckBox 勾选框颜色（解析自 StyleConfig.InstallCheckBoxColor）
         /// </summary>
-        public static System.Windows.Media.Color? CheckBoxColor { get; private set; }
+        public static System.Windows.Media.Color? InstallCheckBoxColor { get; private set; }
 
         /// <summary>
-        /// 进度条颜色（解析自 StyleConfig.ProgressBarColor）
+        /// 安装阶段进度条颜色（解析自 StyleConfig.InstallProgressBarColor）
         /// </summary>
-        public static System.Windows.Media.Color? ProgressBarColor { get; private set; }
+        public static System.Windows.Media.Color? InstallProgressBarColor { get; private set; }
+
+        /// <summary>
+        /// 卸载阶段 CheckBox 勾选框颜色（解析自 StyleConfig.UninstallCheckBoxColor）
+        /// </summary>
+        public static System.Windows.Media.Color? UninstallCheckBoxColor { get; private set; }
+
+        /// <summary>
+        /// 卸载阶段进度条颜色（解析自 StyleConfig.UninstallProgressBarColor）
+        /// </summary>
+        public static System.Windows.Media.Color? UninstallProgressBarColor { get; private set; }
 
         /// <summary>
         /// 是否是卸载模式
@@ -192,13 +202,16 @@ namespace EasyInstall.Setup
 
             InstallButtonColor   = ParseColor(style.InstallButtonColor);
             UninstallButtonColor = ParseColor(style.UninstallButtonColor);
-            CheckBoxColor        = ParseColor(style.CheckBoxColor);
-            ProgressBarColor     = ParseColor(style.ProgressBarColor);
+            InstallCheckBoxColor      = ParseColor(style.InstallCheckBoxColor);
+            InstallProgressBarColor   = ParseColor(style.InstallProgressBarColor);
+            UninstallCheckBoxColor    = ParseColor(style.UninstallCheckBoxColor);
+            UninstallProgressBarColor = ParseColor(style.UninstallProgressBarColor);
 
-            // 将 CheckBox 颜色注入全局资源（IceCheckBoxStyle 使用 DynamicResource CheckBackground）
-            if (CheckBoxColor.HasValue)
+            // 将当前阶段的 CheckBox 颜色注入全局资源（IceCheckBoxStyle 使用 DynamicResource CheckBackground）
+            var activeCheckBoxColor = IsUninstallMode ? UninstallCheckBoxColor : InstallCheckBoxColor;
+            if (activeCheckBoxColor.HasValue)
             {
-                var brush = new System.Windows.Media.SolidColorBrush(CheckBoxColor.Value);
+                var brush = new System.Windows.Media.SolidColorBrush(activeCheckBoxColor.Value);
                 brush.Freeze();
 
                 // 直接写入 Application.Resources 顶层字典（优先级高于 MergedDictionaries）

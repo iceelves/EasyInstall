@@ -759,8 +759,10 @@ namespace EasyInstall.Builder
                     UninstallBackgroundBase64 = _uninstallBackgroundBase64,
                     InstallButtonColor        = string.IsNullOrWhiteSpace(_installButtonColor)   ? null : _installButtonColor,
                     UninstallButtonColor      = string.IsNullOrWhiteSpace(_uninstallButtonColor) ? null : _uninstallButtonColor,
-                    CheckBoxColor             = string.IsNullOrWhiteSpace(_installCheckBoxColor) ? null : _installCheckBoxColor,
-                    ProgressBarColor          = string.IsNullOrWhiteSpace(_installProgressBarColor) ? null : _installProgressBarColor,
+                    InstallCheckBoxColor      = string.IsNullOrWhiteSpace(_installCheckBoxColor)      ? null : _installCheckBoxColor,
+                    UninstallCheckBoxColor    = string.IsNullOrWhiteSpace(_uninstallCheckBoxColor)    ? null : _uninstallCheckBoxColor,
+                    InstallProgressBarColor   = string.IsNullOrWhiteSpace(_installProgressBarColor)   ? null : _installProgressBarColor,
+                    UninstallProgressBarColor = string.IsNullOrWhiteSpace(_uninstallProgressBarColor) ? null : _uninstallProgressBarColor,
                     InstallCarouselImages     = new List<string>(_installCarouselBase64),
                     UninstallCarouselImages   = new List<string>(_uninstallCarouselBase64),
                 }
@@ -860,16 +862,16 @@ namespace EasyInstall.Builder
             _uninstallButtonColor = style.UninstallButtonColor;
             ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, _uninstallButtonColor);
 
-            // CheckBox 颜色（安装/卸载共用同一字段）
-            _installCheckBoxColor = style.CheckBoxColor;
+            // CheckBox 颜色（安装/卸载分别配置）
+            _installCheckBoxColor = style.InstallCheckBoxColor;
             ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, _installCheckBoxColor);
-            _uninstallCheckBoxColor = style.CheckBoxColor;
+            _uninstallCheckBoxColor = style.UninstallCheckBoxColor;
             ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, _uninstallCheckBoxColor);
 
-            // 进度条颜色（安装/卸载共用同一字段）
-            _installProgressBarColor = style.ProgressBarColor;
+            // 进度条颜色（安装/卸载分别配置）
+            _installProgressBarColor = style.InstallProgressBarColor;
             ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, _installProgressBarColor);
-            _uninstallProgressBarColor = style.ProgressBarColor;
+            _uninstallProgressBarColor = style.UninstallProgressBarColor;
             ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, _uninstallProgressBarColor);
 
             // 安装轮播图

@@ -50,7 +50,7 @@ namespace EasyInstall.Setup.Pages.Install
         private async void InstallPage_Loaded(object sender, RoutedEventArgs e)
         {
             // 应用进度条颜色
-            ApplyProgressBarColor(App.ProgressBarColor);
+            ApplyProgressBarColor(App.InstallProgressBarColor);
 
             // 初始化轮播图（有图时替换动画）
             InitCarousel(App.InstallCarousel);
