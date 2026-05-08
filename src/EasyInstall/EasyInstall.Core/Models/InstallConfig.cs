@@ -161,6 +161,12 @@ namespace EasyInstall.Core.Models
         public string InstallProgressBarColor { get; set; }
 
         /// <summary>
+        /// 安装阶段波形均衡器动画主色（十六进制，如 #6DB8FF），为空时使用默认色
+        /// </summary>
+        [DataMember]
+        public string InstallWaveColor { get; set; }
+
+        /// <summary>
         /// 卸载阶段 CheckBox 勾选框颜色（十六进制，如 #69AFE7），为空时使用默认色
         /// </summary>
         [DataMember]
@@ -171,6 +177,12 @@ namespace EasyInstall.Core.Models
         /// </summary>
         [DataMember]
         public string UninstallProgressBarColor { get; set; }
+
+        /// <summary>
+        /// 卸载阶段波形均衡器动画主色（十六进制，如 #6DB8FF），为空时使用默认色
+        /// </summary>
+        [DataMember]
+        public string UninstallWaveColor { get; set; }
     }
 
     [DataContract]

@@ -80,6 +80,11 @@ namespace EasyInstall.Setup
         public static System.Windows.Media.Color? InstallProgressBarColor { get; private set; }
 
         /// <summary>
+        /// 安装阶段波形均衡器动画主色（解析自 StyleConfig.InstallWaveColor）
+        /// </summary>
+        public static System.Windows.Media.Color? InstallWaveColor { get; private set; }
+
+        /// <summary>
         /// 卸载阶段 CheckBox 勾选框颜色（解析自 StyleConfig.UninstallCheckBoxColor）
         /// </summary>
         public static System.Windows.Media.Color? UninstallCheckBoxColor { get; private set; }
@@ -88,6 +93,11 @@ namespace EasyInstall.Setup
         /// 卸载阶段进度条颜色（解析自 StyleConfig.UninstallProgressBarColor）
         /// </summary>
         public static System.Windows.Media.Color? UninstallProgressBarColor { get; private set; }
+
+        /// <summary>
+        /// 卸载阶段波形均衡器动画主色（解析自 StyleConfig.UninstallWaveColor）
+        /// </summary>
+        public static System.Windows.Media.Color? UninstallWaveColor { get; private set; }
 
         /// <summary>
         /// 是否是卸载模式
@@ -204,8 +214,10 @@ namespace EasyInstall.Setup
             UninstallButtonColor = ParseColor(style.UninstallButtonColor);
             InstallCheckBoxColor      = ParseColor(style.InstallCheckBoxColor);
             InstallProgressBarColor   = ParseColor(style.InstallProgressBarColor);
+            InstallWaveColor          = ParseColor(style.InstallWaveColor);
             UninstallCheckBoxColor    = ParseColor(style.UninstallCheckBoxColor);
             UninstallProgressBarColor = ParseColor(style.UninstallProgressBarColor);
+            UninstallWaveColor        = ParseColor(style.UninstallWaveColor);
 
             // 将当前阶段的 CheckBox 颜色注入全局资源（IceCheckBoxStyle 使用 DynamicResource CheckBackground）
             var activeCheckBoxColor = IsUninstallMode ? UninstallCheckBoxColor : InstallCheckBoxColor;

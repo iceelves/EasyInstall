@@ -24,6 +24,7 @@
     <System:String x:Key="BtnClearColor">清除</System:String>
     <System:String x:Key="LabelCheckBoxColor">复选框颜色</System:String>
     <System:String x:Key="LabelProgressBarColor">进度条颜色</System:String>
+    <System:String x:Key="LabelWaveColor">波形动画颜色</System:String>
 
     <!--主界面 卸载-->
     <System:String x:Key="UninstallWizard">卸载向导</System:String>

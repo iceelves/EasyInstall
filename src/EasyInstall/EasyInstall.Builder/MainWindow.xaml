@@ -407,6 +407,22 @@
                                             <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
                                                                Content="{DynamicResource BtnClearColor}" Click="BtnClearInstallProgressBarColor_Click"/>
                                         </Grid>
+                                        <!-- 波形动画颜色 -->
+                                        <TextBlock Text="{DynamicResource LabelWaveColor}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" x:Name="InstallWaveColorPreview" Height="26" CornerRadius="3" BorderBrush="#C8D0D8" BorderThickness="1" Background="White">
+                                                <TextBlock x:Name="TxtInstallWaveColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnPickColor}" Click="BtnPickInstallWaveColor_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearColor}" Click="BtnClearInstallWaveColor_Click"/>
+                                        </Grid>
                                         <!-- 轮播图 -->
                                         <Grid Margin="0,0,0,4">
                                             <TextBlock Text="{DynamicResource LabelCarousel}" FontSize="12" Foreground="#555" VerticalAlignment="Center"/>
@@ -502,6 +518,22 @@
                                                                Content="{DynamicResource BtnPickColor}" Click="BtnPickUninstallProgressBarColor_Click"/>
                                             <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
                                                                Content="{DynamicResource BtnClearColor}" Click="BtnClearUninstallProgressBarColor_Click"/>
+                                        </Grid>
+                                        <!-- 波形动画颜色 -->
+                                        <TextBlock Text="{DynamicResource LabelWaveColor}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" x:Name="UninstallWaveColorPreview" Height="26" CornerRadius="3" BorderBrush="#C8D0D8" BorderThickness="1" Background="White">
+                                                <TextBlock x:Name="TxtUninstallWaveColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnPickColor}" Click="BtnPickUninstallWaveColor_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearColor}" Click="BtnClearUninstallWaveColor_Click"/>
                                         </Grid>
                                         <!-- 轮播图 -->
                                         <Grid Margin="0,0,0,4">

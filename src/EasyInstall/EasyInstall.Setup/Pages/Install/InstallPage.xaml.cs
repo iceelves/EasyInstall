@@ -52,6 +52,9 @@ namespace EasyInstall.Setup.Pages.Install
             // 应用进度条颜色
             ApplyProgressBarColor(App.InstallProgressBarColor);
 
+            // 应用波形动画颜色
+            ApplyWaveColor(App.InstallWaveColor);
+
             // 初始化轮播图（有图时替换动画）
             InitCarousel(App.InstallCarousel);
 
@@ -222,6 +225,46 @@ namespace EasyInstall.Setup.Pages.Install
             var c = color.Value;
             // 用单色替换渐变
             ProgressFill.Background = new SolidColorBrush(c);
+        }
+
+        /// <summary>
+        /// 将配置中的波形动画主色应用到 WaveAnimation 的 5 根柱子。
+        /// 柱 1/5 使用主色，柱 2/4 使用主色亮化 30%，柱 3 使用顶部高亮到亮化色的渐变。
+        /// </summary>
+        private void ApplyWaveColor(System.Windows.Media.Color? color)
+        {
+            if (color == null) return;
+            var c = color.Value;
+
+            // 亮化色：R/G/B 各加 30，上限 255
+            var light = System.Windows.Media.Color.FromArgb(c.A,
+                (byte)Math.Min(255, c.R + 30),
+                (byte)Math.Min(255, c.G + 30),
+                (byte)Math.Min(255, c.B + 30));
+            // 高亮色：R/G/B 各加 80，用于柱 3 顶部
+            var highlight = System.Windows.Media.Color.FromArgb(c.A,
+                (byte)Math.Min(255, c.R + 80),
+                (byte)Math.Min(255, c.G + 80),
+                (byte)Math.Min(255, c.B + 80));
+
+            var mainBrush  = new SolidColorBrush(c);
+            var lightBrush = new SolidColorBrush(light);
+            var gradBrush  = new LinearGradientBrush
+            {
+                StartPoint = new System.Windows.Point(0, 0),
+                EndPoint   = new System.Windows.Point(0, 1)
+            };
+            gradBrush.GradientStops.Add(new GradientStop(highlight, 0));
+            gradBrush.GradientStops.Add(new GradientStop(light, 1));
+
+            // WaveAnimation 的子元素顺序：柱1 柱2 柱3 柱4 柱5
+            var bars = WaveAnimation.Children.OfType<Border>().ToList();
+            if (bars.Count < 5) return;
+            bars[0].Background = mainBrush;
+            bars[1].Background = lightBrush;
+            bars[2].Background = gradBrush;
+            bars[3].Background = lightBrush;
+            bars[4].Background = mainBrush;
         }
     }
 }

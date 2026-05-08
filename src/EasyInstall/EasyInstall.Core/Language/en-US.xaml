@@ -24,6 +24,7 @@
     <System:String x:Key="BtnClearColor">Clear</System:String>
     <System:String x:Key="LabelCheckBoxColor">CheckBox Color</System:String>
     <System:String x:Key="LabelProgressBarColor">Progress Bar Color</System:String>
+    <System:String x:Key="LabelWaveColor">Wave Animation Color</System:String>
 
     <!--Main Interface Uninstall-->
     <System:String x:Key="UninstallWizard">Uninstall Wizard</System:String>

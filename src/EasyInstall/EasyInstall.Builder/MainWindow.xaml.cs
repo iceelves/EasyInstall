@@ -39,6 +39,8 @@ namespace EasyInstall.Builder
         private string _uninstallCheckBoxColor;
         private string _installProgressBarColor;
         private string _uninstallProgressBarColor;
+        private string _installWaveColor;
+        private string _uninstallWaveColor;
         // 轮播图：存储 Base64 字符串，ListBox 绑定 ImageSource
         private readonly ObservableCollection<ImageSource> _installCarouselSources
             = new ObservableCollection<ImageSource>();
@@ -763,6 +765,8 @@ namespace EasyInstall.Builder
                     UninstallCheckBoxColor    = string.IsNullOrWhiteSpace(_uninstallCheckBoxColor)    ? null : _uninstallCheckBoxColor,
                     InstallProgressBarColor   = string.IsNullOrWhiteSpace(_installProgressBarColor)   ? null : _installProgressBarColor,
                     UninstallProgressBarColor = string.IsNullOrWhiteSpace(_uninstallProgressBarColor) ? null : _uninstallProgressBarColor,
+                    InstallWaveColor          = string.IsNullOrWhiteSpace(_installWaveColor)          ? null : _installWaveColor,
+                    UninstallWaveColor        = string.IsNullOrWhiteSpace(_uninstallWaveColor)        ? null : _uninstallWaveColor,
                     InstallCarouselImages     = new List<string>(_installCarouselBase64),
                     UninstallCarouselImages   = new List<string>(_uninstallCarouselBase64),
                 }
@@ -873,6 +877,12 @@ namespace EasyInstall.Builder
             ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, _installProgressBarColor);
             _uninstallProgressBarColor = style.UninstallProgressBarColor;
             ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, _uninstallProgressBarColor);
+
+            // 波形动画颜色（安装/卸载分别配置）
+            _installWaveColor = style.InstallWaveColor;
+            ApplyColorPreview(InstallWaveColorPreview, TxtInstallWaveColor, _installWaveColor);
+            _uninstallWaveColor = style.UninstallWaveColor;
+            ApplyColorPreview(UninstallWaveColorPreview, TxtUninstallWaveColor, _uninstallWaveColor);
 
             // 安装轮播图
             _installCarouselBase64.Clear();
@@ -1042,12 +1052,16 @@ namespace EasyInstall.Builder
             _uninstallCheckBoxColor = null;
             _installProgressBarColor = null;
             _uninstallProgressBarColor = null;
+            _installWaveColor = null;
+            _uninstallWaveColor = null;
             ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, null);
             ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, null);
             ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, null);
             ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, null);
             ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, null);
             ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, null);
+            ApplyColorPreview(InstallWaveColorPreview, TxtInstallWaveColor, null);
+            ApplyColorPreview(UninstallWaveColorPreview, TxtUninstallWaveColor, null);
             _installCarouselBase64.Clear();
             _installCarouselSources.Clear();
             _uninstallCarouselBase64.Clear();
@@ -1233,6 +1247,38 @@ namespace EasyInstall.Builder
         {
             _uninstallProgressBarColor = null;
             ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, null);
+        }
+
+        // ── 安装波形动画颜色 ──────────────────────────────────────
+        private void BtnPickInstallWaveColor_Click(object sender, RoutedEventArgs e)
+        {
+            ShowColorPicker(sender as FrameworkElement, _installWaveColor, hex =>
+            {
+                _installWaveColor = hex;
+                ApplyColorPreview(InstallWaveColorPreview, TxtInstallWaveColor, hex);
+            });
+        }
+
+        private void BtnClearInstallWaveColor_Click(object sender, RoutedEventArgs e)
+        {
+            _installWaveColor = null;
+            ApplyColorPreview(InstallWaveColorPreview, TxtInstallWaveColor, null);
+        }
+
+        // ── 卸载波形动画颜色 ──────────────────────────────────────
+        private void BtnPickUninstallWaveColor_Click(object sender, RoutedEventArgs e)
+        {
+            ShowColorPicker(sender as FrameworkElement, _uninstallWaveColor, hex =>
+            {
+                _uninstallWaveColor = hex;
+                ApplyColorPreview(UninstallWaveColorPreview, TxtUninstallWaveColor, hex);
+            });
+        }
+
+        private void BtnClearUninstallWaveColor_Click(object sender, RoutedEventArgs e)
+        {
+            _uninstallWaveColor = null;
+            ApplyColorPreview(UninstallWaveColorPreview, TxtUninstallWaveColor, null);
         }
 
         // ── 安装轮播图 ────────────────────────────────────────────
