@@ -79,7 +79,7 @@ namespace EasyInstall.Core.Models
         [DataMember]
         public bool StartWithWindows { get; set; } = false;
 
-        // ── 界面定制 ──────────────────────────────────────────────
+        // ── 图标 ──────────────────────────────────────────────────
         /// <summary>
         /// 安装程序图标（ICO Base64），为空时使用内置 Install.png
         /// </summary>
@@ -91,6 +91,61 @@ namespace EasyInstall.Core.Models
         /// </summary>
         [DataMember]
         public string UninstallIconBase64 { get; set; }
+
+        // ── 样式配置 ──────────────────────────────────────────────
+        [DataMember]
+        public StyleConfig Style { get; set; } = new StyleConfig();
+    }
+
+    /// <summary>
+    /// 安装/卸载界面样式配置
+    /// </summary>
+    [DataContract]
+    public class StyleConfig
+    {
+        /// <summary>
+        /// 是否隐藏左上角 Logo 与标题栏文字
+        /// </summary>
+        [DataMember]
+        public bool HideTitleBar { get; set; } = false;
+
+        // ── 安装阶段 ──────────────────────────────────────────────
+        /// <summary>
+        /// 安装阶段背景图（Base64 PNG/JPG），为空时使用内置 Background.jpg
+        /// </summary>
+        [DataMember]
+        public string InstallBackgroundBase64 { get; set; }
+
+        /// <summary>
+        /// 安装阶段轮播图列表（Base64 PNG/JPG），有值时在安装进行页替换动画效果
+        /// </summary>
+        [DataMember]
+        public List<string> InstallCarouselImages { get; set; } = new List<string>();
+
+        /// <summary>
+        /// 安装阶段按钮主色（十六进制，如 #4083FD），为空时使用默认色
+        /// </summary>
+        [DataMember]
+        public string InstallButtonColor { get; set; }
+
+        // ── 卸载阶段 ──────────────────────────────────────────────
+        /// <summary>
+        /// 卸载阶段背景图（Base64 PNG/JPG），为空时使用内置 Background.jpg
+        /// </summary>
+        [DataMember]
+        public string UninstallBackgroundBase64 { get; set; }
+
+        /// <summary>
+        /// 卸载阶段轮播图列表（Base64 PNG/JPG），有值时在卸载进行页替换动画效果
+        /// </summary>
+        [DataMember]
+        public List<string> UninstallCarouselImages { get; set; } = new List<string>();
+
+        /// <summary>
+        /// 卸载阶段按钮主色（十六进制，如 #4083FD），为空时使用默认色
+        /// </summary>
+        [DataMember]
+        public string UninstallButtonColor { get; set; }
     }
 
     [DataContract]

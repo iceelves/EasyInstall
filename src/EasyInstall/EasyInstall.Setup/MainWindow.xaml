@@ -38,9 +38,9 @@
                     <RowDefinition Height="35"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <Image Source="pack://application:,,,/EasyInstall.Core;component/images/Background.jpg" Stretch="Fill" Grid.Row="0" Grid.RowSpan="2"/>
+                <Image x:Name="BackgroundImage" Source="pack://application:,,,/EasyInstall.Core;component/images/Background.jpg" Stretch="Fill" Grid.Row="0" Grid.RowSpan="2"/>
                 <Grid x:Name="TitleBar" Grid.Row="0">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <StackPanel x:Name="TitleLogoPanel" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                         <Image Source="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Icon}" Width="20" Height="20" Margin="10,0,5,0"/>
                         <Label Content="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Title}"/>
                     </StackPanel>

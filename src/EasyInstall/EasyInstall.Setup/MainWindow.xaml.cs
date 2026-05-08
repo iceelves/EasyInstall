@@ -119,7 +119,15 @@ namespace EasyInstall.Setup
         /// <param name="e"></param>
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            var style = App.Config?.Style ?? new EasyInstall.Core.Models.StyleConfig();
 
+            // 1. 背景图替换
+            var bg = App.IsUninstallMode ? App.UninstallBackground : App.InstallBackground;
+            if (bg != null)
+                BackgroundImage.Source = bg;
+
+            // 2. 左上角 Logo / 标题显隐
+            TitleLogoPanel.Visibility = style.HideTitleBar ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public void NavigateTo(int index)

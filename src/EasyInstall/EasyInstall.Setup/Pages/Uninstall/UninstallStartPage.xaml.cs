@@ -42,6 +42,17 @@ namespace EasyInstall.Setup.Pages.Uninstall
             this.AppName.Content = $"{App.Config.AppName}";
             if (App.UninstallIcon != null)
                 this.AppIcon.Source = App.UninstallIcon;
+
+            // 应用按钮颜色
+            if (App.UninstallButtonColor.HasValue)
+            {
+                var c = App.UninstallButtonColor.Value;
+                StartUninstall.Background = new SolidColorBrush(c);
+                StartUninstall.IsMouseOverFill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(
+                    (byte)Math.Max(0, c.R - 30),
+                    (byte)Math.Max(0, c.G - 30),
+                    (byte)Math.Max(0, c.B - 30)));
+            }
         }
 
         /// <summary>

@@ -11,9 +11,11 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace EasyInstall.Setup.Pages.Install
 {
@@ -38,14 +40,51 @@ namespace EasyInstall.Setup.Pages.Install
         /// </summary>
         private const double ProgressTotalWidth = 480.0;
 
+        // 轮播定时器
+        private DispatcherTimer _carouselTimer;
+        private int _carouselIndex;
+
         /// <summary>
         /// Loaded
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private async void InstallPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // 初始化轮播图（有图时替换动画）
+            InitCarousel(App.InstallCarousel);
+
             await RunInstall();
+        }
+
+        /// <summary>
+        /// 初始化轮播：有图则显示轮播，隐藏波形动画
+        /// </summary>
+        private void InitCarousel(List<ImageSource> images)
+        {
+            if (images == null || images.Count == 0) return;
+
+            WaveAnimation.Visibility = Visibility.Collapsed;
+            CarouselImage.Visibility = Visibility.Visible;
+            CarouselImage.Source = images[0];
+            _carouselIndex = 0;
+
+            if (images.Count > 1)
+            {
+                _carouselTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(3) };
+                _carouselTimer.Tick += (s, e) =>
+                {
+                    _carouselIndex = (_carouselIndex + 1) % images.Count;
+                    // 淡入淡出切换
+                    var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(400));
+                    fadeOut.Completed += (_, __) =>
+                    {
+                        CarouselImage.Source = images[_carouselIndex];
+                        var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(400));
+                        CarouselImage.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+                    };
+                    CarouselImage.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+                };
+                _carouselTimer.Start();
+            }
         }
 
         /// <summary>
@@ -154,6 +193,7 @@ namespace EasyInstall.Setup.Pages.Install
             // 安装完成
             SyncProgressFill(100);
             this.Percentage.Text = $"{InstallProgress.Value}%";
+            _carouselTimer?.Stop();
             _host.NavigateTo(2);
         }
 

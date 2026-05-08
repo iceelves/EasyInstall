@@ -38,6 +38,38 @@ namespace EasyInstall.Setup
         public static System.Windows.Media.ImageSource UninstallIcon { get; private set; }
 
         /// <summary>
+        /// 安装阶段背景图（Base64 → ImageSource），为空时使用内置背景
+        /// </summary>
+        public static System.Windows.Media.ImageSource InstallBackground { get; private set; }
+
+        /// <summary>
+        /// 卸载阶段背景图（Base64 → ImageSource），为空时使用内置背景
+        /// </summary>
+        public static System.Windows.Media.ImageSource UninstallBackground { get; private set; }
+
+        /// <summary>
+        /// 安装阶段轮播图列表（Base64 → ImageSource）
+        /// </summary>
+        public static List<System.Windows.Media.ImageSource> InstallCarousel { get; private set; }
+            = new List<System.Windows.Media.ImageSource>();
+
+        /// <summary>
+        /// 卸载阶段轮播图列表（Base64 → ImageSource）
+        /// </summary>
+        public static List<System.Windows.Media.ImageSource> UninstallCarousel { get; private set; }
+            = new List<System.Windows.Media.ImageSource>();
+
+        /// <summary>
+        /// 安装阶段按钮主色（解析自 StyleConfig.InstallButtonColor）
+        /// </summary>
+        public static System.Windows.Media.Color? InstallButtonColor { get; private set; }
+
+        /// <summary>
+        /// 卸载阶段按钮主色（解析自 StyleConfig.UninstallButtonColor）
+        /// </summary>
+        public static System.Windows.Media.Color? UninstallButtonColor { get; private set; }
+
+        /// <summary>
         /// 是否是卸载模式
         /// </summary>
         public static bool IsUninstallMode { get; private set; }
@@ -136,6 +168,20 @@ namespace EasyInstall.Setup
             UninstallIcon = Base64ToImage(
                 !string.IsNullOrEmpty(Config?.UninstallIconBase64) ? Config.UninstallIconBase64 : Config?.InstallIconBase64,
                 "pack://application:,,,/EasyInstall.Core;component/images/Install.png");
+
+            // 预转换样式配置（背景图、轮播图、按钮颜色）
+            var style = Config?.Style ?? new StyleConfig();
+
+            InstallBackground = Base64ToImage(style.InstallBackgroundBase64,
+                "pack://application:,,,/EasyInstall.Core;component/images/Background.jpg");
+            UninstallBackground = Base64ToImage(style.UninstallBackgroundBase64,
+                "pack://application:,,,/EasyInstall.Core;component/images/Background.jpg");
+
+            InstallCarousel = ConvertCarousel(style.InstallCarouselImages);
+            UninstallCarousel = ConvertCarousel(style.UninstallCarouselImages);
+
+            InstallButtonColor   = ParseColor(style.InstallButtonColor);
+            UninstallButtonColor = ParseColor(style.UninstallButtonColor);
 
             if (IsSilentMode)
             {
@@ -378,6 +424,34 @@ namespace EasyInstall.Setup
                 var bmp = new System.Windows.Media.Imaging.BitmapImage(new Uri(fallbackUri));
                 bmp.Freeze();
                 return bmp;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// 将 Base64 列表批量转为 ImageSource 列表（转换失败的条目跳过）
+        /// </summary>
+        private static List<System.Windows.Media.ImageSource> ConvertCarousel(List<string> base64List)
+        {
+            var result = new List<System.Windows.Media.ImageSource>();
+            if (base64List == null) return result;
+            foreach (var b64 in base64List)
+            {
+                var img = Base64ToImage(b64, null);
+                if (img != null) result.Add(img);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 将十六进制颜色字符串（如 #4083FD）解析为 Color，失败时返回 null
+        /// </summary>
+        private static System.Windows.Media.Color? ParseColor(string hex)
+        {
+            if (string.IsNullOrWhiteSpace(hex)) return null;
+            try
+            {
+                return (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
             }
             catch { return null; }
         }

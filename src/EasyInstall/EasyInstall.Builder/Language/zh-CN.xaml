@@ -85,4 +85,20 @@
     <System:String x:Key="LangZhCN">简体中文</System:String>
     <System:String x:Key="LangEnUS">English</System:String>
 
+    <!--样式配置-->
+    <System:String x:Key="SectionStyle">界面样式</System:String>
+    <System:String x:Key="StyleTabIcons">图标</System:String>
+    <System:String x:Key="StyleTabInstall">安装阶段</System:String>
+    <System:String x:Key="StyleTabUninstall">卸载阶段</System:String>
+    <System:String x:Key="LabelHideTitleBar">隐藏左上角 Logo 与标题</System:String>
+    <System:String x:Key="LabelBackground">背景图</System:String>
+    <System:String x:Key="LabelCarousel">轮播图</System:String>
+    <System:String x:Key="LabelButtonColor">按钮颜色</System:String>
+    <System:String x:Key="BtnSelectImage">选择图片...</System:String>
+    <System:String x:Key="BtnClearImage">清除</System:String>
+    <System:String x:Key="BtnAddCarousel">添加图片</System:String>
+    <System:String x:Key="BtnRemoveCarousel">移除</System:String>
+    <System:String x:Key="StylePreview">预览</System:String>
+    <System:String x:Key="StyleDefaultHint">(默认)</System:String>
+
 </ResourceDictionary>

@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace EasyInstall.Builder
@@ -29,6 +30,20 @@ namespace EasyInstall.Builder
         private string _installIconBase64;
         private string _uninstallIconBase64;
 
+        // ── 样式配置缓存 ──────────────────────────────────────────
+        private string _installBackgroundBase64;
+        private string _uninstallBackgroundBase64;
+        private string _installButtonColor;
+        private string _uninstallButtonColor;
+        // 轮播图：存储 Base64 字符串，ListBox 绑定 ImageSource
+        private readonly ObservableCollection<ImageSource> _installCarouselSources
+            = new ObservableCollection<ImageSource>();
+        private readonly ObservableCollection<ImageSource> _uninstallCarouselSources
+            = new ObservableCollection<ImageSource>();
+        // Base64 与 ImageSource 的对应表（用于序列化）
+        private readonly List<string> _installCarouselBase64  = new List<string>();
+        private readonly List<string> _uninstallCarouselBase64 = new List<string>();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -44,6 +59,10 @@ namespace EasyInstall.Builder
             _suppressLangChange = true;
             CmbBuilderLang.SelectedIndex = 0; // 第一项 = 跟随系统
             _suppressLangChange = false;
+
+            // 绑定轮播图 ListBox 数据源
+            LstInstallCarousel.ItemsSource   = _installCarouselSources;
+            LstUninstallCarousel.ItemsSource = _uninstallCarouselSources;
 
             // 自动检测同目录下的 Setup.exe
             AutoDetectSetupExe();
@@ -711,7 +730,17 @@ namespace EasyInstall.Builder
                 InstallIconBase64 = _installIconBase64,
                 UninstallIconBase64 = _uninstallIconBase64,
                 Language = GetSelectedLanguage(),
-                Files = CollectPackageFiles()
+                Files = CollectPackageFiles(),
+                Style = new StyleConfig
+                {
+                    HideTitleBar              = ChkHideTitleBar.IsChecked == true,
+                    InstallBackgroundBase64   = _installBackgroundBase64,
+                    UninstallBackgroundBase64 = _uninstallBackgroundBase64,
+                    InstallButtonColor        = string.IsNullOrWhiteSpace(_installButtonColor)   ? null : _installButtonColor,
+                    UninstallButtonColor      = string.IsNullOrWhiteSpace(_uninstallButtonColor) ? null : _uninstallButtonColor,
+                    InstallCarouselImages     = new List<string>(_installCarouselBase64),
+                    UninstallCarouselImages   = new List<string>(_uninstallCarouselBase64),
+                }
             };
             return config;
         }
@@ -779,12 +808,52 @@ namespace EasyInstall.Builder
             _installIconBase64 = config.InstallIconBase64;
             if (!string.IsNullOrEmpty(_installIconBase64))
                 ShowIconPreview(ImgInstallIcon, TxtInstallIconPath, _installIconBase64);
-            else { ImgInstallIcon.Source = null; TxtInstallIconPath.Text = "(默认)"; }
+            else { ImgInstallIcon.Source = null; TxtInstallIconPath.Text = FindRes("StyleDefaultHint"); }
 
             _uninstallIconBase64 = config.UninstallIconBase64;
             if (!string.IsNullOrEmpty(_uninstallIconBase64))
                 ShowIconPreview(ImgUninstallIcon, TxtUninstallIconPath, _uninstallIconBase64);
-            else { ImgUninstallIcon.Source = null; TxtUninstallIconPath.Text = "(默认)"; }
+            else { ImgUninstallIcon.Source = null; TxtUninstallIconPath.Text = FindRes("StyleDefaultHint"); }
+
+            // 样式配置
+            var style = config.Style ?? new StyleConfig();
+            ChkHideTitleBar.IsChecked = style.HideTitleBar;
+
+            // 安装背景图
+            _installBackgroundBase64 = style.InstallBackgroundBase64;
+            ImgInstallBackground.Source = string.IsNullOrEmpty(_installBackgroundBase64)
+                ? null : Base64ToImage(_installBackgroundBase64);
+
+            // 卸载背景图
+            _uninstallBackgroundBase64 = style.UninstallBackgroundBase64;
+            ImgUninstallBackground.Source = string.IsNullOrEmpty(_uninstallBackgroundBase64)
+                ? null : Base64ToImage(_uninstallBackgroundBase64);
+
+            // 安装按钮颜色
+            _installButtonColor = style.InstallButtonColor;
+            ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, _installButtonColor);
+
+            // 卸载按钮颜色
+            _uninstallButtonColor = style.UninstallButtonColor;
+            ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, _uninstallButtonColor);
+
+            // 安装轮播图
+            _installCarouselBase64.Clear();
+            _installCarouselSources.Clear();
+            foreach (var b64 in style.InstallCarouselImages ?? new List<string>())
+            {
+                var img = Base64ToImage(b64);
+                if (img != null) { _installCarouselBase64.Add(b64); _installCarouselSources.Add(img); }
+            }
+
+            // 卸载轮播图
+            _uninstallCarouselBase64.Clear();
+            _uninstallCarouselSources.Clear();
+            foreach (var b64 in style.UninstallCarouselImages ?? new List<string>())
+            {
+                var img = Base64ToImage(b64);
+                if (img != null) { _uninstallCarouselBase64.Add(b64); _uninstallCarouselSources.Add(img); }
+            }
 
             // ── 文件树：按路径还原，不重新扫磁盘 ─────────────────
             FileRoots.Clear();
@@ -792,9 +861,6 @@ namespace EasyInstall.Builder
 
             if (config.Files == null || config.Files.Count == 0) return;
 
-            // 按 Source 路径重建树节点
-            // 规则：同一个 TargetDir 前缀的文件归属同一棵子树
-            // 简单策略：把每个文件的完整路径按目录层级插入树
             foreach (var pf in config.Files)
             {
                 if (string.IsNullOrEmpty(pf.Source)) continue;
@@ -919,12 +985,28 @@ namespace EasyInstall.Builder
             ChkStartWithWindows.IsChecked = false;
             CmbLanguage.SelectedIndex = 0;
 
+            // 图标
             _installIconBase64 = null;
             _uninstallIconBase64 = null;
             ImgInstallIcon.Source = null;
             ImgUninstallIcon.Source = null;
-            TxtInstallIconPath.Text = "(默认)";
-            TxtUninstallIconPath.Text = "(默认)";
+            TxtInstallIconPath.Text = FindRes("StyleDefaultHint");
+            TxtUninstallIconPath.Text = FindRes("StyleDefaultHint");
+
+            // 样式
+            ChkHideTitleBar.IsChecked = false;
+            _installBackgroundBase64 = null;
+            _uninstallBackgroundBase64 = null;
+            ImgInstallBackground.Source = null;
+            ImgUninstallBackground.Source = null;
+            _installButtonColor = null;
+            _uninstallButtonColor = null;
+            ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, null);
+            ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, null);
+            _installCarouselBase64.Clear();
+            _installCarouselSources.Clear();
+            _uninstallCarouselBase64.Clear();
+            _uninstallCarouselSources.Clear();
 
             FileRoots.Clear();
             FileTree.UncheckAll();
@@ -978,6 +1060,218 @@ namespace EasyInstall.Builder
         {
             try { return Application.Current.FindResource(key)?.ToString() ?? key; }
             catch { return key; }
+        }
+
+        // ══ 样式配置事件处理 ══════════════════════════════════════
+
+        // ── 安装背景图 ────────────────────────────────────────────
+        private void BtnSelectInstallBackground_Click(object sender, RoutedEventArgs e)
+        {
+            string b64 = PickImage();
+            if (b64 == null) return;
+            _installBackgroundBase64 = b64;
+            ImgInstallBackground.Source = Base64ToImage(b64);
+        }
+
+        private void BtnClearInstallBackground_Click(object sender, RoutedEventArgs e)
+        {
+            _installBackgroundBase64 = null;
+            ImgInstallBackground.Source = null;
+        }
+
+        // ── 卸载背景图 ────────────────────────────────────────────
+        private void BtnSelectUninstallBackground_Click(object sender, RoutedEventArgs e)
+        {
+            string b64 = PickImage();
+            if (b64 == null) return;
+            _uninstallBackgroundBase64 = b64;
+            ImgUninstallBackground.Source = Base64ToImage(b64);
+        }
+
+        private void BtnClearUninstallBackground_Click(object sender, RoutedEventArgs e)
+        {
+            _uninstallBackgroundBase64 = null;
+            ImgUninstallBackground.Source = null;
+        }
+
+        // ── 安装按钮颜色 ──────────────────────────────────────────
+        private void BtnPickInstallColor_Click(object sender, RoutedEventArgs e)
+        {
+            string hex = PickColor(_installButtonColor);
+            if (hex == null) return;
+            _installButtonColor = hex;
+            ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, hex);
+        }
+
+        private void BtnClearInstallColor_Click(object sender, RoutedEventArgs e)
+        {
+            _installButtonColor = null;
+            ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, null);
+        }
+
+        // ── 卸载按钮颜色 ──────────────────────────────────────────
+        private void BtnPickUninstallColor_Click(object sender, RoutedEventArgs e)
+        {
+            string hex = PickColor(_uninstallButtonColor);
+            if (hex == null) return;
+            _uninstallButtonColor = hex;
+            ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, hex);
+        }
+
+        private void BtnClearUninstallColor_Click(object sender, RoutedEventArgs e)
+        {
+            _uninstallButtonColor = null;
+            ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, null);
+        }
+
+        // ── 安装轮播图 ────────────────────────────────────────────
+        private void BtnAddInstallCarousel_Click(object sender, RoutedEventArgs e)
+        {
+            var b64List = PickImages();
+            foreach (var b64 in b64List)
+            {
+                var img = Base64ToImage(b64);
+                if (img == null) continue;
+                _installCarouselBase64.Add(b64);
+                _installCarouselSources.Add(img);
+            }
+        }
+
+        private void BtnRemoveInstallCarouselItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Tag 绑定的是 ImageSource
+            if (!(sender is FrameworkElement fe) || !(fe.Tag is ImageSource src)) return;
+            int idx = _installCarouselSources.IndexOf(src);
+            if (idx < 0) return;
+            _installCarouselSources.RemoveAt(idx);
+            _installCarouselBase64.RemoveAt(idx);
+        }
+
+        // ── 卸载轮播图 ────────────────────────────────────────────
+        private void BtnAddUninstallCarousel_Click(object sender, RoutedEventArgs e)
+        {
+            var b64List = PickImages();
+            foreach (var b64 in b64List)
+            {
+                var img = Base64ToImage(b64);
+                if (img == null) continue;
+                _uninstallCarouselBase64.Add(b64);
+                _uninstallCarouselSources.Add(img);
+            }
+        }
+
+        private void BtnRemoveUninstallCarouselItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (!(sender is FrameworkElement fe) || !(fe.Tag is ImageSource src)) return;
+            int idx = _uninstallCarouselSources.IndexOf(src);
+            if (idx < 0) return;
+            _uninstallCarouselSources.RemoveAt(idx);
+            _uninstallCarouselBase64.RemoveAt(idx);
+        }
+
+        // ══ 样式配置辅助方法 ══════════════════════════════════════
+
+        /// <summary>
+        /// 打开图片选择对话框，返回 Base64 字符串；取消返回 null
+        /// </summary>
+        private string PickImage()
+        {
+            var dlg = new OpenFileDialog
+            {
+                Title = FindRes("BtnSelectImage"),
+                Filter = "图片文件 (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|所有文件 (*.*)|*.*"
+            };
+            if (dlg.ShowDialog() != true) return null;
+            return Convert.ToBase64String(File.ReadAllBytes(dlg.FileName));
+        }
+
+        /// <summary>
+        /// 打开多选图片对话框，返回 Base64 列表
+        /// </summary>
+        private List<string> PickImages()
+        {
+            var dlg = new OpenFileDialog
+            {
+                Title = FindRes("BtnAddCarousel"),
+                Filter = "图片文件 (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|所有文件 (*.*)|*.*",
+                Multiselect = true
+            };
+            if (dlg.ShowDialog() != true) return new List<string>();
+            return dlg.FileNames.Select(f => Convert.ToBase64String(File.ReadAllBytes(f))).ToList();
+        }
+
+        /// <summary>
+        /// 将 Base64 图片字符串转为 BitmapImage；失败返回 null
+        /// </summary>
+        private static BitmapImage Base64ToImage(string base64)
+        {
+            if (string.IsNullOrEmpty(base64)) return null;
+            try
+            {
+                byte[] bytes = Convert.FromBase64String(base64);
+                using (var ms = new MemoryStream(bytes))
+                {
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.StreamSource = ms;
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    return bmp;
+                }
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// 打开系统颜色选择器，返回十六进制颜色字符串；取消返回 null
+        /// </summary>
+        private static string PickColor(string currentHex)
+        {
+            var dlg = new System.Windows.Forms.ColorDialog { FullOpen = true };
+            if (!string.IsNullOrEmpty(currentHex))
+            {
+                try
+                {
+                    var c = (Color)ColorConverter.ConvertFromString(currentHex);
+                    dlg.Color = System.Drawing.Color.FromArgb(c.R, c.G, c.B);
+                }
+                catch { }
+            }
+            if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return null;
+            var picked = dlg.Color;
+            return $"#{picked.R:X2}{picked.G:X2}{picked.B:X2}";
+        }
+
+        /// <summary>
+        /// 将颜色预览 Border 和文字更新为指定十六进制颜色
+        /// </summary>
+        private void ApplyColorPreview(Border preview, TextBlock label, string hex)
+        {
+            if (string.IsNullOrEmpty(hex))
+            {
+                preview.Background = Brushes.White;
+                label.Text = FindRes("StyleDefaultHint");
+                label.Foreground = Brushes.Gray;
+            }
+            else
+            {
+                try
+                {
+                    var c = (Color)ColorConverter.ConvertFromString(hex);
+                    preview.Background = new SolidColorBrush(c);
+                    label.Text = hex.ToUpperInvariant();
+                    // 根据亮度决定文字颜色
+                    double lum = 0.299 * c.R + 0.587 * c.G + 0.114 * c.B;
+                    label.Foreground = lum > 128 ? Brushes.Black : Brushes.White;
+                }
+                catch
+                {
+                    preview.Background = Brushes.White;
+                    label.Text = hex;
+                    label.Foreground = Brushes.Gray;
+                }
+            }
         }
     }
 }

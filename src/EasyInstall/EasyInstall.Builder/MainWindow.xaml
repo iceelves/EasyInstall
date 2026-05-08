@@ -280,50 +280,195 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- 图标 -->
+                    <!-- 样式配置（图标 + 安装/卸载样式） -->
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
-                            <TextBlock Text="{DynamicResource SectionIcons}" Style="{StaticResource SectionHeader}"/>
-                            <!-- 安装图标 -->
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{DynamicResource LabelInstallIcon}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
-                                <Border Grid.Column="1" BorderBrush="#C8D0D8" BorderThickness="1" CornerRadius="3" Height="26" Background="White">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
-                                        <Image x:Name="ImgInstallIcon" Width="16" Height="16" Margin="0,0,4,0"/>
-                                        <TextBlock x:Name="TxtInstallIconPath" Foreground="#888" FontSize="11" VerticalAlignment="Center" Text="(默认)"/>
+                            <TextBlock Text="{DynamicResource SectionStyle}" Style="{StaticResource SectionHeader}"/>
+                            <TabControl x:Name="StyleTabControl" BorderThickness="0" Background="Transparent" Padding="0">
+                                <TabControl.Resources>
+                                    <Style TargetType="TabItem">
+                                        <Setter Property="Padding" Value="8,4"/>
+                                        <Setter Property="FontSize" Value="12"/>
+                                    </Style>
+                                </TabControl.Resources>
+
+                                <!-- ── Tab 1：图标 ── -->
+                                <TabItem Header="{DynamicResource StyleTabIcons}">
+                                    <StackPanel Margin="0,8,0,0">
+                                        <!-- 隐藏标题栏 -->
+                                        <CheckBox x:Name="ChkHideTitleBar" Content="{DynamicResource LabelHideTitleBar}" Margin="0,0,0,8"/>
+                                        <!-- 安装图标 -->
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{DynamicResource LabelInstallIcon}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" BorderBrush="#C8D0D8" BorderThickness="1" CornerRadius="3" Height="26" Background="White">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
+                                                    <Image x:Name="ImgInstallIcon" Width="16" Height="16" Margin="0,0,4,0"/>
+                                                    <TextBlock x:Name="TxtInstallIconPath" Foreground="#888" FontSize="11" VerticalAlignment="Center" Text="{DynamicResource StyleDefaultHint}"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnSelectIcon}" Click="BtnSelectInstallIcon_Click"/>
+                                            <control:IceButton Grid.Column="3" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearIcon}" Click="BtnClearInstallIcon_Click"/>
+                                        </Grid>
+                                        <!-- 卸载图标 -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{DynamicResource LabelUninstallIcon}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                            <Border Grid.Column="1" BorderBrush="#C8D0D8" BorderThickness="1" CornerRadius="3" Height="26" Background="White">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
+                                                    <Image x:Name="ImgUninstallIcon" Width="16" Height="16" Margin="0,0,4,0"/>
+                                                    <TextBlock x:Name="TxtUninstallIconPath" Foreground="#888" FontSize="11" VerticalAlignment="Center" Text="{DynamicResource StyleDefaultHint}"/>
+                                                </StackPanel>
+                                            </Border>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnSelectIcon}" Click="BtnSelectUninstallIcon_Click"/>
+                                            <control:IceButton Grid.Column="3" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearIcon}" Click="BtnClearUninstallIcon_Click"/>
+                                        </Grid>
                                     </StackPanel>
-                                </Border>
-                                <control:IceButton Grid.Column="2" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
-                                                   Content="{DynamicResource BtnSelectIcon}" Click="BtnSelectInstallIcon_Click"/>
-                                <control:IceButton Grid.Column="3" Style="{StaticResource DangerBtn}" Margin="0"
-                                                   Content="{DynamicResource BtnClearIcon}" Click="BtnClearInstallIcon_Click"/>
-                            </Grid>
-                            <!-- 卸载图标 -->
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="{DynamicResource LabelUninstallIcon}" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
-                                <Border Grid.Column="1" BorderBrush="#C8D0D8" BorderThickness="1" CornerRadius="3" Height="26" Background="White">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0">
-                                        <Image x:Name="ImgUninstallIcon" Width="16" Height="16" Margin="0,0,4,0"/>
-                                        <TextBlock x:Name="TxtUninstallIconPath" Foreground="#888" FontSize="11" VerticalAlignment="Center" Text="(默认)"/>
+                                </TabItem>
+
+                                <!-- ── Tab 2：安装阶段 ── -->
+                                <TabItem Header="{DynamicResource StyleTabInstall}">
+                                    <StackPanel Margin="0,8,0,0">
+                                        <!-- 背景图 -->
+                                        <TextBlock Text="{DynamicResource LabelBackground}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" BorderBrush="#C8D0D8" BorderThickness="1" CornerRadius="3" Height="60" Background="#F5F5F5" ClipToBounds="True">
+                                                <Image x:Name="ImgInstallBackground" Stretch="UniformToFill"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0" VerticalAlignment="Center"
+                                                               Content="{DynamicResource BtnSelectImage}" Click="BtnSelectInstallBackground_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0" VerticalAlignment="Center"
+                                                               Content="{DynamicResource BtnClearImage}" Click="BtnClearInstallBackground_Click"/>
+                                        </Grid>
+                                        <!-- 按钮颜色 -->
+                                        <TextBlock Text="{DynamicResource LabelButtonColor}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" x:Name="InstallColorPreview" Height="26" CornerRadius="3" BorderBrush="#C8D0D8" BorderThickness="1" Background="White">
+                                                <TextBlock x:Name="TxtInstallButtonColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnSelectImage}" Click="BtnPickInstallColor_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearImage}" Click="BtnClearInstallColor_Click"/>
+                                        </Grid>
+                                        <!-- 轮播图 -->
+                                        <Grid Margin="0,0,0,4">
+                                            <TextBlock Text="{DynamicResource LabelCarousel}" FontSize="12" Foreground="#555" VerticalAlignment="Center"/>
+                                            <control:IceButton HorizontalAlignment="Right" Style="{StaticResource ToolBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnAddCarousel}" Click="BtnAddInstallCarousel_Click"/>
+                                        </Grid>
+                                        <ListBox x:Name="LstInstallCarousel" Height="80" BorderBrush="#C8D0D8" BorderThickness="1"
+                                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                            <ListBox.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ListBox.ItemsPanel>
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Width="70" Margin="2">
+                                                        <Image Source="{Binding}" Height="60" Stretch="UniformToFill"/>
+                                                        <control:IceSvgButton Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                              ButtonImage="M954.304 190.336a15.552 15.552 0 0 1 0 21.952l-300.032 300.032 298.56 298.56a15.616 15.616 0 0 1 0 22.016l-120.96 120.896a15.552 15.552 0 0 1-21.952 0L511.36 655.232 214.272 952.32a15.552 15.552 0 0 1-21.952 0l-120.896-120.896a15.488 15.488 0 0 1 0-21.952l297.152-297.152L69.888 213.76a15.552 15.552 0 0 1 0-21.952l120.896-120.896a15.552 15.552 0 0 1 21.952 0L511.36 369.472l300.096-300.032a15.36 15.36 0 0 1 21.952 0l120.896 120.896z"
+                                                                              NormalFill="White" IsMouseOverFill="#FF6060" IsMouseOverBackground="Transparent"
+                                                                              Tag="{Binding}" Click="BtnRemoveInstallCarouselItem_Click"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
                                     </StackPanel>
-                                </Border>
-                                <control:IceButton Grid.Column="2" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
-                                                   Content="{DynamicResource BtnSelectIcon}" Click="BtnSelectUninstallIcon_Click"/>
-                                <control:IceButton Grid.Column="3" Style="{StaticResource DangerBtn}" Margin="0"
-                                                   Content="{DynamicResource BtnClearIcon}" Click="BtnClearUninstallIcon_Click"/>
-                            </Grid>
+                                </TabItem>
+
+                                <!-- ── Tab 3：卸载阶段 ── -->
+                                <TabItem Header="{DynamicResource StyleTabUninstall}">
+                                    <StackPanel Margin="0,8,0,0">
+                                        <!-- 背景图 -->
+                                        <TextBlock Text="{DynamicResource LabelBackground}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" BorderBrush="#C8D0D8" BorderThickness="1" CornerRadius="3" Height="60" Background="#F5F5F5" ClipToBounds="True">
+                                                <Image x:Name="ImgUninstallBackground" Stretch="UniformToFill"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0" VerticalAlignment="Center"
+                                                               Content="{DynamicResource BtnSelectImage}" Click="BtnSelectUninstallBackground_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0" VerticalAlignment="Center"
+                                                               Content="{DynamicResource BtnClearImage}" Click="BtnClearUninstallBackground_Click"/>
+                                        </Grid>
+                                        <!-- 按钮颜色 -->
+                                        <TextBlock Text="{DynamicResource LabelButtonColor}" FontSize="12" Foreground="#555" Margin="0,0,0,4"/>
+                                        <Grid Margin="0,0,0,8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" x:Name="UninstallColorPreview" Height="26" CornerRadius="3" BorderBrush="#C8D0D8" BorderThickness="1" Background="White">
+                                                <TextBlock x:Name="TxtUninstallButtonColor" Text="{DynamicResource StyleDefaultHint}" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="11" Foreground="#888"/>
+                                            </Border>
+                                            <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="4,0,4,0"
+                                                               Content="{DynamicResource BtnSelectImage}" Click="BtnPickUninstallColor_Click"/>
+                                            <control:IceButton Grid.Column="2" Style="{StaticResource DangerBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnClearImage}" Click="BtnClearUninstallColor_Click"/>
+                                        </Grid>
+                                        <!-- 轮播图 -->
+                                        <Grid Margin="0,0,0,4">
+                                            <TextBlock Text="{DynamicResource LabelCarousel}" FontSize="12" Foreground="#555" VerticalAlignment="Center"/>
+                                            <control:IceButton HorizontalAlignment="Right" Style="{StaticResource ToolBtn}" Margin="0"
+                                                               Content="{DynamicResource BtnAddCarousel}" Click="BtnAddUninstallCarousel_Click"/>
+                                        </Grid>
+                                        <ListBox x:Name="LstUninstallCarousel" Height="80" BorderBrush="#C8D0D8" BorderThickness="1"
+                                                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                                            <ListBox.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal"/>
+                                                </ItemsPanelTemplate>
+                                            </ListBox.ItemsPanel>
+                                            <ListBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Width="70" Margin="2">
+                                                        <Image Source="{Binding}" Height="60" Stretch="UniformToFill"/>
+                                                        <control:IceSvgButton Width="16" Height="16" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                                              ButtonImage="M954.304 190.336a15.552 15.552 0 0 1 0 21.952l-300.032 300.032 298.56 298.56a15.616 15.616 0 0 1 0 22.016l-120.96 120.896a15.552 15.552 0 0 1-21.952 0L511.36 655.232 214.272 952.32a15.552 15.552 0 0 1-21.952 0l-120.896-120.896a15.488 15.488 0 0 1 0-21.952l297.152-297.152L69.888 213.76a15.552 15.552 0 0 1 0-21.952l120.896-120.896a15.552 15.552 0 0 1 21.952 0L511.36 369.472l300.096-300.032a15.36 15.36 0 0 1 21.952 0l120.896 120.896z"
+                                                                              NormalFill="White" IsMouseOverFill="#FF6060" IsMouseOverBackground="Transparent"
+                                                                              Tag="{Binding}" Click="BtnRemoveUninstallCarouselItem_Click"/>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ListBox.ItemTemplate>
+                                        </ListBox>
+                                    </StackPanel>
+                                </TabItem>
+
+                            </TabControl>
                         </StackPanel>
                     </Border>
 

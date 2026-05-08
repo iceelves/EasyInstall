@@ -85,4 +85,20 @@
     <System:String x:Key="LangZhCN">简体中文</System:String>
     <System:String x:Key="LangEnUS">English</System:String>
 
+    <!--Style config-->
+    <System:String x:Key="SectionStyle">UI Style</System:String>
+    <System:String x:Key="StyleTabIcons">Icons</System:String>
+    <System:String x:Key="StyleTabInstall">Install Stage</System:String>
+    <System:String x:Key="StyleTabUninstall">Uninstall Stage</System:String>
+    <System:String x:Key="LabelHideTitleBar">Hide logo &amp; title in title bar</System:String>
+    <System:String x:Key="LabelBackground">Background</System:String>
+    <System:String x:Key="LabelCarousel">Carousel Images</System:String>
+    <System:String x:Key="LabelButtonColor">Button Color</System:String>
+    <System:String x:Key="BtnSelectImage">Select Image...</System:String>
+    <System:String x:Key="BtnClearImage">Clear</System:String>
+    <System:String x:Key="BtnAddCarousel">Add Image</System:String>
+    <System:String x:Key="BtnRemoveCarousel">Remove</System:String>
+    <System:String x:Key="StylePreview">Preview</System:String>
+    <System:String x:Key="StyleDefaultHint">(default)</System:String>
+
 </ResourceDictionary>

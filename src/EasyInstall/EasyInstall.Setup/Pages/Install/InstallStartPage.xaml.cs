@@ -49,8 +49,31 @@ namespace EasyInstall.Setup.Pages.Install
             this.StartWithWindows.IsChecked = _host.StartWithWindows = App.Config.StartWithWindows;
             this.InstallDir.Text = _host.InstallPath;
 
+            // 应用按钮颜色
+            ApplyButtonColor(App.InstallButtonColor);
+
             // 更新磁盘空间信息
             UpdateSpaceInfo();
+        }
+
+        /// <summary>
+        /// 将配置中的按钮颜色应用到本页所有主操作按钮
+        /// </summary>
+        private void ApplyButtonColor(System.Windows.Media.Color? color)
+        {
+            if (color == null) return;
+            var brush  = new SolidColorBrush(color.Value);
+            // hover 色：稍深 15%
+            var hoverColor = System.Windows.Media.Color.FromRgb(
+                (byte)Math.Max(0, color.Value.R - 30),
+                (byte)Math.Max(0, color.Value.G - 30),
+                (byte)Math.Max(0, color.Value.B - 30));
+            var hoverBrush = new SolidColorBrush(hoverColor);
+
+            StartInstall.Background       = brush;
+            StartInstall.IsMouseOverFill  = hoverBrush;
+            StartInstall2.Background      = brush;
+            StartInstall2.IsMouseOverFill = hoverBrush;
         }
 
         /// <summary>

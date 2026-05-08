@@ -38,6 +38,17 @@ namespace EasyInstall.Setup.Pages.Install
             this.AppName.Content = $"{App.Config.AppName}";
             if (App.InstallIcon != null)
                 this.AppIcon.Source = App.InstallIcon;
+
+            // 应用按钮颜色
+            if (App.InstallButtonColor.HasValue)
+            {
+                var c = App.InstallButtonColor.Value;
+                InstallCompleted.Background = new SolidColorBrush(c);
+                InstallCompleted.IsMouseOverFill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(
+                    (byte)Math.Max(0, c.R - 30),
+                    (byte)Math.Max(0, c.G - 30),
+                    (byte)Math.Max(0, c.B - 30)));
+            }
         }
 
         /// <summary>
