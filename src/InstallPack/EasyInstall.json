@@ -29,15 +29,26 @@
     {
       "Source": "D:\\Document\\GitHubIceElves\\EasyInstall\\src\\EasyInstall\\EasyInstall\\bin\\Release\\Newtonsoft.Json.dll",
       "TreeRootPath": ""
-    },
-    {
-      "Source": "D:\\Document\\GitHubIceElves\\EasyInstall\\src\\EasyInstall\\EasyInstall\\bin\\Release\\Newtonsoft.Json.xml",
-      "TreeRootPath": ""
     }
   ],
   "DesktopShortcut": true,
   "StartMenuShortcut": true,
   "StartWithWindows": false,
   "InstallIconBase64": null,
-  "UninstallIconBase64": null
+  "UninstallIconBase64": null,
+  "Style": {
+    "HideTitleBar": false,
+    "InstallBackgroundBase64": null,
+    "InstallCarouselImages": [],
+    "InstallButtonColor": null,
+    "UninstallBackgroundBase64": null,
+    "UninstallCarouselImages": [],
+    "UninstallButtonColor": null,
+    "InstallCheckBoxColor": null,
+    "InstallProgressBarColor": null,
+    "InstallWaveColor": null,
+    "UninstallCheckBoxColor": null,
+    "UninstallProgressBarColor": null,
+    "UninstallWaveColor": null
+  }
 }

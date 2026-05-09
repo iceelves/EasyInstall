@@ -275,7 +275,7 @@
                         <StackPanel>
                             <TextBlock Text="{DynamicResource SectionLanguage}" Style="{StaticResource SectionHeader}"/>
                             <ComboBox x:Name="CmbLanguage" Height="26" Padding="6,2"
-                                      BorderBrush="#C8D0D8" BorderThickness="1">
+                                      BorderBrush="#C8D0D8" BorderThickness="1" VerticalContentAlignment="Center">
                                 <ComboBoxItem x:Name="CmbLangAuto"   Content="{DynamicResource LangFollowSystem}" Tag=""/>
                                 <ComboBoxItem x:Name="CmbLangZhCN"   Content="{DynamicResource LangZhCN}"         Tag="zh-CN"/>
                                 <ComboBoxItem x:Name="CmbLangEnUS"   Content="{DynamicResource LangEnUS}"         Tag="en-US"/>
