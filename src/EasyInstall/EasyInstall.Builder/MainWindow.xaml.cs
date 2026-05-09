@@ -274,7 +274,7 @@ namespace EasyInstall.Builder
                 {
                     Title = FindRes("LabelOutputPath"),
                     Filter = "可执行文件 (*.exe)|*.exe",
-                    FileName = (TxtAppName.Text.Trim().Length > 0 ? TxtAppName.Text.Trim() : "Setup") + "_Install.exe"
+                    FileName = BuildDefaultOutputName()
                 };
                 if (dlg.ShowDialog() != true) return;
                 outputPath = dlg.FileName;
@@ -507,7 +507,7 @@ namespace EasyInstall.Builder
             {
                 Title = FindRes("LabelOutputPath"),
                 Filter = "可执行文件 (*.exe)|*.exe",
-                FileName = (TxtAppName.Text.Trim().Length > 0 ? TxtAppName.Text.Trim() : "Setup") + "_Install.exe"
+                FileName = BuildDefaultOutputName()
             };
             if (dlg.ShowDialog() == true)
                 TxtOutputPath.Text = dlg.FileName;
@@ -730,6 +730,28 @@ namespace EasyInstall.Builder
         }
 
         // ══ 配置构建与加载 ════════════════════════════════════════
+
+        /// <summary>
+        /// 生成默认输出文件名：应用名_版本号_yyyyMMddHHmmss_Install.exe
+        /// </summary>
+        private string BuildDefaultOutputName()
+        {
+            string appName = TxtAppName.Text.Trim();
+            if (string.IsNullOrEmpty(appName)) appName = "Setup";
+
+            string version = TxtAppVersion.Text.Trim();
+            string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+
+            string name = string.IsNullOrEmpty(version)
+                ? $"{appName}_{timestamp}_Install.exe"
+                : $"{appName}_{version}_{timestamp}_Install.exe";
+
+            // 替换文件名中的非法字符
+            foreach (char c in System.IO.Path.GetInvalidFileNameChars())
+                name = name.Replace(c, '_');
+
+            return name;
+        }
 
         /// <summary>
         /// 从界面控件构建 InstallConfig
