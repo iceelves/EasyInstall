@@ -79,6 +79,12 @@ namespace EasyInstall.Core.Models
         [DataMember]
         public bool StartWithWindows { get; set; } = false;
 
+        /// <summary>
+        /// 安装完成后是否立即启动主程序，默认不启动
+        /// </summary>
+        [DataMember]
+        public bool LaunchAfterInstall { get; set; } = false;
+
         // ── 图标 ──────────────────────────────────────────────────
         /// <summary>
         /// 安装程序图标（ICO Base64），为空时使用内置 Install.png

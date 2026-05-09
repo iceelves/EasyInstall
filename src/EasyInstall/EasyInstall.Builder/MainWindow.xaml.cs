@@ -47,7 +47,7 @@ namespace EasyInstall.Builder
         private readonly ObservableCollection<ImageSource> _uninstallCarouselSources
             = new ObservableCollection<ImageSource>();
         // Base64 与 ImageSource 的对应表（用于序列化）
-        private readonly List<string> _installCarouselBase64  = new List<string>();
+        private readonly List<string> _installCarouselBase64 = new List<string>();
         private readonly List<string> _uninstallCarouselBase64 = new List<string>();
 
         public MainWindow()
@@ -67,7 +67,7 @@ namespace EasyInstall.Builder
             _suppressLangChange = false;
 
             // 绑定轮播图 ListBox 数据源
-            LstInstallCarousel.ItemsSource   = _installCarouselSources;
+            LstInstallCarousel.ItemsSource = _installCarouselSources;
             LstUninstallCarousel.ItemsSource = _uninstallCarouselSources;
 
             // 自动检测同目录下的 Setup.exe
@@ -266,20 +266,15 @@ namespace EasyInstall.Builder
                 return;
             }
 
-            // 选择输出路径
-            string outputPath = TxtOutputPath.Text;
-            if (string.IsNullOrWhiteSpace(outputPath))
+            // 每次打包都弹出保存对话框让用户指定路径与文件名
+            var dlg = new SaveFileDialog
             {
-                var dlg = new SaveFileDialog
-                {
-                    Title = FindRes("LabelOutputPath"),
-                    Filter = "可执行文件 (*.exe)|*.exe",
-                    FileName = BuildDefaultOutputName()
-                };
-                if (dlg.ShowDialog() != true) return;
-                outputPath = dlg.FileName;
-                TxtOutputPath.Text = outputPath;
-            }
+                Title = FindRes("LabelOutputPath"),
+                Filter = "可执行文件 (*.exe)|*.exe",
+                FileName = BuildDefaultOutputName()
+            };
+            if (dlg.ShowDialog() != true) return;
+            string outputPath = dlg.FileName;
 
             // ── 开始打包 ──────────────────────────────────────────
             SetStatus("StatusBuilding");
@@ -499,18 +494,6 @@ namespace EasyInstall.Builder
             };
             if (dlg.ShowDialog() == true)
                 TxtSetupExe.Text = dlg.FileName;
-        }
-
-        private void BtnBrowseOutput_Click(object sender, RoutedEventArgs e)
-        {
-            var dlg = new SaveFileDialog
-            {
-                Title = FindRes("LabelOutputPath"),
-                Filter = "可执行文件 (*.exe)|*.exe",
-                FileName = BuildDefaultOutputName()
-            };
-            if (dlg.ShowDialog() == true)
-                TxtOutputPath.Text = dlg.FileName;
         }
 
         // ══ 文件树操作 ════════════════════════════════════════════
@@ -772,25 +755,26 @@ namespace EasyInstall.Builder
                 DesktopShortcut = ChkDesktopShortcut.IsChecked == true,
                 StartMenuShortcut = ChkStartMenuShortcut.IsChecked == true,
                 StartWithWindows = ChkStartWithWindows.IsChecked == true,
+                LaunchAfterInstall = ChkLaunchAfterInstall.IsChecked == true,
                 InstallIconBase64 = _installIconBase64,
                 UninstallIconBase64 = _uninstallIconBase64,
                 Language = GetSelectedLanguage(),
                 Files = CollectPackageFiles(),
                 Style = new StyleConfig
                 {
-                    HideTitleBar              = ChkHideTitleBar.IsChecked == true,
-                    InstallBackgroundBase64   = _installBackgroundBase64,
+                    HideTitleBar = ChkHideTitleBar.IsChecked == true,
+                    InstallBackgroundBase64 = _installBackgroundBase64,
                     UninstallBackgroundBase64 = _uninstallBackgroundBase64,
-                    InstallButtonColor        = string.IsNullOrWhiteSpace(_installButtonColor)   ? null : _installButtonColor,
-                    UninstallButtonColor      = string.IsNullOrWhiteSpace(_uninstallButtonColor) ? null : _uninstallButtonColor,
-                    InstallCheckBoxColor      = string.IsNullOrWhiteSpace(_installCheckBoxColor)      ? null : _installCheckBoxColor,
-                    UninstallCheckBoxColor    = string.IsNullOrWhiteSpace(_uninstallCheckBoxColor)    ? null : _uninstallCheckBoxColor,
-                    InstallProgressBarColor   = string.IsNullOrWhiteSpace(_installProgressBarColor)   ? null : _installProgressBarColor,
+                    InstallButtonColor = string.IsNullOrWhiteSpace(_installButtonColor) ? null : _installButtonColor,
+                    UninstallButtonColor = string.IsNullOrWhiteSpace(_uninstallButtonColor) ? null : _uninstallButtonColor,
+                    InstallCheckBoxColor = string.IsNullOrWhiteSpace(_installCheckBoxColor) ? null : _installCheckBoxColor,
+                    UninstallCheckBoxColor = string.IsNullOrWhiteSpace(_uninstallCheckBoxColor) ? null : _uninstallCheckBoxColor,
+                    InstallProgressBarColor = string.IsNullOrWhiteSpace(_installProgressBarColor) ? null : _installProgressBarColor,
                     UninstallProgressBarColor = string.IsNullOrWhiteSpace(_uninstallProgressBarColor) ? null : _uninstallProgressBarColor,
-                    InstallWaveColor          = string.IsNullOrWhiteSpace(_installWaveColor)          ? null : _installWaveColor,
-                    UninstallWaveColor        = string.IsNullOrWhiteSpace(_uninstallWaveColor)        ? null : _uninstallWaveColor,
-                    InstallCarouselImages     = new List<string>(_installCarouselBase64),
-                    UninstallCarouselImages   = new List<string>(_uninstallCarouselBase64),
+                    InstallWaveColor = string.IsNullOrWhiteSpace(_installWaveColor) ? null : _installWaveColor,
+                    UninstallWaveColor = string.IsNullOrWhiteSpace(_uninstallWaveColor) ? null : _uninstallWaveColor,
+                    InstallCarouselImages = new List<string>(_installCarouselBase64),
+                    UninstallCarouselImages = new List<string>(_uninstallCarouselBase64),
                 }
             };
             return config;
@@ -853,6 +837,7 @@ namespace EasyInstall.Builder
             ChkDesktopShortcut.IsChecked = config.DesktopShortcut;
             ChkStartMenuShortcut.IsChecked = config.StartMenuShortcut;
             ChkStartWithWindows.IsChecked = config.StartWithWindows;
+            ChkLaunchAfterInstall.IsChecked = config.LaunchAfterInstall;
             SetSelectedLanguage(config.Language);
 
             // 图标
@@ -1046,11 +1031,11 @@ namespace EasyInstall.Builder
             TxtRegistryKey.Text = "";
             TxtMainExecutable.Text = "";
             TxtLicense.Text = "";
-            TxtOutputPath.Text = "";
 
             ChkDesktopShortcut.IsChecked = true;
             ChkStartMenuShortcut.IsChecked = true;
             ChkStartWithWindows.IsChecked = false;
+            ChkLaunchAfterInstall.IsChecked = false;
             CmbLanguage.SelectedIndex = 0;
 
             // 图标

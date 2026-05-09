@@ -47,6 +47,7 @@ namespace EasyInstall.Setup.Pages.Install
             this.DesktopShortcut.IsChecked = _host.DesktopShortcut = App.Config.DesktopShortcut;
             this.StartMenuShortcut.IsChecked = _host.StartMenuShortcut = App.Config.StartMenuShortcut;
             this.StartWithWindows.IsChecked = _host.StartWithWindows = App.Config.StartWithWindows;
+            this.LaunchAfterInstall.IsChecked = App.Config.LaunchAfterInstall;
             this.InstallDir.Text = _host.InstallPath;
 
             // 应用按钮颜色
@@ -163,6 +164,7 @@ namespace EasyInstall.Setup.Pages.Install
             _host.DesktopShortcut = App.Config.DesktopShortcut = this.DesktopShortcut.IsChecked.GetValueOrDefault();
             _host.StartMenuShortcut = App.Config.StartMenuShortcut = this.StartMenuShortcut.IsChecked.GetValueOrDefault();
             _host.StartWithWindows = App.Config.StartWithWindows = this.StartWithWindows.IsChecked.GetValueOrDefault();
+            App.Config.LaunchAfterInstall = this.LaunchAfterInstall.IsChecked.GetValueOrDefault();
 
             _host.NavigateTo(1);
         }

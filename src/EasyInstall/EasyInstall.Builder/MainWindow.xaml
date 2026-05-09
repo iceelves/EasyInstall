@@ -267,6 +267,7 @@
                             <CheckBox x:Name="ChkDesktopShortcut"   Content="{DynamicResource DesktopShortcut}"   Margin="0,4" IsChecked="True"/>
                             <CheckBox x:Name="ChkStartMenuShortcut" Content="{DynamicResource StartMenuShortcut}" Margin="0,4" IsChecked="True"/>
                             <CheckBox x:Name="ChkStartWithWindows"  Content="{DynamicResource StartWithWindows}"  Margin="0,4"/>
+                            <CheckBox x:Name="ChkLaunchAfterInstall" Content="{DynamicResource LaunchAfterInstall}" Margin="0,4"/>
                         </StackPanel>
                     </Border>
 
@@ -597,21 +598,6 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- 输出路径 -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <TextBlock Text="{DynamicResource LabelOutputPath}" Style="{StaticResource SectionHeader}"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0" x:Name="TxtOutputPath" Style="{StaticResource FieldBox}" IsReadOnly="True"/>
-                                <control:IceButton Grid.Column="1" Style="{StaticResource ToolBtn}" Margin="6,0,0,0"
-                                                   Content="{DynamicResource BtnBrowseOutput}" Click="BtnBrowseOutput_Click"/>
-                            </Grid>
-                        </StackPanel>
-                    </Border>
 
                 </StackPanel>
             </ScrollViewer>

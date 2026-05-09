@@ -25,8 +25,12 @@ namespace EasyInstall.Setup.Pages.Install
         {
             InitializeComponent();
 
+            _host = host;
+
             this.Loaded += FinishPage_Loaded;
         }
+
+        private readonly MainWindow _host;
 
         /// <summary>
         /// Loaded
@@ -58,6 +62,19 @@ namespace EasyInstall.Setup.Pages.Install
         /// <param name="e"></param>
         private void InstallCompleted_Click(object sender, RoutedEventArgs e)
         {
+            // 勾选了立即启动时，尝试启动主程序
+            if (App.Config.LaunchAfterInstall)
+            {
+                try
+                {
+                    string exePath = System.IO.Path.Combine(
+                        _host.InstallPath, App.Config.MainExecutable ?? "");
+                    if (System.IO.File.Exists(exePath))
+                        Process.Start(exePath);
+                }
+                catch { }
+            }
+
             // 强制终止当前进程
             Process.GetCurrentProcess().Kill();
         }

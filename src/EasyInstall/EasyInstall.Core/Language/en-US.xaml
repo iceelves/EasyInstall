@@ -18,6 +18,7 @@
     <System:String x:Key="DiskFreeSpace">Disk free space:</System:String>
     <System:String x:Key="Installing">Installing...</System:String>
     <System:String x:Key="InstallCompleted">Install Completed</System:String>
+    <System:String x:Key="LaunchAfterInstall">Launch now</System:String>
 
     <!--Builder-->
     <System:String x:Key="BtnPickColor">Pick Color</System:String>
