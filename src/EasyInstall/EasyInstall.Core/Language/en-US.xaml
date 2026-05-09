@@ -26,6 +26,12 @@
     <System:String x:Key="LabelProgressBarColor">Progress Bar Color</System:String>
     <System:String x:Key="LabelWaveColor">Wave Animation Color</System:String>
 
+    <!--Confirm Dialog-->
+    <System:String x:Key="ConfirmExitTitle">Exit</System:String>
+    <System:String x:Key="ConfirmExitMessage">Are you sure you want to exit the wizard?</System:String>
+    <System:String x:Key="ConfirmExitYes">Exit</System:String>
+    <System:String x:Key="ConfirmExitNo">Cancel</System:String>
+
     <!--Main Interface Uninstall-->
     <System:String x:Key="UninstallWizard">Uninstall Wizard</System:String>
     <System:String x:Key="StartUninstall">Start Uninstall</System:String>

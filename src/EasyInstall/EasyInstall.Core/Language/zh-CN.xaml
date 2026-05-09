@@ -26,6 +26,12 @@
     <System:String x:Key="LabelProgressBarColor">进度条颜色</System:String>
     <System:String x:Key="LabelWaveColor">波形动画颜色</System:String>
 
+    <!--确认弹窗-->
+    <System:String x:Key="ConfirmExitTitle">退出</System:String>
+    <System:String x:Key="ConfirmExitMessage">确定要退出安装向导吗？</System:String>
+    <System:String x:Key="ConfirmExitYes">退出</System:String>
+    <System:String x:Key="ConfirmExitNo">取消</System:String>
+
     <!--主界面 卸载-->
     <System:String x:Key="UninstallWizard">卸载向导</System:String>
     <System:String x:Key="StartUninstall">开始卸载</System:String>

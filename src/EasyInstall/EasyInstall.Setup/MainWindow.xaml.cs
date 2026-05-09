@@ -159,12 +159,22 @@ namespace EasyInstall.Setup
         }
 
         /// <summary>
+        /// 当前是否正在执行安装/卸载（进行中不允许关闭）
+        /// </summary>
+        public bool IsProcessing { get; set; }
+
+        /// <summary>
         /// 关闭窗体
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void mainClose_Click(object sender, RoutedEventArgs e)
         {
+            // 安装/卸载进行中不响应关闭
+            if (IsProcessing) return;
+
+            var dialog = new ConfirmDialog(this);
+            dialog.ShowDialog();
+            if (!dialog.Confirmed) return;
+
             if (FindResource("CloseStoryboard") is Storyboard closeStoryboard)
             {
                 closeStoryboard.Completed += CloseStoryboard_Completed;

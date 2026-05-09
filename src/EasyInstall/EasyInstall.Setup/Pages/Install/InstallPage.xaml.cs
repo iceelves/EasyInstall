@@ -49,6 +49,9 @@ namespace EasyInstall.Setup.Pages.Install
         /// </summary>
         private async void InstallPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // 安装进行中，禁止关闭
+            _host.IsProcessing = true;
+
             // 应用进度条颜色
             ApplyProgressBarColor(App.InstallProgressBarColor);
 
@@ -200,6 +203,7 @@ namespace EasyInstall.Setup.Pages.Install
             SyncProgressFill(100);
             this.Percentage.Text = $"{InstallProgress.Value}%";
             _carouselTimer?.Stop();
+            _host.IsProcessing = false;
             _host.NavigateTo(2);
         }
 

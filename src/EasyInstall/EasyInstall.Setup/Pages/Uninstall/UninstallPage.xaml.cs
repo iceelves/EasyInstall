@@ -49,6 +49,9 @@ namespace EasyInstall.Setup.Pages.Uninstall
         /// </summary>
         private async void UninstallPage_Loaded(object sender, RoutedEventArgs e)
         {
+            // 卸载进行中，禁止关闭
+            _host.IsProcessing = true;
+
             // 应用进度条颜色
             ApplyProgressBarColor(App.UninstallProgressBarColor);
 
@@ -149,6 +152,7 @@ namespace EasyInstall.Setup.Pages.Uninstall
             _carouselTimer?.Stop();
 
             // 跳转到完成页
+            _host.IsProcessing = false;
             _host.NavigateTo(2);
         }
 
