@@ -10,20 +10,18 @@ namespace EasyInstall.Core.Helpers
     public static class PathHelper
     {
         /// <summary>
-        /// 解析路径中的占位符，如 {ProgramFiles}、{Company}、{AppName}
+        /// 解析路径中的占位符，如 {ProgramFiles}、{ProgramFiles64}、{Company}、{AppName}
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="company"></param>
-        /// <param name="appName"></param>
-        /// <returns></returns>
         public static string Resolve(string path, string company, string appName)
         {
             return path
-                .Replace("{ProgramFiles}", Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles))
-                .Replace("{LocalAppData}", Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
-                .Replace("{AppData}", Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))
-                .Replace("{Company}", company ?? "Company")
-                .Replace("{AppName}", appName ?? "App");
+                .Replace("{ProgramFiles}",   Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles))
+                .Replace("{ProgramFiles64}", Environment.GetEnvironmentVariable("ProgramW6432")
+                                             ?? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles))
+                .Replace("{LocalAppData}",   Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData))
+                .Replace("{AppData}",        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData))
+                .Replace("{Company}",        company ?? "Company")
+                .Replace("{AppName}",        appName ?? "App");
         }
 
         /// <summary>
