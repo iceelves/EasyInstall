@@ -145,7 +145,18 @@ namespace EasyInstall.Setup.Pages.Install
                 {
                     var drive = new DriveInfo(root);
                     double freeGb = drive.AvailableFreeSpace / 1024.0 / 1024 / 1024;
-                    this.SpaceInfo.Text = $"{System.Windows.Application.Current.FindResource("DiskFreeSpace")} {freeGb:F1} GB";
+                    string text = $"{System.Windows.Application.Current.FindResource("DiskFreeSpace")} {freeGb:F1} GB";
+
+                    if (App.PackageUncompressedSize > 0)
+                    {
+                        double needGb = App.PackageUncompressedSize / 1024.0 / 1024 / 1024;
+                        string needStr = needGb >= 1.0
+                            ? $"{needGb:F1} GB"
+                            : $"{App.PackageUncompressedSize / 1024.0 / 1024:F0} MB";
+                        text += $"    {System.Windows.Application.Current.FindResource("DiskRequiredSpace")} {needStr}";
+                    }
+
+                    this.SpaceInfo.Text = text;
                 }
             }
             catch

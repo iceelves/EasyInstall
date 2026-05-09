@@ -16,6 +16,7 @@
     <System:String x:Key="StartMenuShortcut">创建开始菜单快捷方式</System:String>
     <System:String x:Key="StartWithWindows">创建开机自启</System:String>
     <System:String x:Key="DiskFreeSpace">磁盘可用空间：</System:String>
+    <System:String x:Key="DiskRequiredSpace">安装所需空间：</System:String>
     <System:String x:Key="Installing">正在安装...</System:String>
     <System:String x:Key="InstallCompleted">安装完成</System:String>
     <System:String x:Key="LaunchAfterInstall">立即启动</System:String>

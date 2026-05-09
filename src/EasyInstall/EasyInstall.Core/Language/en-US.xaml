@@ -16,6 +16,7 @@
     <System:String x:Key="StartMenuShortcut">Start menu shortcut</System:String>
     <System:String x:Key="StartWithWindows">Start with windows</System:String>
     <System:String x:Key="DiskFreeSpace">Disk free space:</System:String>
+    <System:String x:Key="DiskRequiredSpace">Required space:</System:String>
     <System:String x:Key="Installing">Installing...</System:String>
     <System:String x:Key="InstallCompleted">Install Completed</System:String>
     <System:String x:Key="LaunchAfterInstall">Launch now</System:String>

@@ -28,6 +28,11 @@ namespace EasyInstall.Setup
         public static byte[] PackageData { get; private set; }
 
         /// <summary>
+        /// 安装包解压后的总大小（字节），用于显示"所需磁盘空间"
+        /// </summary>
+        public static long PackageUncompressedSize { get; private set; }
+
+        /// <summary>
         /// 安装图标（从 InstallIconBase64 转换，供 UI 直接绑定）
         /// </summary>
         public static System.Windows.Media.ImageSource InstallIcon { get; private set; }
@@ -157,7 +162,10 @@ namespace EasyInstall.Setup
                     string json = OverlayHelper.ReadConfig(selfExePath);
                     Config = JsonHelper.Deserialize<InstallConfig>(json);
                     if (!IsUninstallMode)
+                    {
                         PackageData = OverlayHelper.ReadData(selfExePath);
+                        PackageUncompressedSize = ZipHelper.GetUncompressedSize(PackageData);
+                    }
                 }
                 catch (Exception ex)
                 {

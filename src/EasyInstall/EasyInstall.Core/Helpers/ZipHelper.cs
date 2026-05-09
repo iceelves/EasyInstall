@@ -100,9 +100,6 @@ namespace EasyInstall.Core.Helpers
         /// <summary>
         /// 解压字节数组到目标目录
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="targetDir"></param>
-        /// <param name="progress"></param>
         public static void Decompress(byte[] data, string targetDir, Action<int> progress = null)
         {
             using (var ms = new MemoryStream(data))
@@ -124,6 +121,43 @@ namespace EasyInstall.Core.Helpers
                     progress?.Invoke((i + 1) * 100 / count);
                 }
             }
+        }
+
+        /// <summary>
+        /// 读取压缩包中所有文件的原始大小之和，不解压文件数据。
+        /// 用于在安装前显示"所需磁盘空间"。
+        /// </summary>
+        public static long GetUncompressedSize(byte[] data)
+        {
+            if (data == null || data.Length == 0) return 0;
+            try
+            {
+                long total = 0;
+                using (var ms = new MemoryStream(data))
+                using (var gz = new GZipStream(ms, CompressionMode.Decompress))
+                using (var br = new BinaryReader(gz))
+                {
+                    int count = br.ReadInt32();
+                    for (int i = 0; i < count; i++)
+                    {
+                        int pathLen = br.ReadInt32();
+                        br.ReadBytes(pathLen);          // 跳过路径
+                        long fileSize = br.ReadInt64();
+                        total += fileSize;
+                        // 跳过文件数据，避免读入内存
+                        long remaining = fileSize;
+                        var skip = new byte[81920];
+                        while (remaining > 0)
+                        {
+                            int read = br.Read(skip, 0, (int)Math.Min(skip.Length, remaining));
+                            if (read == 0) break;
+                            remaining -= read;
+                        }
+                    }
+                }
+                return total;
+            }
+            catch { return 0; }
         }
     }
 }
