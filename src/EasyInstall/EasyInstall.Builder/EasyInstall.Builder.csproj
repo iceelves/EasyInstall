@@ -34,6 +34,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Images\Install.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -81,8 +84,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Controls\MultiSelectTreeView.cs"/>
-    <Compile Include="Helpers\ShellIcon.cs"/>
+    <Compile Include="Controls\MultiSelectTreeView.cs" />
+    <Compile Include="Helpers\ShellIcon.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -91,7 +94,7 @@
       <DependentUpon>ColorPickerPopup.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Models\FileTreeItem.cs"/>
+    <Compile Include="Models\FileTreeItem.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -129,6 +132,10 @@
       <Project>{e92afdb8-579b-4cf6-9d01-37bccabf0cdc}</Project>
       <Name>EasyInstall.Setup</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Images\Install.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

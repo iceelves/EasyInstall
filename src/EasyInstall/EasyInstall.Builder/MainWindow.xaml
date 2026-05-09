@@ -11,7 +11,7 @@
         Height="700" Width="960"
         MinHeight="600" MinWidth="800"
         WindowStartupLocation="CenterScreen"
-        Icon="pack://application:,,,/EasyInstall.Core;component/images/Install.png"
+        Icon="pack://application:,,,/images/Install.ico"
         Background="#F0F2F5">
 
     <Window.Resources>
@@ -153,9 +153,12 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="44"/>  <!-- 工具栏 -->
-            <RowDefinition Height="*"/>   <!-- 主内容 -->
-            <RowDefinition Height="28"/>  <!-- 状态栏 -->
+            <RowDefinition Height="44"/>
+            <!-- 工具栏 -->
+            <RowDefinition Height="*"/>
+            <!-- 主内容 -->
+            <RowDefinition Height="28"/>
+            <!-- 状态栏 -->
         </Grid.RowDefinitions>
 
         <!-- ══ 工具栏 ══════════════════════════════════════════════ -->
