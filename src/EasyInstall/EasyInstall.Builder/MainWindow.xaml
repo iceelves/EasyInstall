@@ -8,8 +8,8 @@
         xmlns:model="clr-namespace:EasyInstall.Builder.Models"
         mc:Ignorable="d"
         Title="{DynamicResource BuilderTitle}"
-        Height="700" Width="960"
-        MinHeight="600" MinWidth="800"
+        Height="720" Width="1200"
+        MinHeight="600" MinWidth="1000"
         WindowStartupLocation="CenterScreen"
         Icon="pack://application:,,,/images/Install.ico"
         Background="#F0F2F5">
@@ -205,7 +205,7 @@
         <!-- ══ 主内容区 ════════════════════════════════════════════ -->
         <Grid Grid.Row="1" Margin="10,8,10,4">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="340" MinWidth="260"/>
+                <ColumnDefinition Width="380" MinWidth="340"/>
                 <ColumnDefinition Width="5"/>
                 <ColumnDefinition Width="*" MinWidth="300"/>
             </Grid.ColumnDefinitions>
