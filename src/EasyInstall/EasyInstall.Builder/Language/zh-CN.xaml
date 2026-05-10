@@ -101,4 +101,12 @@
     <System:String x:Key="StylePreview">预览</System:String>
     <System:String x:Key="StyleDefaultHint">(默认)</System:String>
 
+    <!--压缩方式-->
+    <System:String x:Key="LabelCompression">压缩方式</System:String>
+    <System:String x:Key="CompressionLzma">LZMA（推荐）</System:String>
+    <System:String x:Key="CompressionGZip">GZip</System:String>
+    <System:String x:Key="CompressionDeflate">Deflate</System:String>
+    <System:String x:Key="CompressionStore">不压缩</System:String>
+
+
 </ResourceDictionary>

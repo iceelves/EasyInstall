@@ -188,7 +188,7 @@ namespace EasyInstall
                 byte[] compressed;
                 try
                 {
-                    compressed = ZipHelper.CompressPaths(config.Files, baseDir);
+                    compressed = ZipHelper.CompressPaths(config.Files, baseDir, config.CompressionMethod);
                 }
                 finally
                 {

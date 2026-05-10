@@ -48,6 +48,15 @@ namespace EasyInstall.Core.Models
         [DataMember]
         public string LicenseText { get; set; }
 
+        // ── 压缩 ──────────────────────────────────────────────────
+        /// <summary>
+        /// 打包时使用的压缩算法，默认 LZMA
+        /// </summary>
+        [DataMember]
+        public EasyInstall.Core.Compression.CompressionType CompressionMethod { get; set; }
+            = EasyInstall.Core.Compression.CompressionType.Lzma;
+
+
         // ── 语言 ──────────────────────────────────────────────────
         /// <summary>
         /// 安装/卸载界面语言。

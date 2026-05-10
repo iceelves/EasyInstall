@@ -317,7 +317,7 @@ namespace EasyInstall.Builder
                     Action<int> zipHandler = pct => reportProgress(0, pct);
                     ZipHelper.ProgressChanged += zipHandler;
                     byte[] compressed;
-                    try { compressed = ZipHelper.CompressPaths(config.Files, ""); }
+                    try { compressed = ZipHelper.CompressPaths(config.Files, "", config.CompressionMethod); }
                     finally { ZipHelper.ProgressChanged -= zipHandler; }
 
                     // GZip 空流约 26 字节，正常压缩数据远大于此
@@ -760,6 +760,7 @@ namespace EasyInstall.Builder
                 UninstallIconBase64 = _uninstallIconBase64,
                 Language = GetSelectedLanguage(),
                 Files = CollectPackageFiles(),
+                CompressionMethod = GetSelectedCompression(),
                 Style = new StyleConfig
                 {
                     HideTitleBar = ChkHideTitleBar.IsChecked == true,
@@ -839,6 +840,8 @@ namespace EasyInstall.Builder
             ChkStartWithWindows.IsChecked = config.StartWithWindows;
             ChkLaunchAfterInstall.IsChecked = config.LaunchAfterInstall;
             SetSelectedLanguage(config.Language);
+
+            SetSelectedCompression(config.CompressionMethod);
 
             // 图标
             _installIconBase64 = config.InstallIconBase64;
@@ -1037,6 +1040,7 @@ namespace EasyInstall.Builder
             ChkStartWithWindows.IsChecked = false;
             ChkLaunchAfterInstall.IsChecked = false;
             CmbLanguage.SelectedIndex = 0;
+            CmbCompression.SelectedIndex = 0; // 默认 LZMA
 
             // 图标
             _installIconBase64 = null;
@@ -1089,6 +1093,25 @@ namespace EasyInstall.Builder
             var item = CmbLanguage.SelectedItem as System.Windows.Controls.ComboBoxItem;
             return item?.Tag as string ?? "";
         }
+
+        private EasyInstall.Core.Compression.CompressionType GetSelectedCompression()
+        {
+            var item = CmbCompression.SelectedItem as System.Windows.Controls.ComboBoxItem;
+            if (item?.Tag is string tag && byte.TryParse(tag, out byte v))
+                return (EasyInstall.Core.Compression.CompressionType)v;
+            return EasyInstall.Core.Compression.CompressionType.Lzma;
+        }
+
+        private void SetSelectedCompression(EasyInstall.Core.Compression.CompressionType type)
+        {
+            string tag = ((byte)type).ToString();
+            foreach (System.Windows.Controls.ComboBoxItem item in CmbCompression.Items)
+            {
+                if ((item.Tag as string) == tag) { CmbCompression.SelectedItem = item; return; }
+            }
+            CmbCompression.SelectedIndex = 0;
+        }
+
 
         /// <summary>
         /// 根据语言代码设置 ComboBox 选中项

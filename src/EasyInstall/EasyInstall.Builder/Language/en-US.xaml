@@ -101,4 +101,12 @@
     <System:String x:Key="StylePreview">Preview</System:String>
     <System:String x:Key="StyleDefaultHint">(default)</System:String>
 
+    <!--Compression-->
+    <System:String x:Key="LabelCompression">Compression</System:String>
+    <System:String x:Key="CompressionLzma">LZMA (Recommended)</System:String>
+    <System:String x:Key="CompressionGZip">GZip</System:String>
+    <System:String x:Key="CompressionDeflate">Deflate</System:String>
+    <System:String x:Key="CompressionStore">Store (No Compression)</System:String>
+
+
 </ResourceDictionary>

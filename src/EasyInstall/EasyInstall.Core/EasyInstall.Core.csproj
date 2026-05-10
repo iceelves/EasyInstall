@@ -55,6 +55,25 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compression\CompressionType.cs" />
+    <Compile Include="Compression\CompressorFactory.cs" />
+    <Compile Include="Compression\DeflateCompressor.cs" />
+    <Compile Include="Compression\GZipCompressor.cs" />
+    <Compile Include="Compression\ICompressor.cs" />
+    <Compile Include="Compression\LzmaCompressor.cs" />
+    <Compile Include="Compression\StoreCompressor.cs" />
+    <Compile Include="Compression\Lzma\CRC.cs" />
+    <Compile Include="Compression\Lzma\ICoder.cs" />
+    <Compile Include="Compression\Lzma\IMatchFinder.cs" />
+    <Compile Include="Compression\Lzma\LzBinTree.cs" />
+    <Compile Include="Compression\Lzma\LzInWindow.cs" />
+    <Compile Include="Compression\Lzma\LzmaBase.cs" />
+    <Compile Include="Compression\Lzma\LzmaDecoder.cs" />
+    <Compile Include="Compression\Lzma\LzmaEncoder.cs" />
+    <Compile Include="Compression\Lzma\LzOutWindow.cs" />
+    <Compile Include="Compression\Lzma\RangeCoder.cs" />
+    <Compile Include="Compression\Lzma\RangeCoderBit.cs" />
+    <Compile Include="Compression\Lzma\RangeCoderBitTree.cs" />
     <Compile Include="Controls\IceButton.cs" />
     <Compile Include="Controls\IceSvgButton.cs" />
     <Compile Include="Helpers\ImageHelper.cs" />

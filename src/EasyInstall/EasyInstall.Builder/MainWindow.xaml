@@ -260,6 +260,21 @@
                         </StackPanel>
                     </Border>
 
+                    <!-- 压缩方式 -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelCompression}" Style="{StaticResource SectionHeader}"/>
+                            <ComboBox x:Name="CmbCompression" Height="26" Padding="6,2"
+                                    BorderBrush="#C8D0D8" BorderThickness="1" VerticalContentAlignment="Center">
+                                <ComboBoxItem Tag="3" Content="{DynamicResource CompressionLzma}" IsSelected="True"/>
+                                <ComboBoxItem Tag="0" Content="{DynamicResource CompressionGZip}"/>
+                                <ComboBoxItem Tag="1" Content="{DynamicResource CompressionDeflate}"/>
+                                <ComboBoxItem Tag="2" Content="{DynamicResource CompressionStore}"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+
                     <!-- 快捷方式 -->
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
