@@ -23,45 +23,263 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 将多个源路径压缩为字节数组
+        /// 将多个源路径流式压缩并直接写入目标流，全程不在内存中缓冲整个数据集。
+        /// 对于 Store（无压缩）模式，数据从磁盘直接流向目标流，内存占用恒定（约 80KB 缓冲区）。
+        /// 对于 LZMA/GZip/Deflate 等压缩算法，原始数据通过管道流送入压缩器，
+        /// 压缩器边读边压缩边写出，避免同时在内存中保留原始数据和压缩结果。
+        /// </summary>
+        public static void CompressPathsToStream(List<PackageFile> files, string baseDir,
+            Stream outputStream, CompressionType compressionType = CompressionType.Lzma)
+        {
+            var entries = CollectEntries(files, baseDir);
+            int count = entries.Count;
+
+            // 写 1 字节压缩类型头
+            outputStream.WriteByte((byte)compressionType);
+
+            var compressor = CompressorFactory.Create(compressionType);
+
+            // 用 EntryFeedStream 作为压缩器的输入源：
+            // 它实现 Stream.Read，内部按格式逐条喂出文件数据，
+            // 每次只在内存中保留一个 80KB 的读取缓冲区。
+            using (var feeder = new EntryFeedStream(entries, pct =>
+                ProgressChanged?.Invoke(pct)))
+            {
+                compressor.Compress(feeder, outputStream, pct =>
+                {
+                    // 压缩进度作为补充（部分压缩器会报告）
+                });
+            }
+
+            ProgressChanged?.Invoke(100);
+        }
+
+        /// <summary>
+        /// 将多个源路径压缩为字节数组（兼容旧接口，内部调用流式版本）。
+        /// 注意：对于超大文件集合，建议直接使用 CompressPathsToStream 以避免内存压力。
         /// </summary>
         public static byte[] CompressPaths(List<PackageFile> files, string baseDir,
             CompressionType compressionType = CompressionType.Lzma)
         {
-            var entries = CollectEntries(files, baseDir);
-
-            // 先把原始数据序列化到内存流
-            using (var rawMs = new MemoryStream())
-            using (var bw = new BinaryWriter(rawMs))
+            using (var outMs = new MemoryStream())
             {
-                bw.Write(entries.Count);
-                for (int i = 0; i < entries.Count; i++)
+                CompressPathsToStream(files, baseDir, outMs, compressionType);
+                return outMs.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// 流式条目喂入器：实现 Stream.Read，按格式逐条输出文件头和文件内容，
+        /// 每次只在内存中保留一个读取缓冲区，不预先加载任何文件。
+        /// 格式：[4字节条目数] ( [4字节路径长度][路径UTF8] [8字节文件大小][文件数据] ) * N
+        /// 支持 Length 属性（预先计算总字节数），以便 LZMA 等需要知道输入大小的压缩器正常工作。
+        /// </summary>
+        private sealed class EntryFeedStream : Stream
+        {
+            private enum State { WriteHeader, WritePathLen, WritePath, WriteFileSize, WriteFileData, Done }
+
+            private readonly List<FileEntry> _entries;
+            private readonly Action<int> _progress;
+            private State _state = State.WriteHeader;
+
+            // 当前条目索引
+            private int _entryIndex = -1;
+
+            // 小字段缓冲（头部字节）
+            private byte[] _headerBuf;
+            private int _headerPos;
+
+            // 当前文件流
+            private FileStream _currentFile;
+            private long _fileRemaining;
+            // 当前条目文件大小（WriteFileSize 完成后赋值，避免重新读 _headerBuf）
+            private long _currentFileSize;
+
+            // 预计算的总字节数（供 LZMA 等压缩器使用）
+            private readonly long _totalLength;
+
+            // 读取缓冲区（复用，避免每次分配）
+            private readonly byte[] _copyBuf = new byte[81920];
+
+            public EntryFeedStream(List<FileEntry> entries, Action<int> progress)
+            {
+                _entries = entries;
+                _progress = progress;
+                // 初始化：准备写入条目总数（4字节）
+                _headerBuf = BitConverter.GetBytes(entries.Count);
+                _headerPos = 0;
+                // 预计算总字节数：4（条目数）+ 每条目（4+路径字节数+8+文件大小）
+                _totalLength = CalculateTotalLength(entries);
+            }
+
+            /// <summary>
+            /// 预计算流的总字节数，不读取文件内容，只查询文件大小。
+            /// </summary>
+            private static long CalculateTotalLength(List<FileEntry> entries)
+            {
+                long total = 4; // 4字节条目数
+                foreach (var e in entries)
                 {
-                    byte[] data = File.ReadAllBytes(entries[i].AbsPath);
-                    byte[] pathBytes = System.Text.Encoding.UTF8.GetBytes(entries[i].RelPath);
-                    bw.Write(pathBytes.Length);
-                    bw.Write(pathBytes);
-                    bw.Write((long)data.Length);
-                    bw.Write(data);
-                    // 序列化阶段占总进度 0-50%
-                    ProgressChanged?.Invoke((i + 1) * 50 / entries.Count);
+                    byte[] pathBytes = System.Text.Encoding.UTF8.GetBytes(e.RelPath);
+                    long fileSize = new FileInfo(e.AbsPath).Length;
+                    total += 4;             // 路径长度字段
+                    total += pathBytes.Length; // 路径内容
+                    total += 8;             // 文件大小字段
+                    total += fileSize;      // 文件内容
                 }
-                bw.Flush();
-                rawMs.Position = 0;
+                return total;
+            }
 
-                // 压缩阶段占总进度 50-100%
-                var compressor = CompressorFactory.Create(compressionType);
-                using (var outMs = new MemoryStream())
+            // CanSeek = true，Length 返回预计算值，供 LZMA 编码器使用
+            public override bool CanRead  => true;
+            public override bool CanSeek  => true;
+            public override bool CanWrite => false;
+            public override long Length   => _totalLength;
+            // Position 只读（不支持随机定位，但 LZMA 只读 Length 不调用 Seek）
+            private long _position;
+            public override long Position
+            {
+                get => _position;
+                set => throw new NotSupportedException("EntryFeedStream does not support seeking.");
+            }
+            public override void Flush() { }
+            public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+            public override long Seek(long offset, SeekOrigin origin)        => throw new NotSupportedException("EntryFeedStream does not support seeking.");
+            public override void SetLength(long value)                       => throw new NotSupportedException();
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                if (_state == State.Done) return 0;
+
+                int totalRead = 0;
+                while (totalRead < count && _state != State.Done)
                 {
-                    // 写 1 字节类型头
-                    outMs.WriteByte((byte)compressionType);
-
-                    compressor.Compress(rawMs, outMs, pct =>
-                        ProgressChanged?.Invoke(50 + pct / 2));
-
-                    ProgressChanged?.Invoke(100);
-                    return outMs.ToArray();
+                    int read = ReadChunk(buffer, offset + totalRead, count - totalRead);
+                    if (read == 0 && _state != State.Done) break;
+                    totalRead += read;
                 }
+                _position += totalRead;
+                return totalRead;
+            }
+
+            private int ReadChunk(byte[] buf, int offset, int count)
+            {
+                switch (_state)
+                {
+                    case State.WriteHeader:
+                    {
+                        int take = Math.Min(count, _headerBuf.Length - _headerPos);
+                        Array.Copy(_headerBuf, _headerPos, buf, offset, take);
+                        _headerPos += take;
+                        if (_headerPos == _headerBuf.Length)
+                            AdvanceToNextEntry();
+                        return take;
+                    }
+                    case State.WritePathLen:
+                    {
+                        int take = Math.Min(count, _headerBuf.Length - _headerPos);
+                        Array.Copy(_headerBuf, _headerPos, buf, offset, take);
+                        _headerPos += take;
+                        if (_headerPos == _headerBuf.Length)
+                        {
+                            // 准备写路径字节
+                            _headerBuf = System.Text.Encoding.UTF8.GetBytes(_entries[_entryIndex].RelPath);
+                            _headerPos = 0;
+                            _state = State.WritePath;
+                        }
+                        return take;
+                    }
+                    case State.WritePath:
+                    {
+                        int take = Math.Min(count, _headerBuf.Length - _headerPos);
+                        Array.Copy(_headerBuf, _headerPos, buf, offset, take);
+                        _headerPos += take;
+                        if (_headerPos == _headerBuf.Length)
+                        {
+                            // 准备写文件大小（8字节）
+                            _currentFileSize = new FileInfo(_entries[_entryIndex].AbsPath).Length;
+                            _headerBuf = BitConverter.GetBytes(_currentFileSize);
+                            _headerPos = 0;
+                            _state = State.WriteFileSize;
+                        }
+                        return take;
+                    }
+                    case State.WriteFileSize:
+                    {
+                        int take = Math.Min(count, _headerBuf.Length - _headerPos);
+                        Array.Copy(_headerBuf, _headerPos, buf, offset, take);
+                        _headerPos += take;
+                        if (_headerPos == _headerBuf.Length)
+                        {
+                            // 使用已保存的 _currentFileSize，不从 _headerBuf 重新解析
+                            _fileRemaining = _currentFileSize;
+                            if (_currentFileSize > 0)
+                            {
+                                _currentFile = new FileStream(
+                                    _entries[_entryIndex].AbsPath,
+                                    FileMode.Open, FileAccess.Read, FileShare.Read,
+                                    81920, FileOptions.SequentialScan);
+                                _state = State.WriteFileData;
+                            }
+                            else
+                            {
+                                // 空文件，直接进入下一条目
+                                ReportProgress();
+                                AdvanceToNextEntry();
+                            }
+                        }
+                        return take;
+                    }
+                    case State.WriteFileData:
+                    {
+                        // 从文件流读取，最多读 count 字节，但不超过剩余文件大小
+                        int toRead = (int)Math.Min(count, _fileRemaining);
+                        int read = _currentFile.Read(buf, offset, toRead);
+                        if (read > 0)
+                        {
+                            _fileRemaining -= read;
+                            if (_fileRemaining == 0)
+                            {
+                                _currentFile.Dispose();
+                                _currentFile = null;
+                                ReportProgress();
+                                AdvanceToNextEntry();
+                            }
+                        }
+                        return read;
+                    }
+                    default:
+                        return 0;
+                }
+            }
+
+            private void ReportProgress()
+            {
+                int done = _entryIndex + 1;
+                int total = _entries.Count;
+                if (total > 0)
+                    _progress?.Invoke(done * 100 / total);
+            }
+
+            private void AdvanceToNextEntry()
+            {
+                _entryIndex++;
+                if (_entryIndex >= _entries.Count)
+                {
+                    _state = State.Done;
+                    return;
+                }
+                // 准备写路径长度（4字节）
+                byte[] pathBytes = System.Text.Encoding.UTF8.GetBytes(_entries[_entryIndex].RelPath);
+                _headerBuf = BitConverter.GetBytes(pathBytes.Length);
+                _headerPos = 0;
+                _state = State.WritePathLen;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing) _currentFile?.Dispose();
+                base.Dispose(disposing);
             }
         }
 

@@ -154,22 +154,80 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 将压缩数据和 JSON 配置追加到已存在的 EXE 文件末尾（原地追加）。
+        /// 将压缩数据流和 JSON 配置追加到已存在的 EXE 文件末尾（流式写入，不在内存中缓冲整个压缩数据）。
         /// 调用前必须已完成图标替换，因为图标替换会截断末尾数据。
         /// </summary>
-        public static void AppendOverlay(string exePath, byte[] compressedData, string configJson)
+        /// <param name="exePath">目标 EXE 路径</param>
+        /// <param name="compressedStream">压缩数据流（可读、可 Seek 以获取长度；若不可 Seek 则先写入临时文件）</param>
+        /// <param name="configJson">JSON 配置字符串</param>
+        public static void AppendOverlay(string exePath, Stream compressedStream, string configJson)
         {
             byte[] jsonBytes = Encoding.UTF8.GetBytes(configJson);
 
-            using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write))
-            using (var bw = new BinaryWriter(fs))
+            // 需要知道压缩数据的精确长度才能写入尾部元数据。
+            // 如果流支持 Seek，直接获取长度；否则先流式复制到目标文件，再回填长度。
+            if (compressedStream.CanSeek)
             {
-                bw.Write(compressedData);
-                bw.Write(jsonBytes);
-                bw.Write(jsonBytes.Length);            // 4 bytes
-                bw.Write((long)compressedData.Length); // 8 bytes
-                bw.Write(Magic);                       // 8 bytes
+                long dataLen = compressedStream.Length - compressedStream.Position;
+                using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
+                {
+                    CopyStream(compressedStream, fs);
+                    using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
+                    {
+                        bw.Write(jsonBytes);
+                        bw.Write(jsonBytes.Length);  // 4 bytes
+                        bw.Write(dataLen);           // 8 bytes
+                        bw.Write(Magic);             // 8 bytes
+                    }
+                }
             }
+            else
+            {
+                // 流不可 Seek：先流式写入数据，记录写入字节数，再追加尾部
+                long dataLen = 0;
+                using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
+                {
+                    dataLen = CopyStreamCounted(compressedStream, fs);
+                    using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
+                    {
+                        bw.Write(jsonBytes);
+                        bw.Write(jsonBytes.Length);  // 4 bytes
+                        bw.Write(dataLen);           // 8 bytes
+                        bw.Write(Magic);             // 8 bytes
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 将压缩数据字节数组和 JSON 配置追加到已存在的 EXE 文件末尾（兼容旧接口）。
+        /// 对于大文件，建议使用接受 Stream 参数的重载以避免内存压力。
+        /// </summary>
+        public static void AppendOverlay(string exePath, byte[] compressedData, string configJson)
+        {
+            using (var ms = new MemoryStream(compressedData, writable: false))
+                AppendOverlay(exePath, ms, configJson);
+        }
+
+        private static void CopyStream(Stream src, Stream dst)
+        {
+            var buf = new byte[81920];
+            int read;
+            while ((read = src.Read(buf, 0, buf.Length)) > 0)
+                dst.Write(buf, 0, read);
+        }
+
+        private static long CopyStreamCounted(Stream src, Stream dst)
+        {
+            var buf = new byte[81920];
+            long total = 0;
+            int read;
+            while ((read = src.Read(buf, 0, buf.Length)) > 0)
+            {
+                dst.Write(buf, 0, read);
+                total += read;
+            }
+            return total;
         }
 
         /// <summary>

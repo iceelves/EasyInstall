@@ -310,38 +310,56 @@ namespace EasyInstall.Builder
                             "以下文件不存在，无法打包：\n" +
                             string.Join("\n", missing.Take(10)));
 
-                    // ── 阶段 1：压缩（0-80%）────────────────────
-                    Action<int> zipHandler = pct => report(pct * 80 / 100);
-                    ZipHelper.ProgressChanged += zipHandler;
-                    byte[] compressed;
-                    try { compressed = ZipHelper.CompressPaths(config.Files, "", config.CompressionMethod); }
-                    finally { ZipHelper.ProgressChanged -= zipHandler; }
-                    report(80);
-
-                    // ── 阶段 2：序列化 JSON + 复制 EXE（80-90%）─
-                    string configJson = JsonConvert.SerializeObject(config, Formatting.Indented);
-                    File.Copy(setupExe, outputPath, overwrite: true);
-                    report(90);
-
-                    // ── 阶段 3：替换图标（90-95%）────────────────
-                    // 必须在 AppendOverlay 之前，BeginUpdateResource 会截断末尾数据
-                    byte[] icoBytes;
-                    if (!string.IsNullOrEmpty(config.InstallIconBase64))
+                    // 使用临时文件作为压缩数据的中间缓冲，
+                    // 避免将整个压缩结果加载到内存（对 400MB+ 的 Store 模式尤为重要）。
+                    string tempCompressPath = outputPath + ".tmp_compress";
+                    try
                     {
-                        byte[] rawBytes = Convert.FromBase64String(config.InstallIconBase64);
-                        icoBytes = ImageHelper.ToIcoBytes(rawBytes) ?? rawBytes;
-                    }
-                    else
-                    {
-                        icoBytes = ImageHelper.GetDefaultInstallIco();
-                    }
-                    if (icoBytes != null)
-                        OverlayHelper.SetExeIcon(outputPath, icoBytes);
-                    report(95);
+                        using (var compressStream = new FileStream(
+                            tempCompressPath, FileMode.Create, FileAccess.ReadWrite,
+                            FileShare.None, 65536, FileOptions.DeleteOnClose))
+                        {
+                            // ── 阶段 1：压缩（0-80%）────────────────────
+                            Action<int> zipHandler = pct => report(pct * 80 / 100);
+                            ZipHelper.ProgressChanged += zipHandler;
+                            try { ZipHelper.CompressPathsToStream(config.Files, "", compressStream, config.CompressionMethod); }
+                            finally { ZipHelper.ProgressChanged -= zipHandler; }
+                            compressStream.Position = 0;
+                            report(80);
 
-                    // ── 阶段 4：追加 Overlay（95-100%）──────────
-                    OverlayHelper.AppendOverlay(outputPath, compressed, configJson);
-                    report(100);
+                            // ── 阶段 2：序列化 JSON + 复制 EXE（80-90%）─
+                            string configJson = JsonConvert.SerializeObject(config, Formatting.Indented);
+                            File.Copy(setupExe, outputPath, overwrite: true);
+                            report(90);
+
+                            // ── 阶段 3：替换图标（90-95%）────────────────
+                            // 必须在 AppendOverlay 之前，BeginUpdateResource 会截断末尾数据
+                            byte[] icoBytes;
+                            if (!string.IsNullOrEmpty(config.InstallIconBase64))
+                            {
+                                byte[] rawBytes = Convert.FromBase64String(config.InstallIconBase64);
+                                icoBytes = ImageHelper.ToIcoBytes(rawBytes) ?? rawBytes;
+                            }
+                            else
+                            {
+                                icoBytes = ImageHelper.GetDefaultInstallIco();
+                            }
+                            if (icoBytes != null)
+                                OverlayHelper.SetExeIcon(outputPath, icoBytes);
+                            report(95);
+
+                            // ── 阶段 4：追加 Overlay（95-100%）──────────
+                            // 传入流式版本，压缩数据从临时文件流式读取写入 EXE，不在内存中缓冲
+                            OverlayHelper.AppendOverlay(outputPath, compressStream, configJson);
+                            report(100);
+                        } // end using compressStream（FileOptions.DeleteOnClose 自动删除临时文件）
+                    }
+                    finally
+                    {
+                        // 双重保险：若 DeleteOnClose 未生效则手动删除
+                        if (File.Exists(tempCompressPath))
+                            try { File.Delete(tempCompressPath); } catch { }
+                    }
                 });
 
                 ShowProgress(100);
