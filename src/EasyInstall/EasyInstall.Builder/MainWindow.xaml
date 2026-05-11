@@ -81,7 +81,7 @@
             <Setter Property="BorderBrush" Value="#E0E6ED"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="Padding" Value="14,0,14,10"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
             <Setter Property="Effect">
                 <Setter.Value>
@@ -274,18 +274,6 @@
                         </StackPanel>
                     </Border>
 
-
-                    <!-- 快捷方式 -->
-                    <Border Style="{StaticResource Card}">
-                        <StackPanel>
-                            <TextBlock Text="{DynamicResource SectionShortcuts}" Style="{StaticResource SectionHeader}"/>
-                            <CheckBox x:Name="ChkDesktopShortcut"   Content="{DynamicResource DesktopShortcut}"   Margin="0,4" IsChecked="True"/>
-                            <CheckBox x:Name="ChkStartMenuShortcut" Content="{DynamicResource StartMenuShortcut}" Margin="0,4" IsChecked="True"/>
-                            <CheckBox x:Name="ChkStartWithWindows"  Content="{DynamicResource StartWithWindows}"  Margin="0,4"/>
-                            <CheckBox x:Name="ChkLaunchAfterInstall" Content="{DynamicResource LaunchAfterInstall}" Margin="0,4"/>
-                        </StackPanel>
-                    </Border>
-
                     <!-- 语言 -->
                     <Border Style="{StaticResource Card}">
                         <StackPanel>
@@ -296,6 +284,17 @@
                                 <ComboBoxItem x:Name="CmbLangZhCN"   Content="{DynamicResource LangZhCN}"         Tag="zh-CN"/>
                                 <ComboBoxItem x:Name="CmbLangEnUS"   Content="{DynamicResource LangEnUS}"         Tag="en-US"/>
                             </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 快捷方式 -->
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource SectionShortcuts}" Style="{StaticResource SectionHeader}"/>
+                            <CheckBox x:Name="ChkDesktopShortcut"   Content="{DynamicResource DesktopShortcut}"   Margin="0,4" IsChecked="True"/>
+                            <CheckBox x:Name="ChkStartMenuShortcut" Content="{DynamicResource StartMenuShortcut}" Margin="0,4" IsChecked="True"/>
+                            <CheckBox x:Name="ChkStartWithWindows"  Content="{DynamicResource StartWithWindows}"  Margin="0,4"/>
+                            <CheckBox x:Name="ChkLaunchAfterInstall" Content="{DynamicResource LaunchAfterInstall}" Margin="0,4"/>
                         </StackPanel>
                     </Border>
 
