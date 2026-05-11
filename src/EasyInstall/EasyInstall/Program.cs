@@ -172,8 +172,36 @@ namespace EasyInstall
                     return ExitBuildError;
                 }
 
-                // ── 阶段 1：压缩文件 ──────────────────────────────
-                PrintStep(1, "Compressing files...");
+                // ── 阶段 1：复制 Setup.exe ────────────────────────
+                PrintStep(1, "Copying Setup.exe...");
+                File.Copy(setupExe, outputPath, overwrite: true);
+
+                // ── 阶段 2：替换图标（必须在压缩追加之前）──────────
+                byte[] icoBytes = null;
+                if (!string.IsNullOrEmpty(config.InstallIconBase64))
+                {
+                    PrintStep(2, "Replacing installer icon...");
+                    byte[] rawBytes = Convert.FromBase64String(config.InstallIconBase64);
+                    icoBytes = ImageHelper.ToIcoBytes(rawBytes) ?? rawBytes;
+                }
+                else
+                {
+                    PrintStep(2, "Using default icon...");
+                    icoBytes = ImageHelper.GetDefaultInstallIco();
+                }
+                if (icoBytes != null)
+                    OverlayHelper.SetExeIcon(outputPath, icoBytes);
+
+                // ── 阶段 3：计算解压大小 + 序列化 JSON ───────────────
+                PrintStep(3, "Serializing config...");
+                config.UncompressedSize = ZipHelper.CalculateUncompressedSize(config.Files, baseDir);
+                string configJson = JsonConvert.SerializeObject(config, Formatting.Indented);
+                if (verbose)
+                    Console.WriteLine($"    JSON size: {FormatSize(Encoding.UTF8.GetByteCount(configJson))}");
+
+                // ── 阶段 4：流式压缩直接追加到 EXE（进度 0-100%）────
+                // 无临时文件，内存恒定 ~80KB，压缩完成后立即追加 JSON + 元数据
+                PrintStep(4, "Compressing and appending data...");
                 int lastPct = -1;
                 Action<int> zipProgress = pct =>
                 {
@@ -184,11 +212,10 @@ namespace EasyInstall
                     }
                 };
                 ZipHelper.ProgressChanged += zipProgress;
-
-                byte[] compressed;
                 try
                 {
-                    compressed = ZipHelper.CompressPaths(config.Files, baseDir, config.CompressionMethod);
+                    OverlayHelper.AppendOverlayStreaming(
+                        outputPath, config.Files, baseDir, config.CompressionMethod, configJson);
                 }
                 finally
                 {
@@ -197,39 +224,7 @@ namespace EasyInstall
                 Console.WriteLine(); // 进度条后换行
 
                 if (verbose)
-                    Console.WriteLine($"    Compressed size: {FormatSize(compressed.Length)}");
-
-                // ── 阶段 2：序列化 JSON 配置 ──────────────────────
-                PrintStep(2, "Serializing config...");
-                string configJson = JsonConvert.SerializeObject(config, Formatting.Indented);
-                if (verbose)
-                    Console.WriteLine($"    JSON size: {FormatSize(Encoding.UTF8.GetByteCount(configJson))}");
-
-                // ── 阶段 3：复制 Setup.exe 到输出路径 ────────────
-                PrintStep(3, "Copying Setup.exe...");
-                File.Copy(setupExe, outputPath, overwrite: true);
-
-                // ── 阶段 4：替换图标（必须在追加 Overlay 之前）────
-                byte[] icoBytes = null;
-                if (!string.IsNullOrEmpty(config.InstallIconBase64))
-                {
-                    PrintStep(4, "Replacing installer icon...");
-                    // 兜底转换：兼容旧配置文件中存的原始 PNG/JPG
-                    byte[] rawBytes = Convert.FromBase64String(config.InstallIconBase64);
-                    icoBytes = ImageHelper.ToIcoBytes(rawBytes) ?? rawBytes;
-                }
-                else
-                {
-                    PrintStep(4, "Using default icon...");
-                    icoBytes = ImageHelper.GetDefaultInstallIco();
-                }
-
-                if (icoBytes != null)
-                    OverlayHelper.SetExeIcon(outputPath, icoBytes);
-
-                // ── 阶段 5：追加 Overlay 数据 ─────────────────────
-                PrintStep(5, "Appending install data...");
-                OverlayHelper.AppendOverlay(outputPath, compressed, configJson);
+                    Console.WriteLine($"    Output size: {FormatSize(new FileInfo(outputPath).Length)}");
 
                 // ── 完成 ──────────────────────────────────────────
                 long outputSize = new FileInfo(outputPath).Length;
@@ -509,7 +504,7 @@ namespace EasyInstall
         private static void PrintStep(int step, string message)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.Write($"  [{step}/5] ");
+            Console.Write($"  [{step}/4] ");
             Console.ResetColor();
             Console.WriteLine(message);
         }

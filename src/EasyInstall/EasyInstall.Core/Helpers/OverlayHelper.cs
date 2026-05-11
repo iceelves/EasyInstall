@@ -1,4 +1,6 @@
-﻿using System;
+﻿using EasyInstall.Core.Compression;
+using EasyInstall.Core.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -154,18 +156,55 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 将压缩数据流和 JSON 配置追加到已存在的 EXE 文件末尾（流式写入，不在内存中缓冲整个压缩数据）。
-        /// 调用前必须已完成图标替换，因为图标替换会截断末尾数据。
+        /// 流式压缩并直接追加到 EXE 末尾，全程无临时文件、无内存缓冲。
+        /// 调用前必须已完成图标替换（BeginUpdateResource 会截断末尾数据）。
+        /// 内部以 FileMode.Append 打开 EXE，边压缩边写入，完成后回填尾部元数据。
         /// </summary>
-        /// <param name="exePath">目标 EXE 路径</param>
-        /// <param name="compressedStream">压缩数据流（可读、可 Seek 以获取长度；若不可 Seek 则先写入临时文件）</param>
+        /// <param name="exePath">目标 EXE 路径（已完成图标替换）</param>
+        /// <param name="files">待打包文件列表</param>
+        /// <param name="baseDir">文件相对路径基准目录</param>
+        /// <param name="compressionType">压缩算法</param>
         /// <param name="configJson">JSON 配置字符串</param>
+        /// <param name="progress">压缩进度回调（0-100）</param>
+        public static void AppendOverlayStreaming(
+            string exePath,
+            List<Core.Models.PackageFile> files,
+            string baseDir,
+            Core.Compression.CompressionType compressionType,
+            string configJson,
+            Action<int> progress = null)
+        {
+            byte[] jsonBytes = Encoding.UTF8.GetBytes(configJson);
+
+            using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
+            {
+                // 记录压缩数据起始偏移（相对于当前文件末尾，即 Append 后的起始位置）
+                // FileMode.Append 打开后 Position = Length，直接记录即可
+                long dataStartPos = fs.Position;
+
+                // 流式压缩，直接写入 EXE，内存恒定 ~80KB
+                ZipHelper.CompressPathsToStream(files, baseDir, fs, compressionType, progress);
+
+                long dataLen = fs.Position - dataStartPos;
+
+                // 追加 JSON + 尾部元数据
+                using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
+                {
+                    bw.Write(jsonBytes);
+                    bw.Write(jsonBytes.Length);  // 4 bytes：JSON 长度
+                    bw.Write(dataLen);           // 8 bytes：压缩数据长度
+                    bw.Write(Magic);             // 8 bytes：魔数
+                }
+            }
+        }
+
+        /// <summary>
+        /// 将压缩数据流和 JSON 配置追加到已存在的 EXE 文件末尾（保留供内部/测试使用）。
+        /// </summary>
         public static void AppendOverlay(string exePath, Stream compressedStream, string configJson)
         {
             byte[] jsonBytes = Encoding.UTF8.GetBytes(configJson);
 
-            // 需要知道压缩数据的精确长度才能写入尾部元数据。
-            // 如果流支持 Seek，直接获取长度；否则先流式复制到目标文件，再回填长度。
             if (compressedStream.CanSeek)
             {
                 long dataLen = compressedStream.Length - compressedStream.Position;
@@ -175,15 +214,14 @@ namespace EasyInstall.Core.Helpers
                     using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
                     {
                         bw.Write(jsonBytes);
-                        bw.Write(jsonBytes.Length);  // 4 bytes
-                        bw.Write(dataLen);           // 8 bytes
-                        bw.Write(Magic);             // 8 bytes
+                        bw.Write(jsonBytes.Length);
+                        bw.Write(dataLen);
+                        bw.Write(Magic);
                     }
                 }
             }
             else
             {
-                // 流不可 Seek：先流式写入数据，记录写入字节数，再追加尾部
                 long dataLen = 0;
                 using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
                 {
@@ -191,22 +229,12 @@ namespace EasyInstall.Core.Helpers
                     using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
                     {
                         bw.Write(jsonBytes);
-                        bw.Write(jsonBytes.Length);  // 4 bytes
-                        bw.Write(dataLen);           // 8 bytes
-                        bw.Write(Magic);             // 8 bytes
+                        bw.Write(jsonBytes.Length);
+                        bw.Write(dataLen);
+                        bw.Write(Magic);
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// 将压缩数据字节数组和 JSON 配置追加到已存在的 EXE 文件末尾（兼容旧接口）。
-        /// 对于大文件，建议使用接受 Stream 参数的重载以避免内存压力。
-        /// </summary>
-        public static void AppendOverlay(string exePath, byte[] compressedData, string configJson)
-        {
-            using (var ms = new MemoryStream(compressedData, writable: false))
-                AppendOverlay(exePath, ms, configJson);
         }
 
         private static void CopyStream(Stream src, Stream dst)
@@ -273,7 +301,7 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 从 EXE 中读取压缩数据
+        /// 从 EXE 中读取压缩数据（兼容旧接口，不推荐用于大文件）
         /// </summary>
         /// <param name="exePath"></param>
         /// <returns></returns>
@@ -288,6 +316,41 @@ namespace EasyInstall.Core.Helpers
 
                 fs.Seek(-(Magic.Length + 8 + 4 + jsonLen + dataLen), SeekOrigin.End);
                 return br.ReadBytes((int)dataLen);
+            }
+        }
+
+        /// <summary>
+        /// 打开一个定位到压缩数据起始位置的 FileStream，用于流式解压。
+        /// 调用方负责 Dispose 该流。
+        /// </summary>
+        /// <param name="exePath">EXE 文件路径</param>
+        /// <returns>定位到压缩数据起始位置的 FileStream，若无压缩数据则返回 null</returns>
+        public static FileStream OpenDataStream(string exePath)
+        {
+            var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            try
+            {
+                using (var br = new BinaryReader(fs, System.Text.Encoding.UTF8, leaveOpen: true))
+                {
+                    fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
+                    int jsonLen = br.ReadInt32();
+                    long dataLen = br.ReadInt64();
+
+                    if (dataLen == 0)
+                    {
+                        fs.Dispose();
+                        return null; // 卸载程序无压缩数据
+                    }
+
+                    // 定位到压缩数据起始位置
+                    fs.Seek(-(Magic.Length + 8 + 4 + jsonLen + dataLen), SeekOrigin.End);
+                    return fs;
+                }
+            }
+            catch
+            {
+                fs.Dispose();
+                throw;
             }
         }
 

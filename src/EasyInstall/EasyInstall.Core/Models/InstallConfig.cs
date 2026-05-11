@@ -56,6 +56,12 @@ namespace EasyInstall.Core.Models
         public EasyInstall.Core.Compression.CompressionType CompressionMethod { get; set; }
             = EasyInstall.Core.Compression.CompressionType.Lzma;
 
+        /// <summary>
+        /// 压缩包解压后的总大小（字节），打包时自动计算并写入，
+        /// 启动时直接从 JSON 读取，无需解压扫描。
+        /// </summary>
+        [DataMember]
+        public long UncompressedSize { get; set; }
 
         // ── 语言 ──────────────────────────────────────────────────
         /// <summary>

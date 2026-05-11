@@ -29,10 +29,10 @@ namespace EasyInstall.Core.Helpers
         /// 压缩器边读边压缩边写出，避免同时在内存中保留原始数据和压缩结果。
         /// </summary>
         public static void CompressPathsToStream(List<PackageFile> files, string baseDir,
-            Stream outputStream, CompressionType compressionType = CompressionType.Lzma)
+            Stream outputStream, CompressionType compressionType = CompressionType.Lzma,
+            Action<int> progress = null)
         {
             var entries = CollectEntries(files, baseDir);
-            int count = entries.Count;
 
             // 写 1 字节压缩类型头
             outputStream.WriteByte((byte)compressionType);
@@ -43,7 +43,10 @@ namespace EasyInstall.Core.Helpers
             // 它实现 Stream.Read，内部按格式逐条喂出文件数据，
             // 每次只在内存中保留一个 80KB 的读取缓冲区。
             using (var feeder = new EntryFeedStream(entries, pct =>
-                ProgressChanged?.Invoke(pct)))
+            {
+                ProgressChanged?.Invoke(pct);
+                progress?.Invoke(pct);
+            }))
             {
                 compressor.Compress(feeder, outputStream, pct =>
                 {
@@ -52,6 +55,7 @@ namespace EasyInstall.Core.Helpers
             }
 
             ProgressChanged?.Invoke(100);
+            progress?.Invoke(100);
         }
 
         /// <summary>
@@ -284,30 +288,42 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 解压字节数组到目标目录。
+        /// 从流中解压到目标目录（推荐，流式处理，内存占用恒定）。
+        /// 解压流直接接到文件写入，不在内存中缓冲整个解压结果，避免大包 OOM。
+        /// </summary>
+        /// <param name="compressedStream">压缩数据流（已定位到起始位置）</param>
+        /// <param name="targetDir">目标目录</param>
+        /// <param name="progress">进度回调（0-100）</param>
+        public static void Decompress(Stream compressedStream, string targetDir, Action<int> progress = null)
+        {
+            // 读 1 字节类型头
+            int typeByte = compressedStream.ReadByte();
+            if (typeByte < 0) throw new InvalidDataException("Empty compressed data.");
+            var compressionType = (CompressionType)(byte)typeByte;
+
+            // 用 EntryDispatchStream 作为解压目标：
+            // 它实现 Stream.Write，内部维护一个状态机，
+            // 按照 [4字节路径长度][路径][8字节文件大小][文件数据] 的格式
+            // 边接收字节边直接写到对应的目标文件，全程无大块内存缓冲。
+            using (var dispatcher = new EntryDispatchStream(targetDir, progress))
+            {
+                var compressor = CompressorFactory.Create(compressionType);
+                // uncompressedSize 传 -1，进度由 dispatcher 内部按文件数量汇报
+                compressor.Decompress(compressedStream, dispatcher, -1, null);
+            }
+            progress?.Invoke(100);
+        }
+
+        /// <summary>
+        /// 解压字节数组到目标目录（兼容旧接口，不推荐用于大文件）。
         /// 解压流直接接到文件写入，不在内存中缓冲整个解压结果，避免大包 OOM。
         /// </summary>
         public static void Decompress(byte[] data, string targetDir, Action<int> progress = null)
         {
             using (var inMs = new MemoryStream(data))
             {
-                // 读 1 字节类型头
-                int typeByte = inMs.ReadByte();
-                if (typeByte < 0) throw new InvalidDataException("Empty compressed data.");
-                var compressionType = (CompressionType)(byte)typeByte;
-
-                // 用 EntryDispatchStream 作为解压目标：
-                // 它实现 Stream.Write，内部维护一个状态机，
-                // 按照 [4字节路径长度][路径][8字节文件大小][文件数据] 的格式
-                // 边接收字节边直接写到对应的目标文件，全程无大块内存缓冲。
-                using (var dispatcher = new EntryDispatchStream(targetDir, progress))
-                {
-                    var compressor = CompressorFactory.Create(compressionType);
-                    // uncompressedSize 传 -1，进度由 dispatcher 内部按文件数量汇报
-                    compressor.Decompress(inMs, dispatcher, -1, null);
-                }
+                Decompress(inMs, targetDir, progress);
             }
-            progress?.Invoke(100);
         }
 
         /// <summary>
@@ -580,6 +596,19 @@ namespace EasyInstall.Core.Helpers
         }
 
         // ── 内部辅助 ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 计算文件列表解压后的总大小（字节），只查询文件系统，不读取文件内容。
+        /// 打包时调用，结果写入 InstallConfig.UncompressedSize，供安装时直接读取。
+        /// </summary>
+        public static long CalculateUncompressedSize(List<PackageFile> files, string baseDir)
+        {
+            var entries = CollectEntries(files, baseDir);
+            long total = 0;
+            foreach (var e in entries)
+                total += new FileInfo(e.AbsPath).Length;
+            return total;
+        }
 
         private static List<FileEntry> CollectEntries(List<PackageFile> files, string baseDir)
         {

@@ -107,19 +107,24 @@ namespace EasyInstall.Setup.Pages.Install
             // 创建安装目录
             await Task.Run(() => Directory.CreateDirectory(installDir));
 
-            // 解压文件
-            byte[] data = App.PackageData;
-            if (data != null && data.Length > 0)
+            // 流式解压：直接从 EXE 文件读取，不加载到内存
+            bool hasData = false;
+            using (var dataStream = OverlayHelper.OpenDataStream(App.SelfExePath))
             {
-                await Task.Run(() =>
-                    ZipHelper.Decompress(data, installDir, p =>
-                        Dispatcher.Invoke(() =>
-                        {
-                            SyncProgressFill(p);
-                            this.Percentage.Text = $"{InstallProgress.Value}%";
-                        })));
+                if (dataStream != null)
+                {
+                    hasData = true;
+                    await Task.Run(() =>
+                        ZipHelper.Decompress(dataStream, installDir, p =>
+                            Dispatcher.Invoke(() =>
+                            {
+                                SyncProgressFill(p);
+                                this.Percentage.Text = $"{InstallProgress.Value}%";
+                            })));
+                }
             }
-            else
+
+            if (!hasData)
             {
                 // 调试模式无数据，模拟进度
                 for (int i = 0; i <= 100; i += 1)
@@ -131,15 +136,15 @@ namespace EasyInstall.Setup.Pages.Install
             }
 
             // 写入注册表、复制自身到安装目录作为卸载程序
+            string selfExePath = App.SelfExePath;
             string exePath = System.IO.Path.Combine(installDir, App.Config.MainExecutable ?? "");
-            string selfExePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
             string uninstallDest = System.IO.Path.Combine(installDir, "uninstall.exe");
             await Task.Run(() =>
             {
                 try
                 {
 #if DEBUG
-                    if (data == null || data.Length <= 0)
+                    if (!hasData)
                     {
                         string installDest = System.IO.Path.Combine(installDir, App.Config.MainExecutable);
                         File.Copy(selfExePath, installDest, true);

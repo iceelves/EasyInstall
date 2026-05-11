@@ -23,14 +23,15 @@ namespace EasyInstall.Setup
         public static InstallConfig Config { get; private set; }
 
         /// <summary>
-        /// EXE 中的压缩数据
+        /// 安装包 EXE 自身路径，用于流式解压（不再预加载压缩数据到内存）
         /// </summary>
-        public static byte[] PackageData { get; private set; }
+        public static string SelfExePath { get; private set; }
 
         /// <summary>
-        /// 安装包解压后的总大小（字节），用于显示"所需磁盘空间"
+        /// 安装包解压后的总大小（字节），用于显示"所需磁盘空间"。
+        /// 直接从 InstallConfig.UncompressedSize 读取，无需解压扫描。
         /// </summary>
-        public static long PackageUncompressedSize { get; private set; }
+        public static long PackageUncompressedSize => Config?.UncompressedSize ?? 0;
 
         /// <summary>
         /// 安装图标（从 InstallIconBase64 转换，供 UI 直接绑定）
@@ -129,6 +130,7 @@ namespace EasyInstall.Setup
         private async void Application_Startup(object sender, StartupEventArgs e)
         {
             string selfExePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            SelfExePath = selfExePath;
             string exeName = System.IO.Path.GetFileNameWithoutExtension(selfExePath);
 
             // 文件名是 uninstall（不区分大小写）或传入 /uninstall 参数，均进入卸载模式
@@ -161,11 +163,7 @@ namespace EasyInstall.Setup
                 {
                     string json = OverlayHelper.ReadConfig(selfExePath);
                     Config = JsonHelper.Deserialize<InstallConfig>(json);
-                    if (!IsUninstallMode)
-                    {
-                        PackageData = OverlayHelper.ReadData(selfExePath);
-                        PackageUncompressedSize = ZipHelper.GetUncompressedSize(PackageData);
-                    }
+                    // UncompressedSize 已存储在 Config 中，无需加载压缩数据
                 }
                 catch (Exception ex)
                 {
@@ -290,9 +288,12 @@ namespace EasyInstall.Setup
             {
                 Directory.CreateDirectory(installDir);
 
-                // 解压文件
-                if (PackageData != null && PackageData.Length > 0)
-                    await Task.Run(() => ZipHelper.Decompress(PackageData, installDir, null));
+                // 流式解压：直接从 EXE 文件读取，不加载到内存
+                using (var dataStream = OverlayHelper.OpenDataStream(selfExePath))
+                {
+                    if (dataStream != null)
+                        await Task.Run(() => ZipHelper.Decompress(dataStream, installDir, null));
+                }
 
                 // 写注册表 + 复制卸载程序
                 string uninstallDest = Path.Combine(installDir, "uninstall.exe");
