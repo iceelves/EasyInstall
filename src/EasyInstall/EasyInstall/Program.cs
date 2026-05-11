@@ -100,19 +100,6 @@ namespace EasyInstall
                 string outDir    = Path.GetDirectoryName(Path.GetFullPath(parsed.ConfigFile));
                 outputPath = Path.Combine(outDir, $"{appName}_{appVer}_{timestamp}_install.exe");
             }
-            try
-            {
-                string json = File.ReadAllText(parsed.ConfigFile, Encoding.UTF8);
-                config = JsonConvert.DeserializeObject<InstallConfig>(json);
-                if (config == null)
-                    throw new InvalidOperationException("JSON deserialization returned null.");
-            }
-            catch (Exception ex)
-            {
-                PrintError($"Failed to read config file: {ex.Message}");
-                return ExitConfigError;
-            }
-
             // ── 打印构建摘要 ──────────────────────────────────────
             PrintBanner();
             Console.WriteLine($"  Config    : {Path.GetFullPath(parsed.ConfigFile)}");

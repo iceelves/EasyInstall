@@ -199,7 +199,7 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 将压缩数据流和 JSON 配置追加到已存在的 EXE 文件末尾（保留供内部/测试使用）。
+        /// 将压缩数据流和 JSON 配置追加到已存在的 EXE 文件末尾。
         /// </summary>
         public static void AppendOverlay(string exePath, Stream compressedStream, string configJson)
         {
@@ -297,25 +297,6 @@ namespace EasyInstall.Core.Helpers
                 fs.Seek(-(Magic.Length + 8 + 4 + jsonLen), SeekOrigin.End);
                 byte[] jsonBytes = br.ReadBytes(jsonLen);
                 return Encoding.UTF8.GetString(jsonBytes);
-            }
-        }
-
-        /// <summary>
-        /// 从 EXE 中读取压缩数据（兼容旧接口，不推荐用于大文件）
-        /// </summary>
-        /// <param name="exePath"></param>
-        /// <returns></returns>
-        public static byte[] ReadData(string exePath)
-        {
-            using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read))
-            using (var br = new BinaryReader(fs))
-            {
-                fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
-                int jsonLen = br.ReadInt32();
-                long dataLen = br.ReadInt64();
-
-                fs.Seek(-(Magic.Length + 8 + 4 + jsonLen + dataLen), SeekOrigin.End);
-                return br.ReadBytes((int)dataLen);
             }
         }
 

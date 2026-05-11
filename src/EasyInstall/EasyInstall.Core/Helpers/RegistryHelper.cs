@@ -1,10 +1,5 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EasyInstall.Core.Helpers
 {
@@ -54,7 +49,6 @@ namespace EasyInstall.Core.Helpers
         /// <summary>
         /// 删除卸载注册表项
         /// </summary>
-        /// <param name="regKey">注册表卸载键名</param>
         public static void UnregisterUninstall(string regKey)
         {
             string keyPath = $@"{UninstallBase}\{regKey}";
@@ -64,9 +58,6 @@ namespace EasyInstall.Core.Helpers
         /// <summary>
         /// 写入开机自启
         /// </summary>
-        /// <param name="appName"></param>
-        /// <param name="exePath"></param>
-        /// <param name="enable"></param>
         public static void SetAutoRun(string appName, string exePath, bool enable)
         {
             using (var key = Registry.CurrentUser.OpenSubKey(
@@ -82,8 +73,6 @@ namespace EasyInstall.Core.Helpers
         /// <summary>
         /// 读取已安装路径
         /// </summary>
-        /// <param name="regKey">注册表卸载键名</param>
-        /// <returns></returns>
         public static string GetInstallLocation(string regKey)
         {
             string keyPath = $@"{UninstallBase}\{regKey}";
@@ -96,8 +85,6 @@ namespace EasyInstall.Core.Helpers
         /// <summary>
         /// 是否已安装
         /// </summary>
-        /// <param name="regKey">注册表卸载键名</param>
-        /// <returns></returns>
         public static bool IsInstalled(string regKey)
         {
             string keyPath = $@"{UninstallBase}\{regKey}";

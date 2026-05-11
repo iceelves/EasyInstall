@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Resources;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
 namespace EasyInstall.Core.Helpers
@@ -14,9 +10,6 @@ namespace EasyInstall.Core.Helpers
     /// </summary>
     public class ImageHelper
     {
-        // ICO 文件魔数：前 4 字节为 00 00 01 00
-        private static readonly byte[] IcoMagic = { 0x00, 0x00, 0x01, 0x00 };
-
         /// <summary>
         /// 将任意图片字节（ICO / PNG / JPG / GIF / BMP）转为合法的 ICO 字节。
         /// - 已经是 ICO：直接返回原始字节

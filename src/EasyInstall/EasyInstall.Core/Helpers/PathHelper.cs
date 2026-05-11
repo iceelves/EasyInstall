@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EasyInstall.Core.Helpers
 {
@@ -27,7 +23,6 @@ namespace EasyInstall.Core.Helpers
         /// <summary>
         /// 递归删除目录（卸载用）
         /// </summary>
-        /// <param name="dir"></param>
         public static void DeleteDirectory(string dir)
         {
             if (!Directory.Exists(dir)) return;
