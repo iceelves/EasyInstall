@@ -1,7 +1,7 @@
 ﻿{
   "AppName": "EasyInstall",
   "AppVersion": "v1.0.0.0",
-  "Company": "Beijing BingYun Information Technology Co., Ltd.",
+  "Company": "IceElves Corporation",
   "CompanySimplify": "IceElves",
   "Website": "https://iceelves.com/",
   "DefaultInstallDir": "{ProgramFiles}\\{Company}\\{AppName}",
