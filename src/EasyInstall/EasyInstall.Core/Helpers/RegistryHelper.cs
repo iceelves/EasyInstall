@@ -22,27 +22,24 @@ namespace EasyInstall.Core.Helpers
         /// <param name="company">公司</param>
         /// <param name="uninstallExe">卸载程序路径</param>
         /// <param name="website">官方页面或更多信息的链接</param>
+        /// <param name="estimatedSizeBytes">安装后占用磁盘大小（字节），写入 EstimatedSize（KB）</param>
         public static void RegisterUninstall(string appName, string regKey,
             string installDir, string mainExecutable, string version, string company,
-            string uninstallExe, string website)
+            string uninstallExe, string website, long estimatedSizeBytes = 0)
         {
             string keyPath = $@"{UninstallBase}\{regKey}";
             using (var key = Registry.LocalMachine.CreateSubKey(keyPath))
             {
-                // 图标
-                key.SetValue("DisplayIcon", $"{installDir}\\{mainExecutable}");
-                // 应用名称
-                key.SetValue("DisplayName", appName);
-                // 版本号
+                key.SetValue("DisplayIcon",    $"{installDir}\\{mainExecutable}");
+                key.SetValue("DisplayName",    appName);
                 key.SetValue("DisplayVersion", version);
-                // 安装路径
                 key.SetValue("InstallLocation", installDir);
-                // 公司
-                key.SetValue("Publisher", company);
-                // 卸载路径
+                key.SetValue("Publisher",      company);
                 key.SetValue("UninstallString", $"\"{uninstallExe}\" /uninstall");
-                // 官方页面或更多信息的链接
-                key.SetValue("URLInfoAbout", website);
+                key.SetValue("URLInfoAbout",   website);
+                // EstimatedSize 单位为 KB，Windows 控制面板用此值显示占用大小
+                if (estimatedSizeBytes > 0)
+                    key.SetValue("EstimatedSize", (int)(estimatedSizeBytes / 1024), RegistryValueKind.DWord);
             }
         }
 

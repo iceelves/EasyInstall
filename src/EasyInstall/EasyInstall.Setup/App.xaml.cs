@@ -327,7 +327,8 @@ namespace EasyInstall.Setup
                         Config.AppVersion ?? "v1.0.0.0",
                         Config.Company ?? "",
                         uninstallDest,
-                        Config.Website ?? "");
+                        Config.Website ?? "",
+                        App.PackageUncompressedSize);
                 });
 
                 // 创建快捷方式

@@ -179,7 +179,8 @@ namespace EasyInstall.Setup.Pages.Install
                         App.Config.AppVersion ?? "v1.0.0.0",
                         App.Config.Company ?? "",
                         uninstallDest,
-                        App.Config.Website ?? "");
+                        App.Config.Website ?? "",
+                        App.PackageUncompressedSize);
                 }
                 catch { }
             });
