@@ -8,24 +8,30 @@ It aims to replace the deficiencies in user interface and experience of traditio
 ### Installation package example
 The icon material from [CloudMusic](https://music.163.com/) and [WeChat](https://weixin.qq.com/) is cited as the demonstration effect.
 
-<style>
-table {
-  table-layout: fixed;
-  width: 100%;
-}
-table th, table td {
-  width: 33%;
-  text-align: center;
-}
-table img {
-  width: 100%;
-  height: auto;
-}
-</style>
-
-| Default | CloudMusic | WeChat |
-| --- | --- | --- |
-| <img src="https://iceelves.com/EasyInstall/Screenshot/Default/1.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/1.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/1.png" width="580"/> |
-| <img src="https://iceelves.com/EasyInstall/Screenshot/Default/2.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/2.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/2.png" width="580"/> |
-| <img src="https://iceelves.com/EasyInstall/Screenshot/Default/3.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/3.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/3.png" width="580"/> |
-| <img src="https://iceelves.com/EasyInstall/Screenshot/Default/4.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/4.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/4.png" width="580"/> |
+<table style="width:100%; border-collapse: collapse; text-align:center;">
+  <tr>
+    <th style="width:33%;">Default</th>
+    <th style="width:33%;">CloudMusic</th>
+    <th style="width:33%;">WeChat</th>
+  </tr>
+  <tr>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/Default/1.png" style="width:100%; height:auto;"></td>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/1.png" style="width:100%; height:auto;"></td>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/1.png" style="width:100%; height:auto;"></td>
+  </tr>
+  <tr>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/Default/2.png" style="width:100%; height:auto;"></td>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/2.png" style="width:100%; height:auto;"></td>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/2.png" style="width:100%; height:auto;"></td>
+  </tr>
+  <tr>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/Default/3.png" style="width:100%; height:auto;"></td>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/3.png" style="width:100%; height:auto;"></td>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/3.png" style="width:100%; height:auto;"></td>
+  </tr>
+  <tr>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/Default/4.png" style="width:100%; height:auto;"></td>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/4.png" style="width:100%; height:auto;"></td>
+    <td><img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/4.png" style="width:100%; height:auto;"></td>
+  </tr>
+</table>
