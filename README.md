@@ -8,7 +8,7 @@ It aims to replace the deficiencies in user interface and experience of traditio
 ### Installation package example
 The icon material from [CloudMusic](https://music.163.com/) and [WeChat](https://weixin.qq.com/) is cited as the demonstration effect.
 
-| Default&#8203&#8203&#8203 | CloudMusic | WeChat&#8203&#8203&#8203&#8203 |
+| Default_____ | CloudMusic | WeChat_____ |
 | --- | --- | --- |
 | ![Default1](https://iceelves.com/EasyInstall/Screenshot/Default/1.png) | ![CloudMusic1](https://iceelves.com/EasyInstall/Screenshot/CloudMusic/1.png) | ![WeChat1](https://iceelves.com/EasyInstall/Screenshot/WeChat/1.png) |
 | ![Default2](https://iceelves.com/EasyInstall/Screenshot/Default/2.png) | ![CloudMusic2](https://iceelves.com/EasyInstall/Screenshot/CloudMusic/2.png) | ![WeChat2](https://iceelves.com/EasyInstall/Screenshot/WeChat/2.png) |
