@@ -25,7 +25,7 @@ table img {
 
 | Default | CloudMusic | WeChat |
 | --- | --- | --- |
-| ![Default1](https://iceelves.com/EasyInstall/Screenshot/Default/1.png) | ![CloudMusic1](https://iceelves.com/EasyInstall/Screenshot/CloudMusic/1.png) | ![WeChat1](https://iceelves.com/EasyInstall/Screenshot/WeChat/1.png) |
-| ![Default2](https://iceelves.com/EasyInstall/Screenshot/Default/2.png) | ![CloudMusic2](https://iceelves.com/EasyInstall/Screenshot/CloudMusic/2.png) | ![WeChat2](https://iceelves.com/EasyInstall/Screenshot/WeChat/2.png) |
-| ![Default3](https://iceelves.com/EasyInstall/Screenshot/Default/3.png) | ![CloudMusic3](https://iceelves.com/EasyInstall/Screenshot/CloudMusic/3.png) | ![WeChat3](https://iceelves.com/EasyInstall/Screenshot/WeChat/3.png) |
-| ![Default4](https://iceelves.com/EasyInstall/Screenshot/Default/4.png) | ![CloudMusic4](https://iceelves.com/EasyInstall/Screenshot/CloudMusic/4.png) | ![WeChat4](https://iceelves.com/EasyInstall/Screenshot/WeChat/4.png) |
+| <img src="https://iceelves.com/EasyInstall/Screenshot/Default/1.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/1.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/1.png" width="580"/> |
+| <img src="https://iceelves.com/EasyInstall/Screenshot/Default/2.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/2.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/2.png" width="580"/> |
+| <img src="https://iceelves.com/EasyInstall/Screenshot/Default/3.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/3.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/3.png" width="580"/> |
+| <img src="https://iceelves.com/EasyInstall/Screenshot/Default/4.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/CloudMusic/4.png" width="580"/> | <img src="https://iceelves.com/EasyInstall/Screenshot/WeChat/4.png" width="580"/> |
