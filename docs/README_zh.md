@@ -1,18 +1,18 @@
-### Easy Install
+### 轻松安装（Easy Install）
 
 <div align="center">
 <a href="README_zh.md" style="font-size: 24px">简体中文</a> | 
 <a href="../README.md" style="font-size: 24px">English</a>
 </div>
 
-[Easy Install](https://iceelves.com/en/EasyInstall/) It is a modern packaging tool specifically designed for Windows software developers.
+[轻松安装（Easy Install）](https://iceelves.com/zh/EasyInstall/) 是一款专为 Windows 软件开发者设计的现代化打包工具。
 
-It aims to replace the deficiencies in user interface and experience of traditional packaging software such as [NSIS](https://nsis.sourceforge.io/Main_Page) 、 [Inno Setup](https://jrsoftware.org/isinfo.php) , allowing developers to easily create beautiful, interactive, and powerful installation packages. Through customizable themes, animation effects, plug-in architecture, as well as advanced compression and security encryption features, Easy Install not only retains the reliability of traditional packaging tools, but also provides a modern UI and automated integration, significantly enhancing the professionalism of software distribution and user experience.
+它旨在替代 [NSIS](https://nsis.sourceforge.io/Main_Page) 、 [Inno Setup](https://jrsoftware.org/isinfo.php) 等传统打包软件在用户界面和体验上的不足，让开发者可以轻松创建 美观、交互友好、功能强大的安装包。通过可定制主题、动画效果、插件化架构以及高级压缩和安全加密功能，Easy Install 不仅保留了传统打包工具的可靠性，更提供了现代化 UI 和自动化集成，显著提升软件分发的专业度和用户体验。
 
 ![Default1](https://iceelves.com/EasyInstall/Screenshot/Default/1.png)
 
-### Installation package example
-The icon material from [CloudMusic](https://music.163.com/) and [WeChat](https://weixin.qq.com/) is cited as the demonstration effect.
+### 安装包示例
+引用了 [网易云音乐](https://music.163.com/) 与 [微信](https://weixin.qq.com/) 的图标素材作为演示效果。
 
 | [Default_____](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/EasyInstall.json) | [CloudMusic](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/Example/CloudMusic_install.json) | [WeChat_____](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/Example/WeChat_install.json) |
 | --- | --- | --- |
