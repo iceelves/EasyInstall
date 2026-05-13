@@ -1,9 +1,10 @@
-### Easy Install
+<h2 align="center">Easy Install</h2>
 
 <div align="center">
-<a href="README_zh.md" style="font-size: 24px">简体中文</a> | 
-<a href="../README.md" style="font-size: 24px">English</a>
+<a href="docs/README_zh.md" style="font-size: 24px">简体中文</a> | 
+<a href="README.md" style="font-size: 24px">English</a>
 </div>
+<br />
 
 [Easy Install](https://iceelves.com/en/EasyInstall/) It is a modern packaging tool specifically designed for Windows software developers.
 
@@ -11,7 +12,7 @@ It aims to replace the deficiencies in user interface and experience of traditio
 
 ![Default1](https://iceelves.com/EasyInstall/Screenshot/Default/1.png)
 
-### Installation package example
+## Installation package example
 The icon material from [CloudMusic](https://music.163.com/) and [WeChat](https://weixin.qq.com/) is cited as the demonstration effect.
 
 | [Default_____](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/EasyInstall.json) | [CloudMusic](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/Example/CloudMusic_install.json) | [WeChat_____](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/Example/WeChat_install.json) |

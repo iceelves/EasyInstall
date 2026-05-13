@@ -1,9 +1,10 @@
-### 轻松安装（Easy Install）
+<h2 align="center">轻松安装（Easy Install）</h2>
 
 <div align="center">
 <a href="README_zh.md" style="font-size: 24px">简体中文</a> | 
 <a href="../README.md" style="font-size: 24px">English</a>
 </div>
+<br />
 
 [轻松安装（Easy Install）](https://iceelves.com/zh/EasyInstall/) 是一款专为 Windows 软件开发者设计的现代化打包工具。
 
@@ -11,7 +12,7 @@
 
 ![Default1](https://iceelves.com/EasyInstall/Screenshot/Default/1.png)
 
-### 安装包示例
+## 安装包示例
 引用了 [网易云音乐](https://music.163.com/) 与 [微信](https://weixin.qq.com/) 的图标素材作为演示效果。
 
 | [Default_____](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/EasyInstall.json) | [CloudMusic](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/Example/CloudMusic_install.json) | [WeChat_____](https://github.com/iceelves/EasyInstall/blob/main/src/InstallPack/Example/WeChat_install.json) |
