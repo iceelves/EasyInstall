@@ -192,7 +192,10 @@ namespace EasyInstall.Core.Helpers
             // ── 阶段 1：流式压缩，直接写入 EXE ──────────────────────
             // 用 Append 模式打开，压缩完成后记录数据长度，然后关闭流。
             // 关闭后文件结构：[EXE原始内容][压缩数据]（尚无 JSON/元数据）
-            using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
+            // SetExeIcon 调用的 Win32 BeginUpdateResource/EndUpdateResource 返回后
+            // 文件句柄释放存在短暂延迟（杀毒软件实时扫描时尤为明显），
+            // 遇到 IOException 时最多重试 10 次（每次等待 100ms）。
+            using (var fs = OpenFileWithRetry(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
             {
                 dataStartPos = fs.Position; // EXE 原始末尾位置
                 ZipHelper.CompressPathsToStream(files, baseDir, fs, compressionType, progress);
@@ -325,6 +328,30 @@ namespace EasyInstall.Core.Helpers
         }
 
         // ── 内部辅助 ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 带重试的文件打开，用于处理 Win32 资源 API（BeginUpdateResource/EndUpdateResource）
+        /// 结束后文件句柄释放存在短暂延迟的问题。
+        /// 遇到 IOException 时最多重试 <paramref name="maxRetries"/> 次，
+        /// 每次等待 <paramref name="retryDelayMs"/> 毫秒。
+        /// </summary>
+        private static FileStream OpenFileWithRetry(
+            string path, FileMode mode, FileAccess access, FileShare share, int bufferSize,
+            int maxRetries = 10, int retryDelayMs = 100)
+        {
+            for (int attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    return new FileStream(path, mode, access, share, bufferSize);
+                }
+                catch (IOException) when (attempt < maxRetries)
+                {
+                    Console.WriteLine($"重试{attempt}次");
+                    System.Threading.Thread.Sleep(retryDelayMs);
+                }
+            }
+        }
 
         /// <summary>
         /// 从 src 精确复制 count 字节到 dst，使用固定缓冲区。
