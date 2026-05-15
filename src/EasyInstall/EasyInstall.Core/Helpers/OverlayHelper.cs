@@ -274,8 +274,8 @@ namespace EasyInstall.Core.Helpers
             {
                 fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
                 int jsonLen = br.ReadInt32();
-                long dataLen = br.ReadInt64();
-                fs.Seek(-(Magic.Length + 8 + 4 + jsonLen), SeekOrigin.End);
+                long _ = br.ReadInt64();
+                fs.Seek(-(Magic.Length + 8 + 4 + (long)jsonLen), SeekOrigin.End);
                 byte[] jsonBytes = br.ReadBytes(jsonLen);
                 return Encoding.UTF8.GetString(jsonBytes);
             }
@@ -313,7 +313,7 @@ namespace EasyInstall.Core.Helpers
                 var dataFs = new FileStream(exePath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536);
                 try
                 {
-                    dataFs.Seek(-(Magic.Length + 8 + 4 + jsonLen + dataLen), SeekOrigin.End);
+                    dataFs.Seek(-(Magic.Length + 8 + 4 + (long)jsonLen + dataLen), SeekOrigin.End);
                     return dataFs;
                 }
                 catch
