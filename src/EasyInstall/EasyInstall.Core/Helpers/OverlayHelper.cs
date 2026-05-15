@@ -11,13 +11,40 @@ using System.Threading.Tasks;
 namespace EasyInstall.Core.Helpers
 {
     /// <summary>
-    /// Overlay 打包：将压缩数据附加到 EXE 末尾
-    /// 完整安装包格式：[EXE原始内容] [压缩数据] [JSON配置UTF8] [4字节JSON长度] [8字节数据长度] [8字节魔数]
-    /// 卸载程序格式：  [EXE原始内容] [空数据(0字节)] [JSON配置UTF8] [4字节JSON长度] [8字节0] [8字节魔数]
+    /// Overlay 打包：将压缩数据附加到 EXE 末尾，或拆分为外部 .eidat 数据文件。
+    ///
+    /// 内嵌格式（压缩数据 ≤ 阈值）：
+    ///   [EXE原始内容] [压缩数据] [JSON配置UTF8] [4字节JSON长度] [8字节数据长度(>0)] [8字节魔数]
+    ///
+    /// 拆分格式（压缩数据 > 阈值）：
+    ///   EXE  ：[EXE原始内容] [JSON配置UTF8] [4字节JSON长度] [8字节 -1L] [8字节魔数]
+    ///   .eidat：[压缩数据]（纯压缩流，无额外头部）
+    ///
+    /// 卸载程序格式（始终内嵌，无压缩数据）：
+    ///   [EXE原始内容] [JSON配置UTF8] [4字节JSON长度] [8字节0] [8字节魔数]
     /// </summary>
     public static class OverlayHelper
     {
         private static readonly byte[] Magic = Encoding.ASCII.GetBytes("EASYINST");
+
+        /// <summary>
+        /// dataLen 写入 -1L 表示压缩数据存放在外部 .eidat 文件中
+        /// </summary>
+        private const long ExternalDataFlag = -1L;
+
+        /// <summary>
+        /// 拆分阈值：32位进程按 1.9 GB，64位进程按 3.9 GB。
+        /// 超过此阈值时将压缩数据从 EXE 中剥离为外部 .eidat 文件。
+        /// </summary>
+        private static long SplitThreshold =>
+            IntPtr.Size == 4
+                ? 1_900_000_000L   // 32位：1.9 GB
+                : 3_900_000_000L;  // 64位：3.9 GB
+
+        /// <summary>
+        /// 根据安装包 EXE 路径推算对应的 .eidat 文件路径
+        /// </summary>
+        public static string GetEidatPath(string exePath) => Path.ChangeExtension(exePath, ".eidat");
 
         // ── Win32 图标替换 API ────────────────────────────────────
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -40,20 +67,13 @@ namespace EasyInstall.Core.Helpers
         {
             if (icoBytes == null || icoBytes.Length < 6) return;
 
-            // 解析 ICO 格式
-            // ICO header: reserved(2) type(2) count(2)
             int count = BitConverter.ToUInt16(icoBytes, 4);
             if (count == 0) return;
 
-            // 构建 GRPICONDIR 用于 RT_GROUP_ICON
-            // GRPICONDIR = WORD reserved, WORD type, WORD count, GRPICONDIRENTRY[count]
-            // GRPICONDIRENTRY = BYTE width, BYTE height, BYTE colorCount, BYTE reserved,
-            //                   WORD planes, WORD bitCount, DWORD bytesInRes, WORD id
             int grpSize = 6 + count * 14;
             byte[] grpData = new byte[grpSize];
-            // header
-            grpData[0] = 0; grpData[1] = 0;   // reserved
-            grpData[2] = 1; grpData[3] = 0;   // type = 1 (icon)
+            grpData[0] = 0; grpData[1] = 0;
+            grpData[2] = 1; grpData[3] = 0;
             grpData[4] = (byte)count; grpData[5] = 0;
 
             IntPtr hUpdate = BeginUpdateResource(exePath, false);
@@ -63,7 +83,7 @@ namespace EasyInstall.Core.Helpers
             {
                 for (int i = 0; i < count; i++)
                 {
-                    int entryOffset = 6 + i * 16; // ICONDIRENTRY is 16 bytes
+                    int entryOffset = 6 + i * 16;
                     byte width = icoBytes[entryOffset];
                     byte height = icoBytes[entryOffset + 1];
                     byte colorCount = icoBytes[entryOffset + 2];
@@ -73,16 +93,12 @@ namespace EasyInstall.Core.Helpers
                     int dataSize = BitConverter.ToInt32(icoBytes, entryOffset + 8);
                     int dataOffset = BitConverter.ToInt32(icoBytes, entryOffset + 12);
 
-                    // 提取单个图标数据
                     byte[] iconData = new byte[dataSize];
                     Array.Copy(icoBytes, dataOffset, iconData, 0, dataSize);
 
                     ushort iconId = (ushort)(i + 1);
-
-                    // 写 RT_ICON
                     UpdateResource(hUpdate, RT_ICON, new IntPtr(iconId), 0, iconData, (uint)iconData.Length);
 
-                    // 填 GRPICONDIRENTRY（14 bytes）
                     int grpEntry = 6 + i * 14;
                     grpData[grpEntry] = width;
                     grpData[grpEntry + 1] = height;
@@ -100,36 +116,34 @@ namespace EasyInstall.Core.Helpers
                     grpData[grpEntry + 13] = (byte)(iconId >> 8);
                 }
 
-                // 写 RT_GROUP_ICON（id=1）
                 UpdateResource(hUpdate, RT_GROUP_ICON, new IntPtr(1), 0, grpData, (uint)grpData.Length);
                 EndUpdateResource(hUpdate, false);
             }
             catch
             {
-                EndUpdateResource(hUpdate, true); // discard on error
+                EndUpdateResource(hUpdate, true);
             }
         }
 
         /// <summary>
-        /// 从带 Overlay 的安装包中提取原始 EXE 字节（不含 overlay 部分）。
-        /// 用于将纯 EXE 写入目标路径，后续再替换图标和追加 overlay。
+        /// 将安装包中的原始 EXE 部分（不含 overlay）流式复制到目标文件。
+        /// 支持超过 2GB 的文件，全程无大块内存分配。
         /// </summary>
-        /// <param name="exePath">含完整 Overlay 的安装包路径</param>
-        /// <returns>原始 EXE 字节（不含 overlay）</returns>
-        public static byte[] ReadExeBytes(string exePath)
+        public static void CopyExeOnly(string exePath, string destPath)
         {
-            using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read))
-            using (var br = new BinaryReader(fs))
+            using (var src = new FileStream(exePath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536))
+            using (var br = new BinaryReader(src, Encoding.UTF8, leaveOpen: true))
             {
-                // 尾部结构：[JSON][jsonLen(4)][dataLen(8)][Magic(8)]
-                fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
+                src.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
                 int jsonLen = br.ReadInt32();
-                long dataLen = br.ReadInt64();
+                long dataLen = br.ReadInt64(); // -1 = 外部 .eidat；0 = 卸载程序；>0 = 内嵌数据
 
-                // 纯 EXE 长度 = 总长度 - dataLen - jsonLen - 4 - 8 - Magic.Length
-                long exeLen = fs.Length - dataLen - jsonLen - 4 - 8 - Magic.Length;
-                fs.Seek(0, SeekOrigin.Begin);
-                return br.ReadBytes((int)exeLen);
+                long embedLen = dataLen > 0 ? dataLen : 0L;
+                long exeLen = src.Length - embedLen - jsonLen - 4 - 8 - Magic.Length;
+
+                src.Seek(0, SeekOrigin.Begin);
+                using (var dst = new FileStream(destPath, FileMode.Create, FileAccess.Write, FileShare.None, 65536))
+                    CopyStreamExact(src, dst, exeLen);
             }
         }
 
@@ -137,132 +151,103 @@ namespace EasyInstall.Core.Helpers
         /// 将卸载 overlay（JSON 配置 + 元数据）直接追加到已存在的 EXE 文件末尾。
         /// 调用前该文件必须已完成图标替换且不含 overlay。
         /// </summary>
-        /// <param name="exePath">目标 EXE 路径（原地追加）</param>
-        /// <param name="overlaySourcePath">含完整 Overlay 的安装包路径（用于读取 JSON 配置）</param>
         public static void AppendUninstallOverlay(string exePath, string overlaySourcePath)
         {
             string json = ReadConfig(overlaySourcePath);
             byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
-            int jsonLen = jsonBytes.Length;
 
             using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write))
             using (var bw = new BinaryWriter(fs))
             {
                 bw.Write(jsonBytes);
-                bw.Write(jsonLen);       // 4 bytes：JSON 长度
-                bw.Write((long)0);       // 8 bytes：压缩数据长度为 0
-                bw.Write(Magic);         // 8 bytes：魔数
+                bw.Write(jsonBytes.Length); // 4 bytes：JSON 长度
+                bw.Write((long)0);          // 8 bytes：压缩数据长度为 0（卸载程序无数据）
+                bw.Write(Magic);            // 8 bytes：魔数
             }
         }
 
         /// <summary>
-        /// 流式压缩并直接追加到 EXE 末尾，全程无临时文件、无内存缓冲。
+        /// 流式压缩并追加到 EXE 末尾，支持大文件自动拆分为外部 .eidat 文件。
+        ///
+        /// 压缩数据直接流式写入 EXE，完成后判断数据量：
+        ///   未超过阈值 → 写入 JSON + 元数据，完成（内嵌模式，无临时文件）。
+        ///   超过阈值   → 将 EXE 末尾的压缩数据段流式复制到 .eidat，
+        ///                截断 EXE 至原始长度，写入 JSON + 元数据（dataLen = -1L）。
+        ///
         /// 调用前必须已完成图标替换（BeginUpdateResource 会截断末尾数据）。
-        /// 内部以 FileMode.Append 打开 EXE，边压缩边写入，完成后回填尾部元数据。
         /// </summary>
-        /// <param name="exePath">目标 EXE 路径（已完成图标替换）</param>
-        /// <param name="files">待打包文件列表</param>
-        /// <param name="baseDir">文件相对路径基准目录</param>
-        /// <param name="compressionType">压缩算法</param>
-        /// <param name="configJson">JSON 配置字符串</param>
-        /// <param name="progress">压缩进度回调（0-100）</param>
-        public static void AppendOverlayStreaming(
+        /// <returns>true = 生成了外部 .eidat 文件；false = 数据内嵌在 EXE 中</returns>
+        public static bool AppendOverlayStreaming(
             string exePath,
-            List<Core.Models.PackageFile> files,
+            List<PackageFile> files,
             string baseDir,
-            Core.Compression.CompressionType compressionType,
+            CompressionType compressionType,
             string configJson,
             Action<int> progress = null)
         {
             byte[] jsonBytes = Encoding.UTF8.GetBytes(configJson);
+            long dataStartPos = 0;
+            long dataLen = 0;
 
+            // ── 阶段 1：流式压缩，直接写入 EXE ──────────────────────
+            // 用 Append 模式打开，压缩完成后记录数据长度，然后关闭流。
+            // 关闭后文件结构：[EXE原始内容][压缩数据]（尚无 JSON/元数据）
             using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
             {
-                // 记录压缩数据起始偏移（相对于当前文件末尾，即 Append 后的起始位置）
-                // FileMode.Append 打开后 Position = Length，直接记录即可
-                long dataStartPos = fs.Position;
-
-                // 流式压缩，直接写入 EXE，内存恒定 ~80KB
+                dataStartPos = fs.Position; // EXE 原始末尾位置
                 ZipHelper.CompressPathsToStream(files, baseDir, fs, compressionType, progress);
+                dataLen = fs.Position - dataStartPos;
+            }
 
-                long dataLen = fs.Position - dataStartPos;
-
-                // 追加 JSON + 尾部元数据
+            // ── 阶段 2：判断是否需要拆分 ─────────────────────────────
+            if (dataLen <= SplitThreshold)
+            {
+                // 内嵌模式：直接追加 JSON + 元数据
+                using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
                 using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
                 {
                     bw.Write(jsonBytes);
-                    bw.Write(jsonBytes.Length);  // 4 bytes：JSON 长度
-                    bw.Write(dataLen);           // 8 bytes：压缩数据长度
-                    bw.Write(Magic);             // 8 bytes：魔数
+                    bw.Write(jsonBytes.Length); // 4 bytes：JSON 长度
+                    bw.Write(dataLen);          // 8 bytes：压缩数据长度
+                    bw.Write(Magic);            // 8 bytes：魔数
                 }
+                return false;
             }
+
+            // 拆分模式：
+            //   1. 以 ReadWrite 模式打开 EXE，将压缩数据段流式复制到 .eidat
+            //   2. 截断 EXE 至 dataStartPos（移除压缩数据）
+            //   3. 追加 JSON + 元数据（dataLen = -1L）
+            string eidatPath = GetEidatPath(exePath);
+            if (File.Exists(eidatPath)) File.Delete(eidatPath);
+
+            using (var exeFs = new FileStream(exePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 65536))
+            using (var eidatFs = new FileStream(eidatPath, FileMode.Create, FileAccess.Write, FileShare.None, 65536))
+            {
+                // 定位到压缩数据起始位置，流式复制到 .eidat
+                exeFs.Seek(dataStartPos, SeekOrigin.Begin);
+                CopyStreamExact(exeFs, eidatFs, dataLen);
+            }
+
+            // 截断 EXE，移除压缩数据段
+            using (var exeFs = new FileStream(exePath, FileMode.Open, FileAccess.Write, FileShare.None, 65536))
+                exeFs.SetLength(dataStartPos);
+
+            // 追加 JSON + 元数据（dataLen = -1L 标记外部文件）
+            using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
+            using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
+            {
+                bw.Write(jsonBytes);
+                bw.Write(jsonBytes.Length); // 4 bytes：JSON 长度
+                bw.Write(ExternalDataFlag); // 8 bytes：-1L 表示外部文件
+                bw.Write(Magic);            // 8 bytes：魔数
+            }
+            return true;
         }
 
         /// <summary>
-        /// 将压缩数据流和 JSON 配置追加到已存在的 EXE 文件末尾。
+        /// 检测 EXE 是否包含 Overlay 数据（魔数校验）
         /// </summary>
-        public static void AppendOverlay(string exePath, Stream compressedStream, string configJson)
-        {
-            byte[] jsonBytes = Encoding.UTF8.GetBytes(configJson);
-
-            if (compressedStream.CanSeek)
-            {
-                long dataLen = compressedStream.Length - compressedStream.Position;
-                using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
-                {
-                    CopyStream(compressedStream, fs);
-                    using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
-                    {
-                        bw.Write(jsonBytes);
-                        bw.Write(jsonBytes.Length);
-                        bw.Write(dataLen);
-                        bw.Write(Magic);
-                    }
-                }
-            }
-            else
-            {
-                long dataLen = 0;
-                using (var fs = new FileStream(exePath, FileMode.Append, FileAccess.Write, FileShare.None, 65536))
-                {
-                    dataLen = CopyStreamCounted(compressedStream, fs);
-                    using (var bw = new BinaryWriter(fs, Encoding.UTF8, leaveOpen: true))
-                    {
-                        bw.Write(jsonBytes);
-                        bw.Write(jsonBytes.Length);
-                        bw.Write(dataLen);
-                        bw.Write(Magic);
-                    }
-                }
-            }
-        }
-
-        private static void CopyStream(Stream src, Stream dst)
-        {
-            var buf = new byte[81920];
-            int read;
-            while ((read = src.Read(buf, 0, buf.Length)) > 0)
-                dst.Write(buf, 0, read);
-        }
-
-        private static long CopyStreamCounted(Stream src, Stream dst)
-        {
-            var buf = new byte[81920];
-            long total = 0;
-            int read;
-            while ((read = src.Read(buf, 0, buf.Length)) > 0)
-            {
-                dst.Write(buf, 0, read);
-                total += read;
-            }
-            return total;
-        }
-
-        /// <summary>
-        /// 检测当前运行的 EXE 是否包含 Overlay 数据
-        /// </summary>
-        /// <param name="exePath"></param>
-        /// <returns></returns>
         public static bool HasOverlay(string exePath)
         {
             try
@@ -270,7 +255,7 @@ namespace EasyInstall.Core.Helpers
                 using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read))
                 {
                     if (fs.Length < Magic.Length + 12) return false;
-                    fs.Seek(-(Magic.Length), SeekOrigin.End);
+                    fs.Seek(-Magic.Length, SeekOrigin.End);
                     byte[] tail = new byte[Magic.Length];
                     fs.Read(tail, 0, tail.Length);
                     return BytesEqual(tail, Magic);
@@ -280,20 +265,16 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 从 EXE 中读取 JSON 配置
+        /// 从 EXE 中读取 JSON 配置（内嵌和拆分模式均适用）
         /// </summary>
-        /// <param name="exePath"></param>
-        /// <returns></returns>
         public static string ReadConfig(string exePath)
         {
             using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read))
             using (var br = new BinaryReader(fs))
             {
-                // 读尾部：Magic(8) + dataLen(8) + jsonLen(4)
                 fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
                 int jsonLen = br.ReadInt32();
                 long dataLen = br.ReadInt64();
-                // 跳过 Magic
                 fs.Seek(-(Magic.Length + 8 + 4 + jsonLen), SeekOrigin.End);
                 byte[] jsonBytes = br.ReadBytes(jsonLen);
                 return Encoding.UTF8.GetString(jsonBytes);
@@ -301,37 +282,64 @@ namespace EasyInstall.Core.Helpers
         }
 
         /// <summary>
-        /// 打开一个定位到压缩数据起始位置的 FileStream，用于流式解压。
-        /// 调用方负责 Dispose 该流。
+        /// 打开压缩数据流，用于流式解压。调用方负责 Dispose。
+        ///   内嵌模式（dataLen > 0）：返回定位到 EXE 内压缩数据起始位置的 FileStream
+        ///   拆分模式（dataLen == -1）：返回同目录 .eidat 文件的 FileStream（从头开始）
+        ///   卸载程序（dataLen == 0）：返回 null
         /// </summary>
-        /// <param name="exePath">EXE 文件路径</param>
-        /// <returns>定位到压缩数据起始位置的 FileStream，若无压缩数据则返回 null</returns>
-        public static FileStream OpenDataStream(string exePath)
+        public static Stream OpenDataStream(string exePath)
         {
-            var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            try
+            using (var fs = new FileStream(exePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var br = new BinaryReader(fs, Encoding.UTF8, leaveOpen: true))
             {
-                using (var br = new BinaryReader(fs, System.Text.Encoding.UTF8, leaveOpen: true))
+                fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
+                int jsonLen = br.ReadInt32();
+                long dataLen = br.ReadInt64();
+
+                if (dataLen == 0)
+                    return null;
+
+                if (dataLen == ExternalDataFlag)
                 {
-                    fs.Seek(-(Magic.Length + 8 + 4), SeekOrigin.End);
-                    int jsonLen = br.ReadInt32();
-                    long dataLen = br.ReadInt64();
+                    string eidatPath = GetEidatPath(exePath);
+                    if (!File.Exists(eidatPath))
+                        throw new FileNotFoundException(
+                            $"安装包数据文件缺失，请确保 \"{Path.GetFileName(eidatPath)}\" 与安装程序位于同一目录。",
+                            eidatPath);
+                    return new FileStream(eidatPath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536);
+                }
 
-                    if (dataLen == 0)
-                    {
-                        fs.Dispose();
-                        return null; // 卸载程序无压缩数据
-                    }
-
-                    // 定位到压缩数据起始位置
-                    fs.Seek(-(Magic.Length + 8 + 4 + jsonLen + dataLen), SeekOrigin.End);
-                    return fs;
+                // 内嵌模式
+                var dataFs = new FileStream(exePath, FileMode.Open, FileAccess.Read, FileShare.Read, 65536);
+                try
+                {
+                    dataFs.Seek(-(Magic.Length + 8 + 4 + jsonLen + dataLen), SeekOrigin.End);
+                    return dataFs;
+                }
+                catch
+                {
+                    dataFs.Dispose();
+                    throw;
                 }
             }
-            catch
+        }
+
+        // ── 内部辅助 ──────────────────────────────────────────────
+
+        /// <summary>
+        /// 从 src 精确复制 count 字节到 dst，使用固定缓冲区。
+        /// </summary>
+        private static void CopyStreamExact(Stream src, Stream dst, long count)
+        {
+            var buf = new byte[65536];
+            long remaining = count;
+            while (remaining > 0)
             {
-                fs.Dispose();
-                throw;
+                int toRead = (int)Math.Min(buf.Length, remaining);
+                int read = src.Read(buf, 0, toRead);
+                if (read == 0) break;
+                dst.Write(buf, 0, read);
+                remaining -= read;
             }
         }
 

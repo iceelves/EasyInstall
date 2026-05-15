@@ -23,8 +23,7 @@ namespace EasyInstall.Builder
     public partial class MainWindow : Window
     {
         // ── 文件树根节点集合（绑定到 TreeView）────────────────────
-        public ObservableCollection<FileTreeItem> FileRoots { get; }
-            = new ObservableCollection<FileTreeItem>();
+        public ObservableCollection<FileTreeItem> FileRoots { get; } = new ObservableCollection<FileTreeItem>();
 
         // ── 图标 Base64 缓存 ──────────────────────────────────────
         private string _installIconBase64;
@@ -290,7 +289,7 @@ namespace EasyInstall.Builder
                 Action<int> report = overall =>
                     Dispatcher.Invoke(() => ShowProgress(overall));
 
-                await Task.Run(() =>
+                bool hasSplit = await Task.Run<bool>(() =>
                 {
                     // ── 验证文件列表 ──────────────────────────────
                     if (config.Files == null || config.Files.Count == 0)
@@ -332,9 +331,10 @@ namespace EasyInstall.Builder
                     // 无临时文件，内存恒定 ~80KB，压缩完成后立即追加 JSON + 元数据
                     Action<int> zipHandler = pct => report(pct);
                     ZipHelper.ProgressChanged += zipHandler;
+                    bool split;
                     try
                     {
-                        OverlayHelper.AppendOverlayStreaming(
+                        split = OverlayHelper.AppendOverlayStreaming(
                             outputPath, config.Files, "", config.CompressionMethod, configJson);
                     }
                     finally
@@ -342,12 +342,26 @@ namespace EasyInstall.Builder
                         ZipHelper.ProgressChanged -= zipHandler;
                     }
                     report(100);
+                    return split;
                 });
 
                 ShowProgress(100);
                 SetStatus("StatusBuildDone");
-                MessageBox.Show(FindRes("MsgBuildSuccess").Replace("\\n", "\n") + outputPath,
-                    FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+
+                if (hasSplit)
+                {
+                    string eidatPath = OverlayHelper.GetEidatPath(outputPath);
+                    MessageBox.Show(
+                        FindRes("MsgBuildSuccess").Replace("\\n", "\n") + outputPath + "\n\n" +
+                        "⚠ 安装包数据已拆分为外部文件：\n" + eidatPath + "\n\n" +
+                        "分发时请将 .exe 与 .eidat 文件放在同一目录。",
+                        FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                else
+                {
+                    MessageBox.Show(FindRes("MsgBuildSuccess").Replace("\\n", "\n") + outputPath,
+                        FindRes("BuilderTitle"), MessageBoxButton.OK, MessageBoxImage.Information);
+                }
             }
             catch (Exception ex)
             {
@@ -497,7 +511,6 @@ namespace EasyInstall.Builder
 
         private void BtnAddFolder_Click(object sender, RoutedEventArgs e)
         {
-            // WPF 没有内置文件夹选择对话框，使用 WinForms
             using (var dlg = new System.Windows.Forms.FolderBrowserDialog())
             {
                 dlg.Description = FindRes("BtnAddFolder");

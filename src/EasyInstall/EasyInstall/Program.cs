@@ -16,15 +16,15 @@ namespace EasyInstall
     internal class Program
     {
         // ── 版本信息 ──────────────────────────────────────────────
-        private const string AppName    = "EasyInstall";
+        private const string AppName = "EasyInstall";
         private const string AppVersion = "1.0.0";
-        private const string AppDesc    = "A command-line packaging tool that builds installers from JSON config files";
+        private const string AppDesc = "A command-line packaging tool that builds installers from JSON config files";
 
         // ── 退出码 ────────────────────────────────────────────────
-        private const int ExitOk          = 0;
-        private const int ExitBadArgs     = 1;
+        private const int ExitOk = 0;
+        private const int ExitBadArgs = 1;
         private const int ExitConfigError = 2;
-        private const int ExitBuildError  = 3;
+        private const int ExitBuildError = 3;
 
         static int Main(string[] args)
         {
@@ -43,7 +43,7 @@ namespace EasyInstall
                 return ExitBadArgs;
 
             // 处理纯信息类参数（--help / --version），解析后立即响应
-            if (parsed.ShowHelp)    { PrintHelp();    return ExitOk; }
+            if (parsed.ShowHelp) { PrintHelp(); return ExitOk; }
             if (parsed.ShowVersion) { PrintVersion(); return ExitOk; }
 
             // ── 校验必要参数 ──────────────────────────────────────
@@ -94,10 +94,10 @@ namespace EasyInstall
             {
                 // 默认：{AppName}_{AppVersion}_{yyyyMMddHHmmss}_install.exe
                 // AppName / AppVersion 取自配置，非法文件名字符替换为 _
-                string appName   = SanitizeFileName(config.AppName    ?? "App");
-                string appVer    = SanitizeFileName(config.AppVersion ?? "1.0");
+                string appName = SanitizeFileName(config.AppName ?? "App");
+                string appVer = SanitizeFileName(config.AppVersion ?? "1.0");
                 string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
-                string outDir    = Path.GetDirectoryName(Path.GetFullPath(parsed.ConfigFile));
+                string outDir = Path.GetDirectoryName(Path.GetFullPath(parsed.ConfigFile));
                 outputPath = Path.Combine(outDir, $"{appName}_{appVer}_{timestamp}_install.exe");
             }
             // ── 打印构建摘要 ──────────────────────────────────────
@@ -114,16 +114,16 @@ namespace EasyInstall
             return Build(config, parsed.ConfigFile, setupExe, outputPath, parsed.Verbose);
         }
 
-        // ══════════════════════════════════════════════════════════
-        // 打包核心逻辑
-        // ══════════════════════════════════════════════════════════
-
-        private static int Build(
-            InstallConfig config,
-            string configFilePath,
-            string setupExe,
-            string outputPath,
-            bool verbose)
+        /// <summary>
+        /// 打包核心逻辑
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="configFilePath"></param>
+        /// <param name="setupExe"></param>
+        /// <param name="outputPath"></param>
+        /// <param name="verbose"></param>
+        /// <returns></returns>
+        private static int Build(InstallConfig config, string configFilePath, string setupExe, string outputPath, bool verbose)
         {
             try
             {
@@ -199,9 +199,10 @@ namespace EasyInstall
                     }
                 };
                 ZipHelper.ProgressChanged += zipProgress;
+                bool hasSplit;
                 try
                 {
-                    OverlayHelper.AppendOverlayStreaming(
+                    hasSplit = OverlayHelper.AppendOverlayStreaming(
                         outputPath, config.Files, baseDir, config.CompressionMethod, configJson);
                 }
                 finally
@@ -219,6 +220,19 @@ namespace EasyInstall
                 PrintSuccess("Build succeeded!");
                 Console.WriteLine($"  Output : {outputPath}");
                 Console.WriteLine($"  Size   : {FormatSize(outputSize)}");
+
+                if (hasSplit)
+                {
+                    string eidatPath = OverlayHelper.GetEidatPath(outputPath);
+                    Console.WriteLine();
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("  ⚠ 安装包数据已拆分为外部文件：");
+                    Console.ResetColor();
+                    Console.WriteLine($"    Data : {eidatPath}");
+                    Console.WriteLine($"    Size : {FormatSize(new FileInfo(eidatPath).Length)}");
+                    Console.WriteLine("  分发时请将 .exe 与 .eidat 文件放在同一目录。");
+                }
+
                 Console.WriteLine();
 
                 return ExitOk;
@@ -233,18 +247,17 @@ namespace EasyInstall
             }
         }
 
-        // ══════════════════════════════════════════════════════════
-        // 参数解析
-        // ══════════════════════════════════════════════════════════
-
+        /// <summary>
+        /// 参数解析
+        /// </summary>
         private class ParsedArgs
         {
-            public string ConfigFile  { get; set; }
-            public string OutputFile  { get; set; }
-            public string SetupExe    { get; set; }
-            public bool   ShowHelp    { get; set; }
-            public bool   ShowVersion { get; set; }
-            public bool   Verbose     { get; set; }
+            public string ConfigFile { get; set; }
+            public string OutputFile { get; set; }
+            public string SetupExe { get; set; }
+            public bool ShowHelp { get; set; }
+            public bool ShowVersion { get; set; }
+            public bool Verbose { get; set; }
         }
 
         /// <summary>
@@ -378,15 +391,15 @@ namespace EasyInstall
         private static string StripPrefix(string arg)
         {
             if (arg.StartsWith("--")) return arg.Substring(2);
-            if (arg.StartsWith("-"))  return arg.Substring(1);
-            if (arg.StartsWith("/"))  return arg.Substring(1);
+            if (arg.StartsWith("-")) return arg.Substring(1);
+            if (arg.StartsWith("/")) return arg.Substring(1);
             return null;
         }
 
-        // ══════════════════════════════════════════════════════════
-        // 自动检测 Setup.exe
-        // ══════════════════════════════════════════════════════════
-
+        /// <summary>
+        /// 自动检测 Setup.exe
+        /// </summary>
+        /// <returns></returns>
         private static string AutoDetectSetupExe()
         {
             string selfDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -520,7 +533,7 @@ namespace EasyInstall
 
         private static string FormatSize(long bytes)
         {
-            if (bytes < 1024)        return $"{bytes} B";
+            if (bytes < 1024) return $"{bytes} B";
             if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
             return $"{bytes / (1024.0 * 1024):F2} MB";
         }

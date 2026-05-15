@@ -154,9 +154,8 @@ namespace EasyInstall.Setup.Pages.Install
                     // 写出 uninstall.exe
                     if (OverlayHelper.HasOverlay(selfExePath))
                     {
-                        // 1.提取纯 EXE 字节写入目标路径
-                        byte[] exeOnly = OverlayHelper.ReadExeBytes(selfExePath);
-                        File.WriteAllBytes(uninstallDest, exeOnly);
+                        // 1.流式提取纯 EXE 部分写入目标路径（支持超过 2GB）
+                        OverlayHelper.CopyExeOnly(selfExePath, uninstallDest);
 
                         // 2.替换图标（UninstallIcon → 默认）
                         byte[] icoBytes = App.GetUninstallIcoBytes();
@@ -257,12 +256,12 @@ namespace EasyInstall.Setup.Pages.Install
                 (byte)Math.Min(255, c.G + 80),
                 (byte)Math.Min(255, c.B + 80));
 
-            var mainBrush  = new SolidColorBrush(c);
+            var mainBrush = new SolidColorBrush(c);
             var lightBrush = new SolidColorBrush(light);
-            var gradBrush  = new LinearGradientBrush
+            var gradBrush = new LinearGradientBrush
             {
                 StartPoint = new System.Windows.Point(0, 0),
-                EndPoint   = new System.Windows.Point(0, 1)
+                EndPoint = new System.Windows.Point(0, 1)
             };
             gradBrush.GradientStops.Add(new GradientStop(highlight, 0));
             gradBrush.GradientStops.Add(new GradientStop(light, 1));
