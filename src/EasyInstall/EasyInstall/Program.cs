@@ -16,11 +16,6 @@ namespace EasyInstall
     /// </summary>
     internal class Program
     {
-        // ── 版本信息 ──────────────────────────────────────────────
-        private const string AppName = "EasyInstall";
-        private const string AppVersion = "1.0.0";
-        private const string AppDesc = "A command-line packaging tool that builds installers from JSON config files";
-
         // ── 退出码 ────────────────────────────────────────────────
         private const int ExitOk = 0;
         private const int ExitBadArgs = 1;
@@ -102,7 +97,7 @@ namespace EasyInstall
                 outputPath = Path.Combine(outDir, $"{appName}_{appVer}_{timestamp}_install.exe");
             }
             // ── 打印构建摘要 ──────────────────────────────────────
-            PrintBanner();
+            PrintVersion();
             Console.WriteLine($"  Config    : {Path.GetFullPath(parsed.ConfigFile)}");
             Console.WriteLine($"  Setup.exe : {setupExe}");
             Console.WriteLine($"  Output    : {outputPath}");
@@ -227,11 +222,11 @@ namespace EasyInstall
                     string eidatPath = OverlayHelper.GetEidatPath(outputPath);
                     Console.WriteLine();
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("  ⚠ 安装包数据已拆分为外部文件：");
+                    Console.WriteLine("  ⚠ The installation package data has been split into external files:");
                     Console.ResetColor();
                     Console.WriteLine($"    Data : {eidatPath}");
                     Console.WriteLine($"    Size : {FormatSize(new FileInfo(eidatPath).Length)}");
-                    Console.WriteLine("  分发时请将 .exe 与 .eidat 文件放在同一目录。");
+                    Console.WriteLine("  When distributing, please place the .exe and .eidat files in the same directory.");
                 }
 
                 Console.WriteLine();
@@ -444,14 +439,6 @@ namespace EasyInstall
         // ══════════════════════════════════════════════════════════
         // 控制台输出辅助
         // ══════════════════════════════════════════════════════════
-
-        private static void PrintBanner()
-        {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"  {AppName} v{AppVersion}  —  {AppDesc}");
-            Console.ResetColor();
-            Console.WriteLine(new string('─', 60));
-        }
 
         /// <summary>
         /// 打印 ANSI LOGO + Version

@@ -347,7 +347,6 @@ namespace EasyInstall.Core.Helpers
                 }
                 catch (IOException) when (attempt < maxRetries)
                 {
-                    Console.WriteLine($"重试{attempt}次");
                     System.Threading.Thread.Sleep(retryDelayMs);
                 }
             }
