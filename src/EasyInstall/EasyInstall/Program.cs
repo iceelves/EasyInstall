@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace EasyInstall
@@ -452,10 +453,22 @@ namespace EasyInstall
             Console.WriteLine(new string('─', 60));
         }
 
+        /// <summary>
+        /// 打印 ANSI LOGO + Version
+        /// </summary>
         private static void PrintVersion()
         {
-            Console.WriteLine($"{AppName} {AppVersion}");
-            Console.WriteLine($".NET Framework {Environment.Version}");
+            Console.WriteLine("\n");
+            Console.WriteLine("  \u001b[96m$$$$$$\\ \u001b[93m         \u001b[92m              \u001b[96m$$$$$$$$\\ \u001b[93m$$\\ \u001b[92m           \u001b[91m          \u001b[95m");
+            Console.WriteLine("  \u001b[96m\\_$$  _|\u001b[93m         \u001b[92m              \u001b[96m$$  _____|\u001b[93m$$ |\u001b[92m           \u001b[91m          \u001b[95m");
+            Console.WriteLine("  \u001b[96m  $$ |  \u001b[93m$$$$$$$\\ \u001b[92m $$$$$$\\      \u001b[96m$$ |      \u001b[93m$$ |\u001b[92m$$\\    $$\\ \u001b[91m $$$$$$\\  \u001b[95m $$$$$$$\\");
+            Console.WriteLine("  \u001b[96m  $$ | \u001b[93m$$  _____|\u001b[92m$$  __$$\\     \u001b[96m$$$$$\\    \u001b[93m$$ |\u001b[92m\\$$\\  $$  |\u001b[91m$$  __$$\\ \u001b[95m$$  _____|");
+            Console.WriteLine("  \u001b[96m  $$ | \u001b[93m$$ /      \u001b[92m$$$$$$$$ |    \u001b[96m$$  __|   \u001b[93m$$ |\u001b[92m \\$$\\$$  / \u001b[91m$$$$$$$$ |\u001b[95m\\$$$$$$\\");
+            Console.WriteLine("  \u001b[96m  $$ | \u001b[93m$$ |      \u001b[92m$$   ____|    \u001b[96m$$ |      \u001b[93m$$ |\u001b[92m  \\$$$  /  \u001b[91m$$   ____|\u001b[95m \\____$$\\");
+            Console.WriteLine("  \u001b[96m$$$$$$ \u001b[93m\\$$$$$$$\\ \u001b[92m\\$$$$$$$\\     \u001b[96m$$$$$$$$\\ \u001b[93m$$ |\u001b[92m   \\$  /   \u001b[91m\\$$$$$$$\\ \u001b[95m$$$$$$$  |");
+            Console.WriteLine("  \u001b[96m\\______|\u001b[93m\\_______|\u001b[92m \\_______|    \u001b[96m\\________|\u001b[93m\\__|\u001b[92m    \\_/    \u001b[91m \\_______|\u001b[95m\\_______/");
+            Console.WriteLine("\u001b[0m\n");
+            Console.WriteLine($"EasyInstall V{Assembly.GetEntryAssembly()?.GetName().Version}");
         }
 
         private static void PrintHelp()
