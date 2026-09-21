@@ -5,3 +5,4 @@ ReleaseLib/
 .vs/
 demo/
 *.exe
+App_Data/

@@ -1,0 +1,6 @@
+@EasyInstall.Server_HostAddress = http://localhost:5092
+
+GET {{EasyInstall.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

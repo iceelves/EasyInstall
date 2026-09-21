@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EasyInstall 更新服务</title>
+    <style>
+        :root {
+            --accent: #4083FD;
+            --accent-hover: #2f6fe0;
+            --accent-weak: #e8f0ff;
+            --bg: #f4f6fa;
+            --card: #ffffff;
+            --border: #e3e7ee;
+            --text: #24292f;
+            --text-sub: #6a737d;
+            --danger: #d9534f;
+            --radius: 10px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        body {
+            font-family: "Segoe UI", "Microsoft YaHei", -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            header .logo {
+                width: 34px;
+                height: 34px;
+                border-radius: 8px;
+                background: var(--accent);
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 16px;
+            }
+
+            header h1 {
+                font-size: 17px;
+                font-weight: 600;
+            }
+
+            header .sub {
+                color: var(--text-sub);
+                font-size: 12px;
+            }
+
+        /* ── 登录 / 首次初始化 ─────────────── */
+        #authLayer {
+            min-height: calc(100vh - 20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 30px 30px 26px;
+            width: 380px;
+            max-width: 92vw;
+            box-shadow: 0 8px 30px rgba(15, 23, 42, .08);
+        }
+
+            .auth-card .brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 6px;
+            }
+
+                .auth-card .brand .logo {
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 9px;
+                    background: var(--accent);
+                    color: #fff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 17px;
+                }
+
+            .auth-card h2 {
+                font-size: 17px;
+                font-weight: 600;
+            }
+
+            .auth-card .sub {
+                color: var(--text-sub);
+                font-size: 12.5px;
+                margin-bottom: 18px;
+            }
+
+            .auth-card .form-row {
+                margin-bottom: 14px;
+            }
+
+            .auth-card .btn.primary {
+                width: 100%;
+                padding: 10px;
+                margin-top: 6px;
+                font-size: 14px;
+            }
+
+        .auth-err {
+            color: var(--danger);
+            font-size: 12.5px;
+            min-height: 18px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 264px 1fr;
+            gap: 20px;
+            padding: 20px 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* ── 侧栏 ─────────────────────────── */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+            .sidebar .panel {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+            }
+
+                .sidebar .panel .head {
+                    padding: 12px 14px;
+                    font-weight: 600;
+                    border-bottom: 1px solid var(--border);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+        .app-list {
+            list-style: none;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+            .app-list li {
+                padding: 11px 14px;
+                cursor: pointer;
+                border-bottom: 1px solid var(--border);
+                transition: background .15s;
+            }
+
+                .app-list li:last-child {
+                    border-bottom: none;
+                }
+
+                .app-list li:hover {
+                    background: #f7f9fc;
+                }
+
+                .app-list li.active {
+                    background: var(--accent-weak);
+                }
+
+            .app-list .app-name {
+                font-weight: 600;
+            }
+
+            .app-list .app-key {
+                color: var(--text-sub);
+                font-size: 12px;
+                margin-top: 2px;
+                word-break: break-all;
+            }
+
+            .app-list .latest-badge {
+                display: inline-block;
+                margin-top: 4px;
+                font-size: 11px;
+                color: var(--accent);
+                background: var(--accent-weak);
+                border-radius: 4px;
+                padding: 1px 6px;
+            }
+
+        /* ── 按钮 ─────────────────────────── */
+        .btn {
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all .15s;
+        }
+
+            .btn:hover {
+                border-color: var(--accent);
+                color: var(--accent);
+            }
+
+            .btn.primary {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #fff;
+            }
+
+                .btn.primary:hover {
+                    background: var(--accent-hover);
+                }
+
+                .btn.primary:disabled {
+                    opacity: .55;
+                    cursor: not-allowed;
+                }
+
+            .btn.danger-plain {
+                color: var(--danger);
+            }
+
+                .btn.danger-plain:hover {
+                    border-color: var(--danger);
+                }
+
+            .btn.sm {
+                padding: 3px 9px;
+                font-size: 12px;
+                border-radius: 6px;
+            }
+
+        /* ── 内容区 ────────────────────────── */
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+        }
+
+            .card h2 {
+                font-size: 15px;
+                margin-bottom: 12px;
+                font-weight: 600;
+            }
+
+                .card h2 .count {
+                    font-size: 12px;
+                    color: var(--text-sub);
+                    font-weight: 400;
+                    margin-left: 8px;
+                }
+
+        .empty {
+            background: var(--card);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-sub);
+        }
+
+            .empty .big {
+                font-size: 38px;
+                margin-bottom: 10px;
+            }
+
+        .empty-mini {
+            color: var(--text-sub);
+            padding: 12px 0;
+        }
+
+        .app-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+            .app-head .title {
+                font-size: 18px;
+                font-weight: 700;
+            }
+
+            .app-head .key-line {
+                color: var(--text-sub);
+                margin-top: 4px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .app-head .desc {
+                color: var(--text-sub);
+                margin-top: 6px;
+            }
+
+            .app-head code.key {
+                background: #f0f2f5;
+                border: 1px solid var(--border);
+                border-radius: 5px;
+                padding: 1px 7px;
+                font-size: 12px;
+            }
+
+        .stats {
+            display: flex;
+            gap: 22px;
+        }
+
+            .stats .stat {
+                text-align: right;
+            }
+
+                .stats .stat b {
+                    font-size: 20px;
+                    display: block;
+                    color: var(--accent);
+                }
+
+                .stats .stat span {
+                    font-size: 12px;
+                    color: var(--text-sub);
+                }
+
+        /* ── 上传 ─────────────────────────── */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 22px 16px;
+            text-align: center;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all .15s;
+        }
+
+            .drop-zone:hover, .drop-zone.drag {
+                border-color: var(--accent);
+                background: var(--accent-weak);
+                color: var(--accent);
+            }
+
+            .drop-zone .picked {
+                color: var(--text);
+                font-weight: 600;
+                margin-top: 6px;
+            }
+
+        .upload-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+            .form-row label {
+                font-weight: 600;
+                font-size: 13px;
+            }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-sub);
+            font-weight: 400;
+            margin-left: 6px;
+        }
+
+        .form-row input.ver {
+            max-width: 300px;
+        }
+
+        input[type="text"], textarea {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            width: 100%;
+        }
+
+            input[type="text"]:focus, textarea:focus {
+                border-color: var(--accent);
+            }
+
+        textarea {
+            resize: vertical;
+            min-height: 88px;
+        }
+
+        .upload-actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .progress {
+            flex: 1;
+            height: 8px;
+            background: #eef1f5;
+            border-radius: 4px;
+            overflow: hidden;
+            display: none;
+        }
+
+            .progress .bar {
+                height: 100%;
+                width: 0;
+                background: var(--accent);
+                transition: width .2s;
+            }
+
+        /* ── 接口示例 ──────────────────────── */
+        details.api {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--card);
+        }
+
+            details.api summary {
+                padding: 12px 18px;
+                cursor: pointer;
+                font-weight: 600;
+                font-size: 14px;
+                user-select: none;
+                list-style: none;
+            }
+
+                details.api summary::before {
+                    content: "▸ ";
+                    color: var(--text-sub);
+                }
+
+            details.api[open] summary::before {
+                content: "▾ ";
+            }
+
+            details.api .api-body {
+                padding: 0 18px 16px;
+            }
+
+        .code-block {
+            position: relative;
+            background: #0d1424;
+            color: #c9d6f2;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 12.5px;
+            overflow-x: auto;
+            white-space: pre;
+            margin: 8px 0 14px;
+        }
+
+            .code-block .copy {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: #1d2a45;
+                color: #c9d6f2;
+                border: 1px solid #2c3d63;
+                border-radius: 5px;
+                font-size: 11px;
+                padding: 2px 8px;
+                cursor: pointer;
+            }
+
+                .code-block .copy:hover {
+                    background: var(--accent);
+                    color: #fff;
+                }
+
+        .api-note {
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        /* ── 版本表 ────────────────────────── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px 10px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        th {
+            color: var(--text-sub);
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        td .version {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        td .file {
+            color: var(--text-sub);
+            font-size: 12px;
+            word-break: break-all;
+        }
+
+        td .changelog {
+            white-space: pre-wrap;
+            font-size: 12.5px;
+            max-width: 360px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            font-size: 11px;
+            border-radius: 4px;
+            padding: 1px 7px;
+            margin-left: 6px;
+            vertical-align: 2px;
+        }
+
+        .size, .time {
+            font-size: 12.5px;
+            color: var(--text-sub);
+            white-space: nowrap;
+        }
+
+        .ops {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            white-space: nowrap;
+        }
+
+        /* ── 分页 ─────────────────────────── */
+        .pager {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+            .pager .info {
+                color: var(--text-sub);
+                font-size: 12px;
+                margin-right: auto;
+            }
+
+            .pager button {
+                min-width: 30px;
+                padding: 4px 8px;
+                font-size: 12.5px;
+                border: 1px solid var(--border);
+                background: var(--card);
+                color: var(--text);
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+                .pager button:hover:not(:disabled):not(.cur) {
+                    border-color: var(--accent);
+                    color: var(--accent);
+                }
+
+                .pager button.cur {
+                    background: var(--accent);
+                    border-color: var(--accent);
+                    color: #fff;
+                    cursor: default;
+                }
+
+                .pager button:disabled {
+                    opacity: .45;
+                    cursor: default;
+                }
+
+            .pager .dots {
+                color: var(--text-sub);
+                padding: 0 2px;
+            }
+
+        /* ── 弹窗 ─────────────────────────── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+            .overlay.show {
+                display: flex;
+            }
+
+        .modal {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 22px 24px;
+            width: 420px;
+            max-width: 92vw;
+            max-height: 86vh;
+            overflow-y: auto;
+        }
+
+            .modal h3 {
+                margin-bottom: 16px;
+                font-size: 16px;
+            }
+
+            .modal .form-row {
+                margin-bottom: 12px;
+            }
+
+            .modal .actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                margin-top: 18px;
+            }
+
+        /* ── Toast ────────────────────────── */
+        #toast {
+            position: fixed;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-80px);
+            background: #24292f;
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 18px;
+            font-size: 13px;
+            z-index: 99;
+            transition: transform .25s;
+            max-width: 70vw;
+        }
+
+            #toast.show {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            #toast.err {
+                background: var(--danger);
+            }
+    </style>
+</head>
+<body>
+
+    <!-- 登录 / 首次运行设置管理员密码（通过后才进入管理界面） -->
+    <div id="authLayer" hidden>
+        <div class="auth-card" id="setupCard" hidden>
+            <div class="brand">
+                <div class="logo">EI</div>
+                <h2>初始化管理员账号</h2>
+            </div>
+            <div class="sub">首次运行：请为管理后台设置登录密码（默认用户名 admin）</div>
+            <div class="form-row">
+                <label>用户名</label>
+                <input type="text" id="setupUser" value="admin">
+            </div>
+            <div class="form-row">
+                <label>密码<span class="form-hint">至少 6 位</span></label>
+                <input type="password" id="setupPass" placeholder="设置登录密码" onkeydown="if(event.key==='Enter')document.getElementById('setupPass2').focus()">
+            </div>
+            <div class="form-row">
+                <label>确认密码</label>
+                <input type="password" id="setupPass2" placeholder="再次输入密码" onkeydown="if(event.key==='Enter')submitSetup()">
+            </div>
+            <button class="btn primary" onclick="submitSetup()">创建并进入</button>
+            <div class="auth-err" id="setupErr"></div>
+        </div>
+
+        <div class="auth-card" id="loginCard" hidden>
+            <div class="brand">
+                <div class="logo">EI</div>
+                <h2>EasyInstall 更新服务</h2>
+            </div>
+            <div class="sub">请登录后管理安装包（上传/编辑需要登录）</div>
+            <div class="form-row">
+                <label>用户名</label>
+                <input type="text" id="loginUser" value="admin">
+            </div>
+            <div class="form-row">
+                <label>密码</label>
+                <input type="password" id="loginPass" placeholder="登录密码" onkeydown="if(event.key==='Enter')submitLogin()">
+            </div>
+            <button class="btn primary" onclick="submitLogin()">登 录</button>
+            <div class="auth-err" id="loginErr"></div>
+        </div>
+    </div>
+
+    <div id="appShell" hidden>
+        <header>
+            <div class="logo">EI</div>
+            <div>
+                <h1>EasyInstall 更新服务</h1>
+                <div class="sub">安装包上传 · 版本管理 · 客户端更新检查接口</div>
+            </div>
+            <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+                <span style="color:var(--text-sub);font-size:12.5px" id="whoami"></span>
+                <button class="btn sm" onclick="logout()">退出登录</button>
+            </div>
+        </header>
+
+        <div class="layout">
+            <!-- ── 应用列表 ── -->
+            <aside class="sidebar">
+                <div class="panel">
+                    <div class="head">
+                        应用列表
+                        <button class="btn sm primary" onclick="openAppModal()">＋ 新建</button>
+                    </div>
+                    <ul class="app-list" id="appList"></ul>
+                </div>
+            </aside>
+
+            <!-- ── 主内容 ── -->
+            <main class="content" id="content">
+                <div class="empty">
+                    <div class="big">📦</div>
+                    <div>选择左侧应用，或点击「＋ 新建」创建第一个应用</div>
+                </div>
+            </main>
+        </div>
+    </div><!-- /appShell -->
+    <!-- 新建/编辑应用 -->
+    <div class="overlay" id="appModalOverlay">
+        <div class="modal">
+            <h3 id="appModalTitle">新建应用</h3>
+            <div class="form-row">
+                <label>AppKey（唯一标识）<span class="form-hint">客户端接口用它定位软件，字母/数字/点/下划线/连字符</span></label>
+                <input type="text" id="appModalKey" placeholder="例如 com.mycompany.myapp">
+            </div>
+            <div class="form-row">
+                <label>显示名称</label>
+                <input type="text" id="appModalName" placeholder="例如 我的软件">
+            </div>
+            <div class="form-row">
+                <label>备注</label>
+                <input type="text" id="appModalDesc" placeholder="可选">
+            </div>
+            <div class="actions">
+                <button class="btn" onclick="closeModal('appModalOverlay')">取消</button>
+                <button class="btn primary" onclick="submitAppModal()" id="appModalSubmit">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑更新日志 -->
+    <div class="overlay" id="editLogOverlay">
+        <div class="modal">
+            <h3>编辑更新日志 <span style="color:var(--text-sub);font-weight:400;font-size:13px" id="editLogVersion"></span></h3>
+            <div class="form-row">
+                <textarea id="editLogText" placeholder="本次更新内容…"></textarea>
+            </div>
+            <div class="actions">
+                <button class="btn" onclick="closeModal('editLogOverlay')">取消</button>
+                <button class="btn primary" onclick="saveChangeLog()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        'use strict';
+        const PAGE_SIZE = 10;        // 版本列表每页条数
+        let apps = [];
+        let current = null;          // 当前选中应用的 AppKey
+        let packages = [];
+        let pickedFile = null;
+        let editingPackageId = null;
+        let currentPage = 1;
+        let appModalEditMode = false;
+
+        const $ = id => document.getElementById(id);
+
+        /* ── 基础工具 ─────────────────────── */
+        function toast(msg, isErr) {
+            const el = $('toast');
+            el.textContent = msg;
+            el.className = isErr ? 'err show' : 'show';
+            clearTimeout(el._t);
+            el._t = setTimeout(() => el.className = '', 2600);
+        }
+
+        async function api(path, options) {
+            const res = await fetch(path, options);
+            if (res.status === 401) {
+                // 会话过期/未登录：切到登录界面
+                showLogin('登录已过期，请重新登录');
+                throw new Error('请先登录');
+            }
+            let body = null;
+            try { body = await res.json(); } catch { /* 非JSON响应 */ }
+            if (!res.ok) throw new Error((body && body.error) || `请求失败（HTTP ${res.status}）`);
+            return body;
+        }
+
+        function fmtSize(bytes) {
+            if (bytes == null) return '-';
+            const units = ['B', 'KB', 'MB', 'GB'];
+            let i = 0, v = bytes;
+            while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+            return v.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
+        }
+        function fmtTime(iso) {
+            if (!iso) return '-';
+            const d = new Date(iso);
+            const p = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+        }
+        function openModal(id) { $(id).classList.add('show'); }
+        function closeModal(id) { $(id).classList.remove('show'); }
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => toast('已复制'));
+        }
+        function esc(s) {
+            return String(s ?? '').replace(/[&<>"']/g, c =>
+                ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        function origin() { return location.origin; }
+
+        /* ── 登录 / 首次初始化 ─────────────── */
+        function showSetup() {
+            $('authLayer').hidden = false;
+            $('appShell').hidden = true;
+            $('setupCard').hidden = false;
+            $('loginCard').hidden = true;
+            $('setupErr').textContent = '';
+            $('setupUser').value = 'admin';
+            $('setupPass').focus();
+        }
+
+        function showLogin(message) {
+            $('authLayer').hidden = false;
+            $('appShell').hidden = true;
+            $('setupCard').hidden = true;
+            $('loginCard').hidden = false;
+            $('loginErr').textContent = message || '';
+            if (!message) $('loginPass').value = '';
+            $('loginPass').focus();
+        }
+
+        async function startApp(username) {
+            $('authLayer').hidden = true;
+            $('appShell').hidden = false;
+            $('whoami').textContent = username ? `当前用户：${username}` : '';
+            await loadApps();
+        }
+
+        async function initAuth() {
+            try {
+                const res = await fetch('/api/auth/status');
+                const st = await res.json();
+                if (!st.initialized) showSetup();          // 首次运行：设置管理员密码
+                else if (!st.authenticated) showLogin();   // 未登录
+                else startApp(st.username);                // 已登录
+            } catch {
+                toast('无法连接更新服务', true);
+            }
+        }
+
+        async function authPost(path, body, errEl) {
+            errEl.textContent = '';
+            try {
+                const res = await fetch(path, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json().catch(() => null);
+                if (!res.ok) {
+                    errEl.textContent = (data && data.error) || `操作失败（HTTP ${res.status}）`;
+                    return null;
+                }
+                return data;
+            } catch {
+                errEl.textContent = '网络错误，请重试';
+                return null;
+            }
+        }
+
+        async function submitSetup() {
+            const username = $('setupUser').value.trim() || 'admin';
+            const p1 = $('setupPass').value, p2 = $('setupPass2').value;
+            if (p1.length < 6) { $('setupErr').textContent = '密码至少需要 6 位'; return; }
+            if (p1 !== p2) { $('setupErr').textContent = '两次输入的密码不一致'; return; }
+            const data = await authPost('/api/auth/setup', { username, password: p1 }, $('setupErr'));
+            if (data) {
+                $('setupPass').value = $('setupPass2').value = '';
+                toast('管理员账号已创建');
+                startApp(data.username);
+            }
+        }
+
+        async function submitLogin() {
+            const data = await authPost('/api/auth/login',
+                { username: $('loginUser').value.trim(), password: $('loginPass').value }, $('loginErr'));
+            if (data) {
+                $('loginPass').value = '';
+                startApp(data.username);
+            }
+        }
+
+        async function logout() {
+            try { await fetch('/api/auth/logout', { method: 'POST' }); } catch { /* ignore */ }
+            $('whoami').textContent = '';
+            showLogin('已退出登录');
+        }
+
+        /* ── 应用列表 ─────────────────────── */
+        async function loadApps() {
+            apps = await api('/api/apps');
+            renderAppList();
+        }
+
+        function renderAppList() {
+            const ul = $('appList');
+            ul.innerHTML = '';
+            if (!apps.length) {
+                ul.innerHTML = '<li style="cursor:default;color:var(--text-sub)">还没有应用</li>';
+                return;
+            }
+            for (const a of apps) {
+                const li = document.createElement('li');
+                if (current === a.appKey) li.className = 'active';
+                li.innerHTML = `
+          <div class="app-name">${esc(a.name)}</div>
+          <div class="app-key">${esc(a.appKey)}</div>
+          ${a.latestVersion ? `<span class="latest-badge">最新 v${esc(a.latestVersion)}</span>` : '<span class="latest-badge" style="color:var(--text-sub)">暂无版本</span>'}`;
+                li.onclick = () => selectApp(a.appKey);
+                ul.appendChild(li);
+            }
+        }
+
+        /* ── 应用弹窗（新建 / 编辑） ────────── */
+        function openAppModal() {
+            appModalEditMode = false;
+            $('appModalTitle').textContent = '新建应用';
+            $('appModalSubmit').textContent = '创建';
+            $('appModalKey').value = '';
+            $('appModalKey').disabled = false;
+            $('appModalName').value = '';
+            $('appModalDesc').value = '';
+            openModal('appModalOverlay');
+            $('appModalKey').focus();
+        }
+
+        function openEditApp() {
+            const app = apps.find(a => a.appKey === current);
+            if (!app) return;
+            appModalEditMode = true;
+            $('appModalTitle').textContent = '编辑应用信息';
+            $('appModalSubmit').textContent = '保存';
+            $('appModalKey').value = app.appKey;
+            $('appModalKey').disabled = true;   // AppKey 是接口标识，不允许改
+            $('appModalName').value = app.name;
+            $('appModalDesc').value = app.description || '';
+            openModal('appModalOverlay');
+        }
+
+        async function submitAppModal() {
+            const appKey = $('appModalKey').value.trim();
+            const payload = {
+                name: $('appModalName').value.trim(),
+                description: $('appModalDesc').value.trim()
+            };
+            try {
+                if (appModalEditMode) {
+                    await api(`/api/apps/${encodeURIComponent(appKey)}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    toast('应用信息已更新');
+                } else {
+                    await api('/api/apps', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ appKey, ...payload })
+                    });
+                    toast('应用已创建');
+                    current = appKey;
+                }
+                closeModal('appModalOverlay');
+                await loadApps();
+                if (current) await selectApp(current);
+            } catch (e) { toast(e.message, true); }
+        }
+
+        async function deleteApp() {
+            if (!current) return;
+            if (!confirm(`确定删除应用 ${current}？其全部版本与安装包文件都会被删除！`)) return;
+            try {
+                await api(`/api/apps/${encodeURIComponent(current)}`, { method: 'DELETE' });
+                toast('应用已删除');
+                current = null;
+                await loadApps();
+                renderEmpty();
+            } catch (e) { toast(e.message, true); }
+        }
+
+        /* ── 应用详情 ─────────────────────── */
+        async function selectApp(appKey, keepPage) {
+            current = appKey;
+            if (!keepPage) currentPage = 1;
+            renderAppList();
+            pickedFile = null;
+            packages = await api(`/api/apps/${encodeURIComponent(appKey)}/packages`);
+            renderAppPage();
+        }
+
+        function renderEmpty() {
+            $('content').innerHTML = `
+        <div class="empty">
+          <div class="big">📦</div>
+          <div>选择左侧应用，或点击「＋ 新建」创建第一个应用</div>
+        </div>`;
+        }
+
+        async function renderAppPage() {
+            const app = apps.find(a => a.appKey === current);
+            if (!app) { renderEmpty(); return; }
+
+            // 重新渲染前记住「接口示例」的展开状态，避免刷新后折叠回去
+            const apiWasOpen = !!document.querySelector('details.api')?.open;
+
+            $('content').innerHTML = `
+        <div class="card">
+          <div class="app-head">
+            <div style="min-width:0">
+              <div class="title">${esc(app.name)}</div>
+              <div class="key-line">
+                AppKey：<code class="key">${esc(app.appKey)}</code>
+                <button class="btn sm" onclick="copyText('${esc(app.appKey)}')">复制</button>
+                <button class="btn sm" onclick="openEditApp()">编辑信息</button>
+                <button class="btn sm danger-plain" onclick="deleteApp()">删除应用</button>
+              </div>
+              ${app.description ? `<div class="desc">${esc(app.description)}</div>` : ''}
+            </div>
+            <div class="stats">
+              <div class="stat"><b>${packages.length}</b><span>版本数</span></div>
+              <div class="stat"><b>${app.latestVersion ? 'v' + esc(app.latestVersion) : '-'}</b><span>最新版本</span></div>
+            </div>
+          </div>
+        </div>
+
+        <details class="api"${apiWasOpen ? ' open' : ''}>
+          <summary>客户端接口调用示例（软件内实现自动更新用）</summary>
+          <div class="api-body">
+            <div class="api-note">
+              各软件自行实现「检查更新 → 弹窗 → 下载 → 重启」逻辑，按 AppKey 调用以下接口即可。
+              完整说明与 C# 示例见仓库 <b>docs/UpdateApi.md</b>。
+            </div>
+            <div class="code-block"><button class="copy" onclick="copyText(this.parentNode.textContent.replace('复制',''))">复制</button>GET ${origin()}/api/client/${esc(app.appKey)}/check?currentVersion=1.0.0.0</div>
+            <div class="code-block"><button class="copy" onclick="copyText(this.parentNode.textContent.replace('复制',''))">复制</button>GET ${origin()}/api/client/${esc(app.appKey)}/latest</div>
+            <div class="code-block"><button class="copy" onclick="copyText(this.parentNode.textContent.replace('复制',''))">复制</button>GET ${origin()}/api/client/${esc(app.appKey)}/download</div>
+          </div>
+        </details>
+
+        <div class="card">
+          <h2>上传新版本</h2>
+          <div class="drop-zone" id="dropZone">
+            <div>点击选择或将安装包拖拽到这里（EasyInstall 打包生成的 *Install.exe）</div>
+            <div class="picked" id="pickedName"></div>
+          </div>
+          <div class="upload-form">
+            <div class="form-row">
+              <label>版本号<span class="form-hint">留空则自动从文件名识别（如 ..._v1.0.0.0_..._Install.exe）</span></label>
+              <input type="text" class="ver" id="upVersion" placeholder="例如 1.0.0.0">
+            </div>
+            <div class="form-row">
+              <label>更新日志</label>
+              <textarea id="upChangeLog" placeholder="本次更新内容，会通过版本判断接口返回给客户端…"></textarea>
+            </div>
+            <div class="upload-actions">
+              <button class="btn primary" id="uploadBtn" onclick="upload()">上传发布</button>
+              <div class="progress" id="upProgress"><div class="bar" id="upBar"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>版本列表<span class="count" id="versionCount"></span></h2>
+          <div id="versionListWrap"></div>
+        </div>`;
+
+            bindDropZone();
+            renderVersionList();
+        }
+
+        /* ── 版本列表（前端分页） ──────────── */
+        function totalPages() {
+            return Math.max(1, Math.ceil(packages.length / PAGE_SIZE));
+        }
+
+        function renderVersionList() {
+            const wrap = $('versionListWrap');
+            if (!wrap) return;
+
+            const count = $('versionCount');
+            count.textContent = packages.length ? `共 ${packages.length} 个版本` : '';
+
+            if (!packages.length) {
+                wrap.innerHTML = '<div class="empty-mini">还没有上传过安装包</div>';
+                return;
+            }
+
+            // 上传/删除后页码可能越界，收敛到有效范围
+            if (currentPage > totalPages()) currentPage = totalPages();
+            if (currentPage < 1) currentPage = 1;
+
+            const start = (currentPage - 1) * PAGE_SIZE;
+            const rows = packages.slice(start, start + PAGE_SIZE).map(rowHtml).join('');
+
+            wrap.innerHTML = `
+        <table>
+          <thead><tr><th>版本 / 文件</th><th>大小</th><th>发布时间</th><th>更新日志</th><th>操作</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        ${totalPages() > 1 ? pagerHtml() : ''}`;
+        }
+
+        function rowHtml(p) {
+            return `
+        <tr>
+          <td>
+            <span class="version">v${esc(p.version)}</span>${p.isLatest ? '<span class="tag">最新</span>' : ''}
+            <div class="file">${esc(p.fileName)}</div>
+            <div class="file" title="SHA256 校验值，客户端可用于验证下载完整性">SHA256: ${esc(p.sha256 ? p.sha256.slice(0, 16) + '…' : '-')}</div>
+          </td>
+          <td class="size">${fmtSize(p.fileSize)}</td>
+          <td class="time">${fmtTime(p.publishedAt)}</td>
+          <td><div class="changelog">${esc(p.changeLog || '<span style="color:var(--text-sub)">（未填写）</span>')}</div></td>
+          <td>
+            <div class="ops">
+              <a class="btn sm" href="${esc(p.downloadUrl)}">下载</a>
+              <button class="btn sm" onclick="openEditLog(${p.id})">编辑日志</button>
+              <button class="btn sm danger-plain" onclick="deletePackage(${p.id})">删除</button>
+            </div>
+          </td>
+        </tr>`;
+        }
+
+        function pagerHtml() {
+            const total = totalPages();
+            const info = `<span class="info">共 ${packages.length} 个版本 · 第 ${currentPage} / ${total} 页（每页 ${PAGE_SIZE} 条）</span>`;
+            const btn = (label, page, opt) => {
+                const cls = opt?.cur ? ' class="cur"' : '';
+                const dis = opt?.disabled ? ' disabled' : '';
+                const fn = opt?.cur || opt?.disabled ? '' : ` onclick="goPage(${page})"`;
+                return `<button${cls}${dis}${fn}>${label}</button>`;
+            };
+
+            let html = info;
+            html += btn('‹ 上一页', currentPage - 1, { disabled: currentPage === 1 });
+            for (const item of pageItems(total, currentPage)) {
+                if (item === '…') html += '<span class="dots">…</span>';
+                else html += btn(item, item, { cur: item === currentPage });
+            }
+            html += btn('下一页 ›', currentPage + 1, { disabled: currentPage === total });
+            return `<div class="pager">${html}</div>`;
+        }
+
+        /* 页码窗口：页数多时只展示 1 2 … p-1 p p+1 … n-1 n */
+        function pageItems(total, cur) {
+            if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+            const wanted = new Set([1, 2, cur - 1, cur, cur + 1, total - 1, total]);
+            const pages = [...wanted].filter(p => p >= 1 && p <= total).sort((a, b) => a - b);
+            const out = [];
+            let prev = 0;
+            for (const p of pages) {
+                if (p - prev > 1) out.push('…');
+                out.push(p);
+                prev = p;
+            }
+            return out;
+        }
+
+        function goPage(page) {
+            currentPage = page;
+            renderVersionList();   // 只刷新列表区域，不影响上方的上传表单
+            const wrap = $('versionListWrap');
+            if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        /* ── 上传 ─────────────────────────── */
+        function bindDropZone() {
+            const zone = $('dropZone');
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = () => pickFile(input.files[0]);
+            zone.onclick = () => input.click();
+            zone.ondragover = e => { e.preventDefault(); zone.classList.add('drag'); };
+            zone.ondragleave = () => zone.classList.remove('drag');
+            zone.ondrop = e => {
+                e.preventDefault();
+                zone.classList.remove('drag');
+                pickFile(e.dataTransfer.files[0]);
+            };
+        }
+
+        function pickFile(file) {
+            if (!file) return;
+            pickedFile = file;
+            $('pickedName').textContent = `已选择：${file.name}（${fmtSize(file.size)}）`;
+            // 若能从文件名识别出版本号，自动填入（可修改）
+            const m = file.name.match(/(?:^|[^0-9.])v?(\d{1,5}(?:\.\d{1,5}){1,3})(?:[^0-9.]|$)/i);
+            if (m && !$('upVersion').value) $('upVersion').value = m[1];
+        }
+
+        function upload() {
+            if (!pickedFile) { toast('请先选择安装包文件', true); return; }
+
+            const form = new FormData();
+            form.append('file', pickedFile);
+            if ($('upVersion').value.trim()) form.append('version', $('upVersion').value.trim());
+            if ($('upChangeLog').value.trim()) form.append('changeLog', $('upChangeLog').value.trim());
+
+            const xhr = new XMLHttpRequest();
+            const btn = $('uploadBtn');
+            btn.disabled = true;
+            $('upProgress').style.display = 'block';
+            xhr.upload.onprogress = e => {
+                if (e.lengthComputable) {
+                    const pct = Math.round(e.loaded / e.total * 100);
+                    $('upBar').style.width = pct + '%';
+                    btn.textContent = `上传中 ${pct}%`;
+                }
+            };
+            xhr.onload = async () => {
+                btn.disabled = false;
+                btn.textContent = '上传发布';
+                setTimeout(() => { $('upProgress').style.display = 'none'; $('upBar').style.width = '0'; }, 600);
+                let body = null;
+                try { body = JSON.parse(xhr.responseText); } catch { /* ignore */ }
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    toast(body.overwritten ? `版本 v${body.version} 已覆盖更新` : `版本 v${body.version} 发布成功`);
+                    pickedFile = null;
+                    // 同步刷新应用统计（版本数/最新版本）与列表
+                    await loadApps();
+                    await selectApp(current);
+                } else {
+                    toast((body && body.error) || `上传失败（HTTP ${xhr.status}）`, true);
+                }
+            };
+            xhr.onerror = () => {
+                btn.disabled = false;
+                btn.textContent = '上传发布';
+                toast('上传失败：网络错误', true);
+            };
+            xhr.open('POST', `/api/apps/${encodeURIComponent(current)}/packages`);
+            xhr.send(form);
+        }
+
+        /* ── 版本操作 ─────────────────────── */
+        function openEditLog(id) {
+            const p = packages.find(x => x.id === id);
+            if (!p) return;
+            editingPackageId = id;
+            $('editLogVersion').textContent = `v${p.version}`;
+            $('editLogText').value = p.changeLog || '';
+            openModal('editLogOverlay');
+        }
+
+        async function saveChangeLog() {
+            try {
+                await api(`/api/packages/${editingPackageId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ changeLog: $('editLogText').value })
+                });
+                closeModal('editLogOverlay');
+                toast('更新日志已保存');
+                await loadApps();
+                await selectApp(current, true);   // 保留当前页码
+            } catch (e) { toast(e.message, true); }
+        }
+
+        async function deletePackage(id) {
+            const p = packages.find(x => x.id === id);
+            if (!p) return;
+            if (!confirm(`确定删除版本 v${p.version}？该版本的安装包文件也会被删除。`)) return;
+            try {
+                await api(`/api/packages/${id}`, { method: 'DELETE' });
+                toast('版本已删除');
+                await loadApps();
+                await selectApp(current, true);   // 保留当前页码，越界时自动收敛
+            } catch (e) { toast(e.message, true); }
+        }
+
+        /* ── 初始化 ───────────────────────── */
+        initAuth();
+    </script>
+</body>
+</html>
