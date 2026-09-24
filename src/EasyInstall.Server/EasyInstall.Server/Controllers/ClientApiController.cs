@@ -8,7 +8,7 @@ namespace EasyInstall.Server.Controllers
 {
     /// <summary>
     /// 供各软件（客户端）调用的公开接口：版本信息、版本判断、下载。
-    /// 使用方式见 docs/UpdateApi.md。
+    /// 使用方式见管理后台页面中的「客户端接口调用示例」。
     /// </summary>
     [ApiController]
     [Route("api/client/{appKey}")]
