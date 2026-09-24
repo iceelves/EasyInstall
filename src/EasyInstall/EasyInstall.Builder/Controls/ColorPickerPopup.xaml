@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Width="300" Background="White">
 
-    <Border BorderBrush="#D0D7E0" BorderThickness="1" CornerRadius="6" Background="White">
+    <Border BorderBrush="#D0D7E0" BorderThickness="1" CornerRadius="6" Background="White"
+            RenderOptions.ClearTypeHint="Enabled">
         <Border.Effect>
             <DropShadowEffect Color="#000000" BlurRadius="16" ShadowDepth="4" Opacity="0.18" Direction="270"/>
         </Border.Effect>

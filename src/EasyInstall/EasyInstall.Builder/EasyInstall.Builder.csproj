@@ -35,6 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Images\Install.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>

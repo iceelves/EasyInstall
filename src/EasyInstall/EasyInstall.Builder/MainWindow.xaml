@@ -12,7 +12,9 @@
         MinHeight="600" MinWidth="1000"
         WindowStartupLocation="CenterScreen"
         Icon="pack://application:,,,/images/Install.ico"
-        Background="#F0F2F5">
+        Background="#F0F2F5"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
 
     <Window.Resources>
         <!-- 分组标题样式 -->
@@ -83,6 +85,9 @@
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Padding" Value="14,0,14,10"/>
             <Setter Property="Margin" Value="0,0,0,10"/>
+            <!-- 挂了 Effect 的元素渲染进中间位图时 ClearType 会被关闭导致文字发虚，
+                 卡片背景不透明，显式重新启用 ClearType -->
+            <Setter Property="RenderOptions.ClearTypeHint" Value="Enabled"/>
             <Setter Property="Effect">
                 <Setter.Value>
                     <DropShadowEffect Color="#AAAAAA" BlurRadius="6" ShadowDepth="1" Opacity="0.15"/>
@@ -124,7 +129,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="CheckBox">
                         <Border x:Name="Bd" Width="13" Height="13"
-                                BorderBrush="#808E96AB" BorderThickness="1.5"
+                                BorderBrush="#808E96AB" BorderThickness="1"
                                 CornerRadius="2" Background="White"
                                 VerticalAlignment="Center" HorizontalAlignment="Center">
                             <Path x:Name="Check"
