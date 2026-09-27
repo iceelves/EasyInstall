@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
             <Image x:Name="AppIcon" Source="pack://application:,,,/EasyInstall.Core;component/images/Install.png" Width="100" Height="100" Margin="8"/>
-            <Label x:Name="AppName" FontSize="24" HorizontalAlignment="Center"/>
+            <Label x:Name="AppName" FontSize="24" HorizontalAlignment="Center" Foreground="{DynamicResource StageTextBrush}"/>
         </StackPanel>
         <Grid Grid.Row="1">
             <control:IceButton x:Name="UninstallCompleted" Height="40" Width="160" Background="#4083FD" IsMouseOverFill="#256EEB" ButtonCornerRadius="4" VerticalAlignment="Top"

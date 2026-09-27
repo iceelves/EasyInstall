@@ -94,12 +94,15 @@
     <System:String x:Key="LabelBackground">背景图</System:String>
     <System:String x:Key="LabelCarousel">轮播图</System:String>
     <System:String x:Key="LabelButtonColor">按钮颜色</System:String>
+    <System:String x:Key="LabelTextColor">文字颜色</System:String>
+    <System:String x:Key="LabelSubTextColor">次要文字颜色</System:String>
     <System:String x:Key="BtnSelectImage">选择图片...</System:String>
     <System:String x:Key="BtnClearImage">清除</System:String>
     <System:String x:Key="BtnAddCarousel">添加图片</System:String>
     <System:String x:Key="BtnRemoveCarousel">移除</System:String>
     <System:String x:Key="StylePreview">预览</System:String>
     <System:String x:Key="StyleDefaultHint">(默认)</System:String>
+    <System:String x:Key="StyleDefaultColorHint">默认 {0}</System:String>
 
     <!--压缩方式-->
     <System:String x:Key="LabelCompression">压缩方式</System:String>

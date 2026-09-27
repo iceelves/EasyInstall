@@ -94,12 +94,15 @@
     <System:String x:Key="LabelBackground">Background</System:String>
     <System:String x:Key="LabelCarousel">Carousel Images</System:String>
     <System:String x:Key="LabelButtonColor">Button Color</System:String>
+    <System:String x:Key="LabelTextColor">Text Color</System:String>
+    <System:String x:Key="LabelSubTextColor">Secondary Text Color</System:String>
     <System:String x:Key="BtnSelectImage">Select Image...</System:String>
     <System:String x:Key="BtnClearImage">Clear</System:String>
     <System:String x:Key="BtnAddCarousel">Add Image</System:String>
     <System:String x:Key="BtnRemoveCarousel">Remove</System:String>
     <System:String x:Key="StylePreview">Preview</System:String>
     <System:String x:Key="StyleDefaultHint">(default)</System:String>
+    <System:String x:Key="StyleDefaultColorHint">Default {0}</System:String>
 
     <!--Compression-->
     <System:String x:Key="LabelCompression">Compression</System:String>

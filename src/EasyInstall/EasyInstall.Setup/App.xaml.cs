@@ -106,6 +106,30 @@ namespace EasyInstall.Setup
         public static System.Windows.Media.Color? UninstallWaveColor { get; private set; }
 
         /// <summary>
+        /// 安装阶段主要文字颜色（解析自 StyleConfig.InstallTextColor），
+        /// 应用于背景图上的标题、勾选框等文字
+        /// </summary>
+        public static System.Windows.Media.Color? InstallTextColor { get; private set; }
+
+        /// <summary>
+        /// 安装阶段次要文字颜色（解析自 StyleConfig.InstallSubTextColor），
+        /// 应用于安装进行页的进度说明与百分比文字
+        /// </summary>
+        public static System.Windows.Media.Color? InstallSubTextColor { get; private set; }
+
+        /// <summary>
+        /// 卸载阶段主要文字颜色（解析自 StyleConfig.UninstallTextColor），
+        /// 应用于背景图上的标题等文字
+        /// </summary>
+        public static System.Windows.Media.Color? UninstallTextColor { get; private set; }
+
+        /// <summary>
+        /// 卸载阶段次要文字颜色（解析自 StyleConfig.UninstallSubTextColor），
+        /// 应用于卸载进行页的进度说明与百分比文字
+        /// </summary>
+        public static System.Windows.Media.Color? UninstallSubTextColor { get; private set; }
+
+        /// <summary>
         /// 是否是卸载模式
         /// </summary>
         public static bool IsUninstallMode { get; private set; }
@@ -224,6 +248,10 @@ namespace EasyInstall.Setup
             UninstallCheckBoxColor = ParseColor(style.UninstallCheckBoxColor);
             UninstallProgressBarColor = ParseColor(style.UninstallProgressBarColor);
             UninstallWaveColor = ParseColor(style.UninstallWaveColor);
+            InstallTextColor = ParseColor(style.InstallTextColor);
+            UninstallTextColor = ParseColor(style.UninstallTextColor);
+            InstallSubTextColor = ParseColor(style.InstallSubTextColor);
+            UninstallSubTextColor = ParseColor(style.UninstallSubTextColor);
 
             // 将当前阶段的 CheckBox 颜色注入全局资源（IceCheckBoxStyle 使用 DynamicResource CheckBackground）
             var activeCheckBoxColor = IsUninstallMode ? UninstallCheckBoxColor : InstallCheckBoxColor;
@@ -238,6 +266,15 @@ namespace EasyInstall.Setup
                 // 同时找到 IceCheckBoxStyle.xaml 所在的嵌套字典并覆盖，确保 DynamicResource 能感知
                 UpdateCheckBackgroundInDictionaries(Application.Current.Resources, brush);
             }
+
+            // 将当前阶段的文字颜色注入全局资源（页面通过 DynamicResource 引用）。
+            // 无论是否配置都注入：未配置时注入默认色，保证 DynamicResource 始终可解析。
+            var textColor = IsUninstallMode ? UninstallTextColor : InstallTextColor;
+            var subTextColor = IsUninstallMode ? UninstallSubTextColor : InstallSubTextColor;
+            var linkColor = IsUninstallMode ? UninstallButtonColor : InstallButtonColor;
+            Application.Current.Resources["StageTextBrush"]    = MakeBrush(textColor,    System.Windows.Media.Colors.Black);
+            Application.Current.Resources["StageSubTextBrush"] = MakeBrush(subTextColor, (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#7F8C8D"));
+            Application.Current.Resources["StageLinkBrush"]    = MakeBrush(linkColor,    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#4083FD"));
 
             if (IsSilentMode)
             {
@@ -528,6 +565,16 @@ namespace EasyInstall.Setup
                 return (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
             }
             catch { return null; }
+        }
+
+        /// <summary>
+        /// 用已解析的颜色生成冻结画刷，配置为空时使用 fallback 默认色
+        /// </summary>
+        private static System.Windows.Media.SolidColorBrush MakeBrush(System.Windows.Media.Color? configured, System.Windows.Media.Color fallback)
+        {
+            var brush = new System.Windows.Media.SolidColorBrush(configured ?? fallback);
+            brush.Freeze();
+            return brush;
         }
     }
 }

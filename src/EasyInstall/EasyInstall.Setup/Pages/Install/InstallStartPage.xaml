@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
             <Image x:Name="AppIcon" Source="pack://application:,,,/EasyInstall.Core;component/images/Install.png" Width="100" Height="100" Margin="8"/>
-            <Label x:Name="AppName" FontSize="24" HorizontalAlignment="Center"/>
+            <Label x:Name="AppName" FontSize="24" HorizontalAlignment="Center" Foreground="{DynamicResource StageTextBrush}"/>
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
@@ -31,12 +31,12 @@
             </Grid>
             <Grid Grid.Row="1">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <CheckBox x:Name="ReadAndAgree" Content="{DynamicResource ReadAndAgree}" Cursor="Hand" Margin="20,0,0,0"/>
+                    <CheckBox x:Name="ReadAndAgree" Content="{DynamicResource ReadAndAgree}" Cursor="Hand" Margin="20,0,0,0" Foreground="{DynamicResource StageTextBrush}"/>
                     <control:IceButton x:Name="UserLicenseAgreement" Background="Transparent" IsMouseOverFill="Transparent" ButtonCornerRadius="0" VerticalAlignment="Center" BorderThickness="0"
-                                       Foreground="#4083FD" Content="{DynamicResource UserLicenseAgreement}" Cursor="Hand" Margin="4,0" Click="UserLicenseAgreement_Click"/>
+                                       Foreground="{DynamicResource StageLinkBrush}" Content="{DynamicResource UserLicenseAgreement}" Cursor="Hand" Margin="4,0" Click="UserLicenseAgreement_Click"/>
                 </StackPanel>
                 <control:IceButton x:Name="CustomSettings" Height="25" Background="Transparent" IsMouseOverFill="#50DCDCDC" ButtonCornerRadius="5" VerticalAlignment="Center"
-                                   HorizontalAlignment="Right" BorderThickness="0" Cursor="Hand" Margin="20,0" Padding="5,0" Foreground="Black"
+                                   HorizontalAlignment="Right" BorderThickness="0" Cursor="Hand" Margin="20,0" Padding="5,0" Foreground="{DynamicResource StageTextBrush}"
                                    Content="{DynamicResource CustomSettings}" Click="CustomSettings_Click"/>
             </Grid>
         </Grid>

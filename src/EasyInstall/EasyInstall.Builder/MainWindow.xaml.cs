@@ -40,6 +40,10 @@ namespace EasyInstall.Builder
         private string _uninstallProgressBarColor;
         private string _installWaveColor;
         private string _uninstallWaveColor;
+        private string _installTextColor;
+        private string _uninstallTextColor;
+        private string _installSubTextColor;
+        private string _uninstallSubTextColor;
         // 轮播图：存储 Base64 字符串，ListBox 绑定 ImageSource
         private readonly ObservableCollection<ImageSource> _installCarouselSources
             = new ObservableCollection<ImageSource>();
@@ -69,6 +73,9 @@ namespace EasyInstall.Builder
             LstInstallCarousel.ItemsSource = _installCarouselSources;
             LstUninstallCarousel.ItemsSource = _uninstallCarouselSources;
 
+            // 初始渲染颜色预览（未配置时显示默认色）
+            RefreshStylePreviews();
+
             // 自动检测同目录下的 Setup.exe
             AutoDetectSetupExe();
         }
@@ -89,6 +96,9 @@ namespace EasyInstall.Builder
             // Tag = "" 表示跟随系统，ApplyLanguage 内部会解析
             string lang = item.Tag as string ?? "";
             App.ApplyLanguage(lang);
+
+            // 刷新代码赋值的提示文本（默认色、图标提示等），使其跟随界面语言
+            RefreshStylePreviews();
         }
 
         /// <summary>
@@ -412,7 +422,7 @@ namespace EasyInstall.Builder
         {
             _installIconBase64 = null;
             ImgInstallIcon.Source = null;
-            TxtInstallIconPath.Text = "(默认)";
+            TxtInstallIconPath.Text = FindRes("StyleDefaultHint");
         }
 
         private void BtnSelectUninstallIcon_Click(object sender, RoutedEventArgs e)
@@ -427,7 +437,7 @@ namespace EasyInstall.Builder
         {
             _uninstallIconBase64 = null;
             ImgUninstallIcon.Source = null;
-            TxtUninstallIconPath.Text = "(默认)";
+            TxtUninstallIconPath.Text = FindRes("StyleDefaultHint");
         }
 
         private string PickIcon()
@@ -770,6 +780,10 @@ namespace EasyInstall.Builder
                     UninstallProgressBarColor = string.IsNullOrWhiteSpace(_uninstallProgressBarColor) ? null : _uninstallProgressBarColor,
                     InstallWaveColor = string.IsNullOrWhiteSpace(_installWaveColor) ? null : _installWaveColor,
                     UninstallWaveColor = string.IsNullOrWhiteSpace(_uninstallWaveColor) ? null : _uninstallWaveColor,
+                    InstallTextColor = string.IsNullOrWhiteSpace(_installTextColor) ? null : _installTextColor,
+                    UninstallTextColor = string.IsNullOrWhiteSpace(_uninstallTextColor) ? null : _uninstallTextColor,
+                    InstallSubTextColor = string.IsNullOrWhiteSpace(_installSubTextColor) ? null : _installSubTextColor,
+                    UninstallSubTextColor = string.IsNullOrWhiteSpace(_uninstallSubTextColor) ? null : _uninstallSubTextColor,
                     InstallCarouselImages = new List<string>(_installCarouselBase64),
                     UninstallCarouselImages = new List<string>(_uninstallCarouselBase64),
                 }
@@ -843,12 +857,12 @@ namespace EasyInstall.Builder
             _installIconBase64 = config.InstallIconBase64;
             if (!string.IsNullOrEmpty(_installIconBase64))
                 ShowIconPreview(ImgInstallIcon, TxtInstallIconPath, _installIconBase64);
-            else { ImgInstallIcon.Source = null; TxtInstallIconPath.Text = FindRes("StyleDefaultHint"); }
+            else { ImgInstallIcon.Source = null; }
 
             _uninstallIconBase64 = config.UninstallIconBase64;
             if (!string.IsNullOrEmpty(_uninstallIconBase64))
                 ShowIconPreview(ImgUninstallIcon, TxtUninstallIconPath, _uninstallIconBase64);
-            else { ImgUninstallIcon.Source = null; TxtUninstallIconPath.Text = FindRes("StyleDefaultHint"); }
+            else { ImgUninstallIcon.Source = null; }
 
             // 样式配置
             var style = config.Style ?? new StyleConfig();
@@ -864,31 +878,30 @@ namespace EasyInstall.Builder
             ImgUninstallBackground.Source = string.IsNullOrEmpty(_uninstallBackgroundBase64)
                 ? null : Base64ToImage(_uninstallBackgroundBase64);
 
-            // 安装按钮颜色
+            // 按钮颜色
             _installButtonColor = style.InstallButtonColor;
-            ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, _installButtonColor);
-
-            // 卸载按钮颜色
             _uninstallButtonColor = style.UninstallButtonColor;
-            ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, _uninstallButtonColor);
 
-            // CheckBox 颜色（安装/卸载分别配置）
+            // CheckBox 颜色
             _installCheckBoxColor = style.InstallCheckBoxColor;
-            ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, _installCheckBoxColor);
             _uninstallCheckBoxColor = style.UninstallCheckBoxColor;
-            ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, _uninstallCheckBoxColor);
 
-            // 进度条颜色（安装/卸载分别配置）
+            // 进度条颜色
             _installProgressBarColor = style.InstallProgressBarColor;
-            ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, _installProgressBarColor);
             _uninstallProgressBarColor = style.UninstallProgressBarColor;
-            ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, _uninstallProgressBarColor);
 
-            // 波形动画颜色（安装/卸载分别配置）
+            // 波形动画颜色
             _installWaveColor = style.InstallWaveColor;
-            ApplyColorPreview(InstallWaveColorPreview, TxtInstallWaveColor, _installWaveColor);
             _uninstallWaveColor = style.UninstallWaveColor;
-            ApplyColorPreview(UninstallWaveColorPreview, TxtUninstallWaveColor, _uninstallWaveColor);
+
+            // 文字颜色
+            _installTextColor = style.InstallTextColor;
+            _uninstallTextColor = style.UninstallTextColor;
+            _installSubTextColor = style.InstallSubTextColor;
+            _uninstallSubTextColor = style.UninstallSubTextColor;
+
+            // 按当前配置统一刷新预览
+            RefreshStylePreviews();
 
             // 安装轮播图
             _installCarouselBase64.Clear();
@@ -1043,8 +1056,6 @@ namespace EasyInstall.Builder
             _uninstallIconBase64 = null;
             ImgInstallIcon.Source = null;
             ImgUninstallIcon.Source = null;
-            TxtInstallIconPath.Text = FindRes("StyleDefaultHint");
-            TxtUninstallIconPath.Text = FindRes("StyleDefaultHint");
 
             // 样式
             ChkHideTitleBar.IsChecked = false;
@@ -1060,14 +1071,11 @@ namespace EasyInstall.Builder
             _uninstallProgressBarColor = null;
             _installWaveColor = null;
             _uninstallWaveColor = null;
-            ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, null);
-            ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, null);
-            ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, null);
-            ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, null);
-            ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, null);
-            ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, null);
-            ApplyColorPreview(InstallWaveColorPreview, TxtInstallWaveColor, null);
-            ApplyColorPreview(UninstallWaveColorPreview, TxtUninstallWaveColor, null);
+            _installTextColor = null;
+            _uninstallTextColor = null;
+            _installSubTextColor = null;
+            _uninstallSubTextColor = null;
+            RefreshStylePreviews();
             _installCarouselBase64.Clear();
             _installCarouselSources.Clear();
             _uninstallCarouselBase64.Clear();
@@ -1306,6 +1314,70 @@ namespace EasyInstall.Builder
             ApplyColorPreview(UninstallWaveColorPreview, TxtUninstallWaveColor, null);
         }
 
+        // ── 安装文字颜色 ──────────────────────────────────────────
+        private void BtnPickInstallTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            ShowColorPicker(sender as FrameworkElement, _installTextColor, hex =>
+            {
+                _installTextColor = hex;
+                ApplyColorPreview(InstallTextColorPreview, TxtInstallTextColor, hex);
+            });
+        }
+
+        private void BtnClearInstallTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            _installTextColor = null;
+            ApplyColorPreview(InstallTextColorPreview, TxtInstallTextColor, null);
+        }
+
+        // ── 卸载文字颜色 ──────────────────────────────────────────
+        private void BtnPickUninstallTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            ShowColorPicker(sender as FrameworkElement, _uninstallTextColor, hex =>
+            {
+                _uninstallTextColor = hex;
+                ApplyColorPreview(UninstallTextColorPreview, TxtUninstallTextColor, hex);
+            });
+        }
+
+        private void BtnClearUninstallTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            _uninstallTextColor = null;
+            ApplyColorPreview(UninstallTextColorPreview, TxtUninstallTextColor, null);
+        }
+
+        // ── 安装次要文字颜色 ──────────────────────────────────────
+        private void BtnPickInstallSubTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            ShowColorPicker(sender as FrameworkElement, _installSubTextColor, hex =>
+            {
+                _installSubTextColor = hex;
+                ApplyColorPreview(InstallSubTextColorPreview, TxtInstallSubTextColor, hex);
+            });
+        }
+
+        private void BtnClearInstallSubTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            _installSubTextColor = null;
+            ApplyColorPreview(InstallSubTextColorPreview, TxtInstallSubTextColor, null);
+        }
+
+        // ── 卸载次要文字颜色 ──────────────────────────────────────
+        private void BtnPickUninstallSubTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            ShowColorPicker(sender as FrameworkElement, _uninstallSubTextColor, hex =>
+            {
+                _uninstallSubTextColor = hex;
+                ApplyColorPreview(UninstallSubTextColorPreview, TxtUninstallSubTextColor, hex);
+            });
+        }
+
+        private void BtnClearUninstallSubTextColor_Click(object sender, RoutedEventArgs e)
+        {
+            _uninstallSubTextColor = null;
+            ApplyColorPreview(UninstallSubTextColorPreview, TxtUninstallSubTextColor, null);
+        }
+
         // ── 安装轮播图 ────────────────────────────────────────────
         private void BtnAddInstallCarousel_Click(object sender, RoutedEventArgs e)
         {
@@ -1417,8 +1489,53 @@ namespace EasyInstall.Builder
         /// <summary>
         /// 将颜色预览 Border 和文字更新为指定十六进制颜色
         /// </summary>
+        /// <summary>
+        /// 按当前缓存值刷新全部颜色预览与图标提示。
+        /// 启动、新建/导入配置、切换界面语言后调用：
+        /// 未配置的项显示默认色，提示文本跟随当前界面语言。
+        /// </summary>
+        private void RefreshStylePreviews()
+        {
+            // 图标提示（未设置图标时跟随界面语言）
+            if (string.IsNullOrEmpty(_installIconBase64))
+                TxtInstallIconPath.Text = FindRes("StyleDefaultHint");
+            if (string.IsNullOrEmpty(_uninstallIconBase64))
+                TxtUninstallIconPath.Text = FindRes("StyleDefaultHint");
+
+            ApplyColorPreview(InstallColorPreview, TxtInstallButtonColor, _installButtonColor);
+            ApplyColorPreview(UninstallColorPreview, TxtUninstallButtonColor, _uninstallButtonColor);
+            ApplyColorPreview(InstallCheckBoxColorPreview, TxtInstallCheckBoxColor, _installCheckBoxColor);
+            ApplyColorPreview(UninstallCheckBoxColorPreview, TxtUninstallCheckBoxColor, _uninstallCheckBoxColor);
+            ApplyColorPreview(InstallProgressBarColorPreview, TxtInstallProgressBarColor, _installProgressBarColor);
+            ApplyColorPreview(UninstallProgressBarColorPreview, TxtUninstallProgressBarColor, _uninstallProgressBarColor);
+            ApplyColorPreview(InstallWaveColorPreview, TxtInstallWaveColor, _installWaveColor);
+            ApplyColorPreview(UninstallWaveColorPreview, TxtUninstallWaveColor, _uninstallWaveColor);
+            ApplyColorPreview(InstallTextColorPreview, TxtInstallTextColor, _installTextColor);
+            ApplyColorPreview(UninstallTextColorPreview, TxtUninstallTextColor, _uninstallTextColor);
+            ApplyColorPreview(InstallSubTextColorPreview, TxtInstallSubTextColor, _installSubTextColor);
+            ApplyColorPreview(UninstallSubTextColorPreview, TxtUninstallSubTextColor, _uninstallSubTextColor);
+        }
+
         private void ApplyColorPreview(Border preview, TextBlock label, string hex)
         {
+            // 未配置时显示 Tag 中标注的默认色（与安装/卸载主程序的实际初始色一致），
+            // 让用户能直接看到不配置时的效果
+            string defaultHex = preview?.Tag as string;
+            if (string.IsNullOrEmpty(hex) && !string.IsNullOrEmpty(defaultHex))
+            {
+                try
+                {
+                    var c = (Color)ColorConverter.ConvertFromString(defaultHex);
+                    preview.Background = new SolidColorBrush(c);
+                    label.Text = string.Format(FindRes("StyleDefaultColorHint"), defaultHex.ToUpperInvariant());
+                    // 根据亮度决定文字颜色
+                    double lum = 0.299 * c.R + 0.587 * c.G + 0.114 * c.B;
+                    label.Foreground = lum > 128 ? Brushes.Black : Brushes.White;
+                    return;
+                }
+                catch { }
+            }
+
             if (string.IsNullOrEmpty(hex))
             {
                 preview.Background = Brushes.White;

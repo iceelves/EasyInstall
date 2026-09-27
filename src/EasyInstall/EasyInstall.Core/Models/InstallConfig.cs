@@ -168,6 +168,35 @@ namespace EasyInstall.Core.Models
         [DataMember]
         public string UninstallButtonColor { get; set; }
 
+        /// <summary>
+        /// 安装阶段主要文字颜色（十六进制，如 #FFFFFF），
+        /// 应用于直接位于背景图上的文字：应用名标题、标题栏、勾选框文字、"自定义设置"按钮，
+        /// 为空时使用默认黑色。背景图为暗色时建议设为浅色。
+        /// </summary>
+        [DataMember]
+        public string InstallTextColor { get; set; }
+
+        /// <summary>
+        /// 安装阶段次要文字颜色（十六进制，如 #EEEEEE），
+        /// 应用于安装进行页的进度说明与百分比文字，为空时使用默认灰色。
+        /// </summary>
+        [DataMember]
+        public string InstallSubTextColor { get; set; }
+
+        /// <summary>
+        /// 卸载阶段主要文字颜色（十六进制，如 #FFFFFF），
+        /// 应用于直接位于背景图上的文字：应用名标题、标题栏，为空时使用默认黑色。
+        /// </summary>
+        [DataMember]
+        public string UninstallTextColor { get; set; }
+
+        /// <summary>
+        /// 卸载阶段次要文字颜色（十六进制，如 #EEEEEE），
+        /// 应用于卸载进行页的进度说明与百分比文字，为空时使用默认灰色。
+        /// </summary>
+        [DataMember]
+        public string UninstallSubTextColor { get; set; }
+
         // ── 控件颜色 ──────────────────────────────────────────────
         /// <summary>
         /// 安装阶段 CheckBox 勾选框颜色（十六进制，如 #69AFE7），为空时使用默认色

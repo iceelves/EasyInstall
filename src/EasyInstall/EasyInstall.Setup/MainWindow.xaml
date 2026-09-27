@@ -42,7 +42,7 @@
                 <Grid x:Name="TitleBar" Grid.Row="0">
                     <StackPanel x:Name="TitleLogoPanel" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                         <Image Source="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Icon}" Width="20" Height="20" Margin="10,0,5,0"/>
-                        <Label Content="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Title}"/>
+                        <Label Content="{Binding RelativeSource={RelativeSource AncestorType=Window},Path=Title}" Foreground="{DynamicResource StageTextBrush}"/>
                     </StackPanel>
                     <StackPanel WindowChrome.IsHitTestVisibleInChrome="True" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="2,1">
                         <control:IceSvgButton x:Name="mainMinimize" Width="30" Height="25" ImageMargin="7" Cursor="Hand"
