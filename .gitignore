@@ -6,3 +6,4 @@ ReleaseLib/
 demo/
 *.exe
 App_Data/
+EasyInstallServerSetup_*.zip
